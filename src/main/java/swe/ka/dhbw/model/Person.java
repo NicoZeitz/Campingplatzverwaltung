@@ -64,7 +64,7 @@ public class Person {
     }
 
     public void setTelefonnummer(String telefonnummer) {
-        Validator.getInstance().validateTelefonnummer(telefonnummer, "Person.telefonnummer");
+        Validator.getInstance().validatePhoneNumber(telefonnummer, "Person.telefonnummer");
         this.telefonnummer = telefonnummer;
     }
 }

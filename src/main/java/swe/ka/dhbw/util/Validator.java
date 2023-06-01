@@ -25,7 +25,7 @@ public class Validator {
         }
     }
 
-    public void validateTelefonnummer(final String phoneNumber, final String phoneNumberName) {
+    public void validatePhoneNumber(final String phoneNumber, final String phoneNumberName) {
         var validPhoneNumber = PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches();
         if(!validPhoneNumber) {
             throw new IllegalArgumentException(phoneNumberName + " is not a valid phone number!");
