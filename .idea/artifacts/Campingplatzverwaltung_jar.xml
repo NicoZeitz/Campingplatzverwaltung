@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Campingplatzverwaltung:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Campingplatzverwaltung_jar</output-path>
+    <root id="archive" name="Campingplatzverwaltung.jar">
+      <element id="module-output" name="Campingplatzverwaltung" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-cli/commons-cli/1.4/commons-cli-1.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/de/dhbwka/swe/utils/swe-utils/4.7.5/swe-utils-4.7.5.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

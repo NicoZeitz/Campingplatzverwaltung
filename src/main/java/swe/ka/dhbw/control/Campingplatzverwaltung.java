@@ -1,5 +1,7 @@
 package swe.ka.dhbw.control;
 
+import swe.ka.dhbw.util.ArgumentParser;
+
 public final class Campingplatzverwaltung {
     private static Campingplatzverwaltung instance;
 
@@ -13,11 +15,19 @@ public final class Campingplatzverwaltung {
     }
 
     public static void main(final String[] args) {
-        var campingplatz = Campingplatzverwaltung.getInstance();
-        campingplatz.startApplication();
+        try {
+            final var arguments = ArgumentParser.parse(args);
+            final var campingplatz = Campingplatzverwaltung.getInstance();
+            campingplatz.startApplication(arguments);
+            ArgumentParser.printCommandLineArguments();
+        } catch(final Exception argumentException) {
+            ArgumentParser.printCommandLineArguments();
+            System.out.println(argumentException);
+            System.exit(1);
+        }
     }
 
-    public void startApplication() {
-        System.out.println("Hello World");
+    public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) {
+        System.out.println(arguments);
     }
 }
