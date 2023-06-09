@@ -25,17 +25,17 @@ public class Validator {
         }
     }
 
-    public void validatePhoneNumber(final String phoneNumber, final String phoneNumberName) {
+    public void validatePhoneNumber(final String phoneNumber) {
         var validPhoneNumber = PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches();
         if(!validPhoneNumber) {
-            throw new IllegalArgumentException(phoneNumberName + " is not a valid phone number!");
+            throw new IllegalArgumentException(phoneNumber + " is not a valid phone number!");
         }
     }
 
-    public void validateEmail(final String email, final String emailName) {
+    public void validateEmail(final String email) {
         var validEmail = EMAIL_PATTERN.matcher(email).matches();
         if(!validEmail) {
-            throw new IllegalArgumentException(emailName + " is not a valid email!");
+            throw new IllegalArgumentException(email + " is not a valid email!");
         }
     }
 }

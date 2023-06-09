@@ -55,7 +55,7 @@ public class Person {
     }
 
     public void setEmail(String email) {
-        Validator.getInstance().validateEmail(email, "Person.email");
+        Validator.getInstance().validateEmail(email);
         this.email = email;
     }
 
@@ -64,7 +64,7 @@ public class Person {
     }
 
     public void setTelefonnummer(String telefonnummer) {
-        Validator.getInstance().validatePhoneNumber(telefonnummer, "Person.telefonnummer");
+        Validator.getInstance().validatePhoneNumber(telefonnummer);
         this.telefonnummer = telefonnummer;
     }
 }

@@ -1,6 +1,12 @@
 package swe.ka.dhbw.control;
 
+import de.dhbwka.swe.utils.event.GUIEvent;
+import de.dhbwka.swe.utils.event.IGUIEventListener;
+import de.dhbwka.swe.utils.util.IOUtilities;
+import swe.ka.dhbw.ui.GUIBuchung;
 import swe.ka.dhbw.util.ArgumentParser;
+
+import java.awt.*;
 
 public final class Campingplatzverwaltung {
     private static Campingplatzverwaltung instance;
@@ -19,7 +25,6 @@ public final class Campingplatzverwaltung {
             final var arguments = ArgumentParser.parse(args);
             final var campingplatz = Campingplatzverwaltung.getInstance();
             campingplatz.startApplication(arguments);
-            ArgumentParser.printCommandLineArguments();
         } catch(final Exception argumentException) {
             ArgumentParser.printCommandLineArguments();
             System.out.println(argumentException);
@@ -28,6 +33,18 @@ public final class Campingplatzverwaltung {
     }
 
     public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) {
+        var config = Configuration.builder().build();
+        System.out.println(config);
         System.out.println(arguments);
+        var main = new GUIBuchung(config);
+        main.addObserver(new IGUIEventListener() {
+            @Override
+            public void processGUIEvent(GUIEvent ge) {
+                System.out.println(ge);
+            }
+        });
+        IOUtilities.openInJFrame(main, 400, 400, 0,0,
+                "Buchung", Color.black, true
+        );
     }
 }

@@ -3,11 +3,7 @@ package swe.ka.dhbw.control;
 import java.awt.*;
 import java.util.Objects;
 
-public class Configuration {
-    public enum WindowState {
-        WINDOWED,
-        MAXIMIZED
-    }
+public class Configuration implements ReadonlyConfiguration {
 
     private static final int DEFAULT_FONT_SIZE = 11;
     private static final String DEFAULT_FONT_FAMILY = "Tahoma";
@@ -18,14 +14,14 @@ public class Configuration {
     private static final WindowState DEFAULT_WINDOW_STATE = WindowState.WINDOWED;
     private static final Color DEFAULT_ACCENT_COLOR = Color.GREEN;
 
-    private static final class Builder {
+    public static final class Builder {
         private int fontSize = DEFAULT_FONT_SIZE;
         private String fontFamily = DEFAULT_FONT_FAMILY;
         private int windowWidth = DEFAULT_WINDOW_WIDTH;
         private int windowHeight = DEFAULT_WINDOW_HEIGHT;
         private int windowX = DEFAULT_WINDOW_X;
         private int windowY = DEFAULT_WINDOW_Y;
-        private WindowState windowState = DEFAULT_WINDOW_STATE;
+        private ReadonlyConfiguration.WindowState windowState = DEFAULT_WINDOW_STATE;
         private Color accentColor = DEFAULT_ACCENT_COLOR;
 
         private Builder() {}
@@ -80,7 +76,7 @@ public class Configuration {
             return this;
         }
 
-        public Builder windowState(final WindowState state) {
+        public Builder windowState(final ReadonlyConfiguration.WindowState state) {
             this.windowState = state;
             return this;
         }
@@ -97,7 +93,7 @@ public class Configuration {
     private int windowY;
     private int windowWidth;
     private int windowHeight;
-    private WindowState windowState;
+    private ReadonlyConfiguration.WindowState windowState;
     private Color accentColor;
 
     private Configuration(
@@ -107,7 +103,7 @@ public class Configuration {
             final int windowY,
             final int windowWidth,
             final int windowHeight,
-            final WindowState windowState,
+            final ReadonlyConfiguration.WindowState windowState,
             final Color accentColor
     ) {
         this.fontSize = fontSize;
@@ -122,6 +118,10 @@ public class Configuration {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public Font getFont() {
+        return new Font(fontFamily, Font.PLAIN, fontSize);
     }
 
     public int getFontSize() {
@@ -172,11 +172,11 @@ public class Configuration {
         this.windowHeight = windowHeight;
     }
 
-    public WindowState getWindowState() {
+    public ReadonlyConfiguration.WindowState getWindowState() {
         return windowState;
     }
 
-    public void setWindowState(WindowState windowState) {
+    public void setWindowState(ReadonlyConfiguration.WindowState windowState) {
         this.windowState = windowState;
     }
 
