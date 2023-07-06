@@ -1,14 +1,29 @@
 package swe.ka.dhbw.model;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public class Stellplatzfunktion extends Leistungsbeschreibung{
+public class Stellplatzfunktion extends Leistungsbeschreibung {
 
     private Status status;
-    private ArrayList<Stellplatz> stellplaetze;
+    private List<Stellplatz> stellplaetze;
 
-    public enum Status{
-        AKTIV, INAKTIV, GESTOERT
+    public Status getStatus() {
+        return status;
     }
 
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public List<Stellplatz> getStellplaetze() {
+        return stellplaetze;
+    }
+
+    public void setStellplaetze(List<Stellplatz> stellplaetze) {
+        this.stellplaetze = stellplaetze;
+    }
+
+    public enum Status {
+        AKTIV, INAKTIV, GESTOERT
+    }
 }
