@@ -10,6 +10,14 @@ public class Personal extends Person{
     private Rolle benutzerrolle;
     private List<Stoerung> stoerungen;
 
+    public Personal(String vorname, String nachname, Geschlecht geschlecht, String email, String telefonnummer, int nummer, LocalDate geburtstag, Rolle benutzerrolle, List<Stoerung> stoerungen) {
+        super(vorname, nachname, geschlecht, email, telefonnummer);
+        this.nummer = nummer;
+        this.geburtstag = geburtstag;
+        this.benutzerrolle = benutzerrolle;
+        this.stoerungen = stoerungen;
+    }
+
     public enum Rolle{
         ADMINISTRATOR,
         PLATZWART,
