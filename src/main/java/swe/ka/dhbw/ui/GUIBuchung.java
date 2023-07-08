@@ -6,7 +6,6 @@ import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.ButtonComponent;
 import de.dhbwka.swe.utils.gui.ButtonElement;
-import de.dhbwka.swe.utils.util.AppLogger;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
@@ -20,36 +19,6 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     private final String SAVE_BUTTON_ELEMENT_ID = this.getClass().getName() + ".saveButtonElementID";
 
 
-    public enum Commands implements EventCommand {
-        DISCARD("discard", String.class),
-        SAVE("save", String.class),
-        ;
-        public final Class<?> payloadType;
-        public final String cmdText;
-
-        Commands(final String cmdText, final Class<?> payloadType ) {
-            this.cmdText = cmdText;
-            this.payloadType = payloadType;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getCmdText() {
-            return this.cmdText;
-        }
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Class<?> getPayloadType() {
-            return this.payloadType;
-        }
-    }
-
     public GUIBuchung(ReadonlyConfiguration config) {
         super();
         final var main = new JPanel();
@@ -62,7 +31,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         final var buttonComponent = ButtonComponent.builder(EXIT_BUTTON_COMPONENT_ID)
                 .embeddedComponent(main)
                 .title("Buchung anlegen")
-                .buttonElements(new ButtonElement[] {
+                .buttonElements(new ButtonElement[]{
                         ButtonElement.builder(DISCARD_BUTTON_ELEMENT_ID)
                                 .buttonText("Abbrechen")
                                 .font(config.getFont())
@@ -110,11 +79,42 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     }
 
     @Override
-    public void processUpdateEvent(UpdateEvent ue) {    }
+    public void processUpdateEvent(UpdateEvent ue) {
+    }
 
     @Override
     public void processGUIEvent(GUIEvent ge) {
         // TODO: implement and fire own events
         fireGUIEvent(ge);
+    }
+
+    public enum Commands implements EventCommand {
+        DISCARD("discard", String.class),
+        SAVE("save", String.class),
+        ;
+        public final Class<?> payloadType;
+        public final String cmdText;
+
+        Commands(final String cmdText, final Class<?> payloadType) {
+            this.cmdText = cmdText;
+            this.payloadType = payloadType;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getCmdText() {
+            return this.cmdText;
+        }
+
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Class<?> getPayloadType() {
+            return this.payloadType;
+        }
     }
 }

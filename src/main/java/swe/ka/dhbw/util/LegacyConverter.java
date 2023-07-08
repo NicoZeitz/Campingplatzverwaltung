@@ -4,20 +4,16 @@ import swe.ka.dhbw.model.Adresse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Optional;
 
 public final class LegacyConverter {
-    public record Name(String vorname, String nachname) {}
-
     private static LegacyConverter instance;
 
-    private LegacyConverter() {}
+    private LegacyConverter() {
+    }
 
     public synchronized static LegacyConverter getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new LegacyConverter();
         }
         return instance;
@@ -50,7 +46,7 @@ public final class LegacyConverter {
         try {
             Validator.getInstance().validateEmail(data);
             return Optional.of(data);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
     }
@@ -59,7 +55,7 @@ public final class LegacyConverter {
         try {
             Validator.getInstance().validatePhoneNumber(data);
             return Optional.of(data);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
     }
@@ -73,5 +69,8 @@ public final class LegacyConverter {
     public BigDecimal convertPrice(final String data) {
         var number = data.substring(0, data.length() - 2);
         return new BigDecimal(number.replace(',', '.'));
+    }
+
+    public record Name(String vorname, String nachname) {
     }
 }

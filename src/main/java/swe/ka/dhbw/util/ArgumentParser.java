@@ -5,48 +5,43 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class ArgumentParser {
-    public record ArgumentsParseResult(String dataPath, String propertiesPath) {}
-
-    public record CommandLineArgument<T>(String[] modifiers, String description, Optional<T> value) {
-        public CommandLineArgument(final String[] modifiers, final String description) {
-            this(modifiers, description, Optional.empty());
-        }
-    }
-
     private static final CommandLineArgument[] commandLineArguments = new CommandLineArgument[] {
-            new CommandLineArgument(new String[] { "-d", "--data" }, "The path to where all the data is stored."),
-            new CommandLineArgument(new String[] { "-p", "--properties" }, "The path to the properties file."),
+            new CommandLineArgument(new String[] {"-d", "--data"}, "The path to where all the data is stored."),
+            new CommandLineArgument(new String[] {"-p", "--properties"}, "The path to the properties file."),
     };
 
+    private ArgumentParser() {
+    }
 
-    private ArgumentParser() {}
-
-    public static ArgumentsParseResult parse(final String[] args) {
+    public static ArgumentsParseResult parse(final String[] args) throws ArgumentParseException {
         Optional<String> dataPath = Optional.empty();
         Optional<String> propertiesPath = Optional.empty();
 
         String currentModifier = "";
-        for(var arg : args)  {
-            if(arg.equals("-d") || arg.equals("--data")) {
+        for (var arg : args) {
+            if (arg.equals("-d") || arg.equals("--data")) {
                 currentModifier = "-d";
                 continue;
             }
-            if(arg.equals("-p") || arg.equals("--properties")) {
+            if (arg.equals("-p") || arg.equals("--properties")) {
                 currentModifier = "-p";
                 continue;
             }
 
-            if(currentModifier.equals("")) {
-                // TODO: refactor out of here
-                printCommandLineArguments();
-                System.out.println("'" + arg + "' is not a valid command line option.");
-                System.exit(1);
+            if (currentModifier.equals("")) {
+                throw new ArgumentParseException("'" + arg + "' is not a valid command line option.");
             }
 
-            if(currentModifier.equals("-d")) {
+            if (currentModifier.equals("-d")) {
+                if (dataPath.isPresent()) {
+                    throw new ArgumentParseException("You can only specify one data path.");
+                }
                 dataPath = Optional.of(arg);
             }
-            if(currentModifier.equals("-p")) {
+            if (currentModifier.equals("-p")) {
+                if (propertiesPath.isPresent()) {
+                    throw new ArgumentParseException("You can only specify one properties path.");
+                }
                 propertiesPath = Optional.of(arg);
             }
 
@@ -67,5 +62,14 @@ public final class ArgumentParser {
         }).collect(Collectors.joining("\n"));
 
         System.out.println(message);
+    }
+
+    public record CommandLineArgument<T>(String[] modifiers, String description, Optional<T> value) {
+        public CommandLineArgument(final String[] modifiers, final String description) {
+            this(modifiers, description, Optional.empty());
+        }
+    }
+
+    public record ArgumentsParseResult(String dataPath, String propertiesPath) {
     }
 }

@@ -1,7 +1,6 @@
 package swe.ka.dhbw.ui;
 
 import de.dhbwka.swe.utils.event.IGUIEventListener;
-import de.dhbwka.swe.utils.event.IGUIEventSender;
 import de.dhbwka.swe.utils.event.IUpdateEventListener;
 import de.dhbwka.swe.utils.gui.ButtonComponent;
 import de.dhbwka.swe.utils.gui.ButtonElement;
@@ -11,7 +10,6 @@ import swe.ka.dhbw.control.ReadonlyConfiguration;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 public abstract class GUIComponent extends ObservableComponent implements IUpdateEventListener {
@@ -28,19 +26,19 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
                 .font(config.getFont())
                 .toolTip(plusButtonToolTip);
 
-        if(observer.isPresent()) {
+        if (observer.isPresent()) {
             buttonElementBuilder = buttonElementBuilder.observer(observer.get());
         }
 
 
         var wrapperBuilder = ButtonComponent.builder(this.generateRandomID(Optional.of(ButtonComponent.class)))
-                .buttonElements(new ButtonElement[] {
-                    buttonElementBuilder.build()
+                .buttonElements(new ButtonElement[]{
+                        buttonElementBuilder.build()
                 })
                 .position(ButtonComponent.Position.NORTH)
                 .orientation(ButtonComponent.Orientation.RIGHT);
 
-        if(title.isPresent()) {
+        if (title.isPresent()) {
             wrapperBuilder = wrapperBuilder.title(title.get());
         }
 
