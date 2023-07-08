@@ -9,6 +9,14 @@ public class Gast extends Person {
     private List<Buchung> buchungenVerantwortlicherGast;
     private List<Buchung> buchungenZugehoerigerGast;
 
+    public Gast(String vorname, String nachname, Geschlecht geschlecht, String email, String telefonnummer, int kundennummer, String ausweisnummer, List<Buchung> buchungenVerantwortlicherGast, List<Buchung> buchungenZugehoerigerGast) {
+        super(vorname, nachname, geschlecht, email, telefonnummer);
+        this.kundennummer = kundennummer;
+        this.ausweisnummer = ausweisnummer;
+        this.buchungenVerantwortlicherGast = buchungenVerantwortlicherGast;
+        this.buchungenZugehoerigerGast = buchungenZugehoerigerGast;
+    }
+
     public int getKundennummer() {
         return kundennummer;
     }
