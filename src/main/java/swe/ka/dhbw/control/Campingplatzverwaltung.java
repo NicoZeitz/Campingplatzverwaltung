@@ -11,10 +11,11 @@ import java.awt.*;
 public final class Campingplatzverwaltung {
     private static Campingplatzverwaltung instance;
 
-    private Campingplatzverwaltung() {}
+    private Campingplatzverwaltung() {
+    }
 
     public static synchronized Campingplatzverwaltung getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new Campingplatzverwaltung();
         }
         return instance;
@@ -25,7 +26,7 @@ public final class Campingplatzverwaltung {
             final var arguments = ArgumentParser.parse(args);
             final var campingplatz = Campingplatzverwaltung.getInstance();
             campingplatz.startApplication(arguments);
-        } catch(final Exception argumentException) {
+        } catch (final Exception argumentException) {
             ArgumentParser.printCommandLineArguments();
             System.out.println(argumentException);
             System.exit(1);
@@ -33,6 +34,10 @@ public final class Campingplatzverwaltung {
     }
 
     public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) {
+        var controller = GUIController.getInstance();
+        controller.showConfiguration();
+
+
         var config = Configuration.builder().build();
         System.out.println(config);
         System.out.println(arguments);
@@ -43,7 +48,7 @@ public final class Campingplatzverwaltung {
                 System.out.println(ge);
             }
         });
-        IOUtilities.openInJFrame(main, 400, 400, 0,0,
+        IOUtilities.openInJFrame(main, 400, 400, 0, 0,
                 "Buchung", Color.black, true
         );
     }

@@ -13,80 +13,6 @@ public class Configuration implements ReadonlyConfiguration {
     private static final int DEFAULT_WINDOW_Y = 0;
     private static final WindowState DEFAULT_WINDOW_STATE = WindowState.WINDOWED;
     private static final Color DEFAULT_ACCENT_COLOR = Color.GREEN;
-
-    public static final class Builder {
-        private int fontSize = DEFAULT_FONT_SIZE;
-        private String fontFamily = DEFAULT_FONT_FAMILY;
-        private int windowWidth = DEFAULT_WINDOW_WIDTH;
-        private int windowHeight = DEFAULT_WINDOW_HEIGHT;
-        private int windowX = DEFAULT_WINDOW_X;
-        private int windowY = DEFAULT_WINDOW_Y;
-        private ReadonlyConfiguration.WindowState windowState = DEFAULT_WINDOW_STATE;
-        private Color accentColor = DEFAULT_ACCENT_COLOR;
-
-        private Builder() {}
-
-        public Configuration build() {
-            return new Configuration(
-                    this.fontSize,
-                    this.fontFamily,
-                    this.windowX,
-                    this.windowY,
-                    this.windowWidth,
-                    this.windowHeight,
-                    this.windowState,
-                    this.accentColor
-            );
-        }
-
-        public Builder fontSize(final int size) {
-            if(size <= 0) {
-                throw new IllegalArgumentException("Configuration with a font size of '" + size + "' is not allowed as it is not greater than 0");
-            }
-            this.fontSize = size;
-            return this;
-        }
-
-        public Builder fontFamily(final String family) {
-            this.fontFamily = family;
-            return this;
-        }
-
-        public Builder windowPosition(final int x, final int y) {
-            if(x <= 0) {
-                throw new IllegalArgumentException("Configuration with a window x of '" + x + "' is not allowed as it is not greater than 0");
-            }
-            if(y <= 0) {
-                throw new IllegalArgumentException("Configuration with a window y of '" + y + "' is not allowed as it is not greater than 0");
-            }
-            this.windowX = x;
-            this.windowY = y;
-            return this;
-        }
-
-        public Builder windowSize(final int width, final int height) {
-            if(width <= 0) {
-                throw new IllegalArgumentException("Configuration with a window width of '" + width + "' is not allowed as it is not greater than 0");
-            }
-            if(height <= 0) {
-                throw new IllegalArgumentException("Configuration with a window height of '" + height + "' is not allowed as it is not greater than 0");
-            }
-            this.windowWidth = width;
-            this.windowHeight = height;
-            return this;
-        }
-
-        public Builder windowState(final ReadonlyConfiguration.WindowState state) {
-            this.windowState = state;
-            return this;
-        }
-
-        public Builder accentColor(final Color color) {
-            this.accentColor = color;
-            return this;
-        }
-    }
-
     private int fontSize;
     private String fontFamily;
     private int windowX;
@@ -212,5 +138,79 @@ public class Configuration implements ReadonlyConfiguration {
                 ", windowState=" + windowState +
                 ", accentColor=" + accentColor +
                 '}';
+    }
+
+    public static final class Builder {
+        private int fontSize = DEFAULT_FONT_SIZE;
+        private String fontFamily = DEFAULT_FONT_FAMILY;
+        private int windowWidth = DEFAULT_WINDOW_WIDTH;
+        private int windowHeight = DEFAULT_WINDOW_HEIGHT;
+        private int windowX = DEFAULT_WINDOW_X;
+        private int windowY = DEFAULT_WINDOW_Y;
+        private ReadonlyConfiguration.WindowState windowState = DEFAULT_WINDOW_STATE;
+        private Color accentColor = DEFAULT_ACCENT_COLOR;
+
+        private Builder() {
+        }
+
+        public Configuration build() {
+            return new Configuration(
+                    this.fontSize,
+                    this.fontFamily,
+                    this.windowX,
+                    this.windowY,
+                    this.windowWidth,
+                    this.windowHeight,
+                    this.windowState,
+                    this.accentColor
+            );
+        }
+
+        public Builder fontSize(final int size) {
+            if (size <= 0) {
+                throw new IllegalArgumentException("Configuration with a font size of '" + size + "' is not allowed as it is not greater than 0");
+            }
+            this.fontSize = size;
+            return this;
+        }
+
+        public Builder fontFamily(final String family) {
+            this.fontFamily = family;
+            return this;
+        }
+
+        public Builder windowPosition(final int x, final int y) {
+            if (x <= 0) {
+                throw new IllegalArgumentException("Configuration with a window x of '" + x + "' is not allowed as it is not greater than 0");
+            }
+            if (y <= 0) {
+                throw new IllegalArgumentException("Configuration with a window y of '" + y + "' is not allowed as it is not greater than 0");
+            }
+            this.windowX = x;
+            this.windowY = y;
+            return this;
+        }
+
+        public Builder windowSize(final int width, final int height) {
+            if (width <= 0) {
+                throw new IllegalArgumentException("Configuration with a window width of '" + width + "' is not allowed as it is not greater than 0");
+            }
+            if (height <= 0) {
+                throw new IllegalArgumentException("Configuration with a window height of '" + height + "' is not allowed as it is not greater than 0");
+            }
+            this.windowWidth = width;
+            this.windowHeight = height;
+            return this;
+        }
+
+        public Builder windowState(final ReadonlyConfiguration.WindowState state) {
+            this.windowState = state;
+            return this;
+        }
+
+        public Builder accentColor(final Color color) {
+            this.accentColor = color;
+            return this;
+        }
     }
 }
