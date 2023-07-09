@@ -48,7 +48,6 @@ public final class Campingplatzverwaltung {
         final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
         final var database = new CSVDatenbasis(dbPath);
 
-
         entityFactory.setEntityManager(entityManager);
         entityFactory.setDatabase(database);
         entityFactory.loadAllEntities();
