@@ -6,3 +6,4 @@ Software für Campingplatzverwaltung für Softwareengineering
 
 Anlage zu abstrakter Klasse gemacht
 GUIObserver zu abstrakter Klasse gemacht
+Attribute in Person, ... protected gemacht
