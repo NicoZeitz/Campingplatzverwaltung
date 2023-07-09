@@ -25,7 +25,8 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
         BREITE,
         HOEHE,
         KENNZEICHEN,
-        FAHRZEUGTYP
+        FAHRZEUGTYP,
+        DUMMY_DATA
     }
 
     protected final int ausruestungID;
@@ -45,6 +46,10 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
         this.setAnzahl(anzahl);
         this.setBreite(breite);
         this.setHoehe(hoehe);
+    }
+
+    public int getAusruestungsId() {
+        return this.ausruestungID;
     }
 
     public double getHoehe() {
@@ -116,13 +121,14 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
     public String[] getCSVData() {
         final var csvData = new String[CSVPosition.values().length];
         csvData[CSVPosition.DISCRIMINATOR.ordinal()] = this.getClass().getSimpleName();
-        csvData[CSVPosition.AUSRUESTUNG_ID.ordinal()] = Integer.toString(this.ausruestungID);
-        csvData[CSVPosition.BEZEICHNUNG.ordinal()] = this.bezeichnung;
-        csvData[CSVPosition.ANZAHL.ordinal()] = Integer.toString(this.anzahl);
-        csvData[CSVPosition.BREITE.ordinal()] = Double.toString(this.breite);
-        csvData[CSVPosition.HOEHE.ordinal()] = Double.toString(this.hoehe);
+        csvData[CSVPosition.AUSRUESTUNG_ID.ordinal()] = Integer.toString(this.getAusruestungsId());
+        csvData[CSVPosition.BEZEICHNUNG.ordinal()] = this.getBezeichnung();
+        csvData[CSVPosition.ANZAHL.ordinal()] = Integer.toString(this.getAnzahl());
+        csvData[CSVPosition.BREITE.ordinal()] = Double.toString(this.getBreite());
+        csvData[CSVPosition.HOEHE.ordinal()] = Double.toString(this.getHoehe());
         csvData[CSVPosition.KENNZEICHEN.ordinal()] = "";
         csvData[CSVPosition.FAHRZEUGTYP.ordinal()] = "";
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -138,7 +144,9 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
                 CSVPosition.HOEHE.name(),
                 // Attributes from Fahrzeug
                 CSVPosition.KENNZEICHEN.name(),
-                CSVPosition.FAHRZEUGTYP.name()
+                CSVPosition.FAHRZEUGTYP.name(),
+                // Dummy Data
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

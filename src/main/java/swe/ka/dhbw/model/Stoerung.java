@@ -35,7 +35,8 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
         STATUS,
         FOTO_IDS,
         VERANTWORTLICHER_ID,
-        STELLPLATZFUNKTION_ID
+        STELLPLATZFUNKTION_ID,
+        DUMMY_DATA
     }
 
     private final int stoerungsnummer;
@@ -196,6 +197,7 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
                 .collect(Collectors.joining(","));
         csvData[CSVPosition.VERANTWORTLICHER_ID.ordinal()] = this.getVerantwortlicher().getPrimaryKey().toString();
         csvData[CSVPosition.STELLPLATZFUNKTION_ID.ordinal()] = this.getStellplatzfunktion().getPrimaryKey().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -210,7 +212,8 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
                 CSVPosition.STATUS.name(),
                 CSVPosition.FOTO_IDS.name(),
                 CSVPosition.VERANTWORTLICHER_ID.name(),
-                CSVPosition.STELLPLATZFUNKTION_ID.name()
+                CSVPosition.STELLPLATZFUNKTION_ID.name(),
+                CSVPosition.DUMMY_DATA.name(),
         };
     }
 

@@ -43,7 +43,8 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
         PERSONALNUMMER,
         GEBURTSTAG,
         ROLLE,
-        STOERUNGEN_IDS
+        STOERUNGEN_IDS,
+        DUMMY_DATA
     }
 
     private final List<Stoerung> stoerungen = new ArrayList<>();
@@ -152,6 +153,7 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
                 .map(Stoerung::getPrimaryKey)
                 .map(Objects::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -167,7 +169,8 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
                 CSVPosition.PERSONALNUMMER.toString(),
                 CSVPosition.GEBURTSTAG.toString(),
                 CSVPosition.ROLLE.toString(),
-                CSVPosition.STOERUNGEN_IDS.toString()
+                CSVPosition.STOERUNGEN_IDS.toString(),
+                CSVPosition.DUMMY_DATA.toString()
         };
     }
 

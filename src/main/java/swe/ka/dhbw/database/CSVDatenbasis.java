@@ -21,39 +21,74 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         this.init();
     }
 
-    public void init() throws IOException {
-        Files.createDirectories(directory);
-    }
-
     @Override
     public void create(final Class<?> c, ICSVPersistable data) throws IOException {
+        if (!this.isInitialized(c)) {
+            this.write(c, List.of(data), Optional.empty());
+            return;
+        }
+        ;
+
         final var entities = this.read(c);
         entities.add(data);
         this.write(c, entities, Optional.empty());
     }
 
     @Override
+    public void delete(final Class<?> c, final ICSVPersistable data) throws IOException {
+        if (!this.isInitialized(c)) {
+            return;
+        }
+        ;
+
+        final var entities = this.read(c);
+
+        if (entities.size() == 0) {
+            return;
+        }
+
+        final var header = entities.get(0).getCSVHeader();
+        entities.remove(data);
+        this.write(c, entities, Optional.of(header));
+    }
+
+    @Override
     public List<ICSVPersistable> read(final Class<?> c) throws IOException {
+        if (!this.isInitialized(c)) {
+            return new ArrayList<>();
+        }
+        ;
+
         final var reader = this.getReader(c);
 
         final var header = reader.readHeader(CSVReader.DEFAULT_DELIMITER,
                 String.valueOf(CSVReader.DEFAULT_COMMENT),
                 FileEncoding.UTF_8.getName());
-        return reader.readData().stream().map(data -> new ICSVPersistable() {
-            @Override
-            public String[] getCSVHeader() {
-                return header;
-            }
-
+        return reader.readData(
+                header.length,
+                CSVReader.DEFAULT_DELIMITER,
+                CSVReader.DEFAULT_COMMENT,
+                FileEncoding.UTF_8.getName()
+        ).stream().map(data -> new ICSVPersistable() {
             @Override
             public String[] getCSVData() {
                 return data;
+            }
+
+            @Override
+            public String[] getCSVHeader() {
+                return header;
             }
         }).collect(Collectors.toList());
     }
 
     @Override
     public void update(final Class<?> c, final ICSVPersistable data) throws IOException {
+        if (!this.isInitialized(c)) {
+            return;
+        }
+        ;
+
         final var entities = this.read(c);
         if (entities.size() == 0) {
             return;
@@ -68,27 +103,8 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         this.write(c, entities, Optional.empty());
     }
 
-    @Override
-    public void delete(final Class<?> c, final ICSVPersistable data) throws IOException {
-        final var entities = this.read(c);
-
-        if (entities.size() == 0) {
-            return;
-        }
-
-        final var header = entities.get(0).getCSVHeader();
-        entities.remove(data);
-        this.write(c, entities, Optional.of(header));
-    }
-
-    private CSVWriter getWriter(final Class<?> c) {
-        if (this.writers.containsKey(c.getName())) {
-            return this.writers.get(c.getName());
-        }
-
-        final var writer = new CSVWriter(this.directory.resolve(c.getSimpleName() + ".csv").toString(), true);
-        this.writers.put(c.getName(), writer);
-        return writer;
+    public void init() throws IOException {
+        Files.createDirectories(directory);
     }
 
     private CSVReader getReader(final Class<?> c) throws IOException {
@@ -103,6 +119,25 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         final var reader = new CSVReader(csvFile.toString());
         this.readers.put(c.getName(), reader);
         return reader;
+    }
+
+    private CSVWriter getWriter(final Class<?> c) {
+        if (this.writers.containsKey(c.getName())) {
+            return this.writers.get(c.getName());
+        }
+
+        final var writer = new CSVWriter(this.directory.resolve(c.getSimpleName() + ".csv").toString(), true);
+        this.writers.put(c.getName(), writer);
+        return writer;
+    }
+
+    private boolean isInitialized(final Class<?> c) throws IOException {
+        final var filePath = this.directory.resolve(c.getSimpleName() + ".csv");
+        if (!Files.exists(filePath)) {
+            return false;
+        }
+
+        return Files.size(filePath) > 0;
     }
 
     private void write(final Class<?> c,

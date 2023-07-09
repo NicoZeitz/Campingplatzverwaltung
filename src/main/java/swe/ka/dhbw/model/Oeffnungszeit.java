@@ -13,7 +13,8 @@ public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable
     public enum CSVPosition {
         OEFFNUNGSZEIT_ID,
         START,
-        ENDE
+        ENDE,
+        DUMMY_DATA
     }
 
     public enum Attributes {
@@ -84,6 +85,7 @@ public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable
         csvData[CSVPosition.OEFFNUNGSZEIT_ID.ordinal()] = Integer.toString(this.oeffnungszeitID);
         csvData[CSVPosition.START.ordinal()] = this.getStart().toString();
         csvData[CSVPosition.ENDE.ordinal()] = this.getEnde().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -92,7 +94,8 @@ public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable
         return new String[] {
                 CSVPosition.OEFFNUNGSZEIT_ID.name(),
                 CSVPosition.START.name(),
-                CSVPosition.ENDE.name()
+                CSVPosition.ENDE.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

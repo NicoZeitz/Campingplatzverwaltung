@@ -28,7 +28,8 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         RECHNUNG_ID,
         VERANTWORTLICHER_GAST_ID,
         ZUGEHOERIGE_GAESTE_IDS,
-        GEBUCHTE_LEISTUNGEN_IDS
+        GEBUCHTE_LEISTUNGEN_IDS,
+        DUMMY_DATA
     }
 
     private final int buchungsnummer;
@@ -172,6 +173,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                 .map(GebuchteLeistung::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -186,7 +188,8 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                 CSVPosition.RECHNUNG_ID.name(),
                 CSVPosition.VERANTWORTLICHER_GAST_ID.name(),
                 CSVPosition.ZUGEHOERIGE_GAESTE_IDS.name(),
-                CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.name()
+                CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

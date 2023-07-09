@@ -28,7 +28,8 @@ public class Person implements IDepictable, IPersistable, ICSVPersistable {
         NACHNAME,
         GESCHLECHT,
         EMAIL,
-        TELEFONNUMMER
+        TELEFONNUMMER,
+        DUMMY_DATA
     }
 
     protected final int personId;
@@ -144,6 +145,7 @@ public class Person implements IDepictable, IPersistable, ICSVPersistable {
         csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().name();
         csvData[CSVPosition.EMAIL.ordinal()] = this.getEmail();
         csvData[CSVPosition.TELEFONNUMMER.ordinal()] = this.getTelefonnummer();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -155,7 +157,8 @@ public class Person implements IDepictable, IPersistable, ICSVPersistable {
                 CSVPosition.NACHNAME.name(),
                 CSVPosition.GESCHLECHT.name(),
                 CSVPosition.EMAIL.name(),
-                CSVPosition.TELEFONNUMMER.name()
+                CSVPosition.TELEFONNUMMER.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

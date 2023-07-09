@@ -20,7 +20,8 @@ public class Foto implements IDepictable, ICSVPersistable, IPersistable {
         FOTO_ID,
         DATEIPFAD,
         TITEL,
-        BESCHREIBUNG
+        BESCHREIBUNG,
+        DUMMY_DATA
     }
 
     private final int fotoId;
@@ -126,6 +127,7 @@ public class Foto implements IDepictable, ICSVPersistable, IPersistable {
         csvData[CSVPosition.DATEIPFAD.ordinal()] = this.getDateipfad().toString().replaceAll("\\\\", "/");
         csvData[CSVPosition.TITEL.ordinal()] = this.getTitel();
         csvData[CSVPosition.BESCHREIBUNG.ordinal()] = this.getBeschreibung();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -135,7 +137,8 @@ public class Foto implements IDepictable, ICSVPersistable, IPersistable {
                 CSVPosition.FOTO_ID.name(),
                 CSVPosition.DATEIPFAD.name(),
                 CSVPosition.TITEL.name(),
-                CSVPosition.BESCHREIBUNG.name()
+                CSVPosition.BESCHREIBUNG.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

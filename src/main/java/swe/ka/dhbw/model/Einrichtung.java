@@ -31,7 +31,8 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         BESCHREIBUNG,
         LETZTE_WARTUNG,
         OEFFNUNGSTAGE_IDS,
-        ZUSTAENDIGE_FIRMA_ID
+        ZUSTAENDIGE_FIRMA_ID,
+        DUMMY_DATA
     }
 
     private String name;
@@ -154,6 +155,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
         csvData[CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()] = this.getZustaendigeFirma().getPrimaryKey().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -167,7 +169,8 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
                 CSVPosition.BESCHREIBUNG.name(),
                 CSVPosition.LETZTE_WARTUNG.name(),
                 CSVPosition.OEFFNUNGSTAGE_IDS.name(),
-                CSVPosition.ZUSTAENDIGE_FIRMA_ID.name()
+                CSVPosition.ZUSTAENDIGE_FIRMA_ID.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

@@ -22,7 +22,8 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
         NAME,
         ANSCHRIFT_ID,
         ANSPRECHPERSON_ID,
-        WARTUNG_IDS
+        WARTUNG_IDS,
+        DUMMY_DATA
     }
 
     private final int fremdfirmaID;
@@ -108,6 +109,7 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
         csvData[CSVPosition.WARTUNG_IDS.ordinal()] = this.getWartungen().stream()
                 .map(wartung -> wartung.getPrimaryKey().toString())
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -118,7 +120,8 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
                 CSVPosition.NAME.name(),
                 CSVPosition.ANSCHRIFT_ID.name(),
                 CSVPosition.ANSPRECHPERSON_ID.name(),
-                CSVPosition.WARTUNG_IDS.name()
+                CSVPosition.WARTUNG_IDS.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

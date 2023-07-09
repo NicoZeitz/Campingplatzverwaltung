@@ -27,7 +27,8 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
         LAGE_LONGITUDE,
         KENNZEICHEN,
         BESCHREIBUNG,
-        ANLAGEN_IDS
+        ANLAGEN_IDS,
+        DUMMY_DATA
     }
 
     private final List<Anlage> anlagen = new ArrayList<>();
@@ -104,6 +105,7 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
                 .map(Anlage::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -115,7 +117,8 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
                 CSVPosition.LAGE_LONGITUDE.name(),
                 CSVPosition.KENNZEICHEN.name(),
                 CSVPosition.BESCHREIBUNG.name(),
-                CSVPosition.ANLAGEN_IDS.name()
+                CSVPosition.ANLAGEN_IDS.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

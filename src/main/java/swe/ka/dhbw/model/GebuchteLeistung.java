@@ -21,6 +21,7 @@ public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPe
         BUCHUNG_START,
         BUCHUNGS_ENDE,
         LEISTUNGSBESCHREIBUNG_ID,
+        DUMMY_DATA
     }
 
     private final int gebuchteLeistungId;
@@ -109,6 +110,7 @@ public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPe
         csvData[CSVPosition.BUCHUNG_START.ordinal()] = this.getBuchungStart().toString();
         csvData[CSVPosition.BUCHUNGS_ENDE.ordinal()] = this.getBuchungsEnde().toString();
         csvData[CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()] = this.getLeistungsbeschreibung().getPrimaryKey().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -118,7 +120,8 @@ public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPe
                 CSVPosition.GEBUCHTE_LEISTUNG_ID.name(),
                 CSVPosition.BUCHUNG_START.name(),
                 CSVPosition.BUCHUNGS_ENDE.name(),
-                CSVPosition.LEISTUNGSBESCHREIBUNG_ID.name()
+                CSVPosition.LEISTUNGSBESCHREIBUNG_ID.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

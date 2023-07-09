@@ -20,7 +20,8 @@ public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
 
     public enum CSVPosition {
         NUMMER,
-        STATUS
+        STATUS,
+        DUMMY_DATA
     }
 
     private final int nummer;
@@ -77,7 +78,8 @@ public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
     public String[] getCSVData() {
         return new String[] {
                 Integer.toString(this.getNummer()),
-                this.getStatus().name()
+                this.getStatus().name(),
+                "NULL"
         };
     }
 
@@ -85,7 +87,8 @@ public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
     public String[] getCSVHeader() {
         return new String[] {
                 CSVPosition.NUMMER.name(),
-                CSVPosition.STATUS.name()
+                CSVPosition.STATUS.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

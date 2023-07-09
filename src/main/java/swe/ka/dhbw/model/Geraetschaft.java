@@ -27,7 +27,8 @@ public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistab
         MAXIMAL_ANZAHL,
         BESCHREIBUNG,
         ANSCHAFFUNGSDATUM,
-        ZUSTAND
+        ZUSTAND,
+        DUMMY_DATA
     }
 
     private LocalDate anschaffungsdatum;
@@ -101,6 +102,7 @@ public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistab
         csvData[CSVPosition.BESCHREIBUNG.ordinal()] = this.getBeschreibung();
         csvData[CSVPosition.ANSCHAFFUNGSDATUM.ordinal()] = this.getAnschaffungsdatum().toString();
         csvData[CSVPosition.ZUSTAND.ordinal()] = this.getZustand();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -112,7 +114,8 @@ public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistab
                 CSVPosition.MAXIMAL_ANZAHL.name(),
                 CSVPosition.BESCHREIBUNG.name(),
                 CSVPosition.ANSCHAFFUNGSDATUM.name(),
-                CSVPosition.ZUSTAND.name()
+                CSVPosition.ZUSTAND.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

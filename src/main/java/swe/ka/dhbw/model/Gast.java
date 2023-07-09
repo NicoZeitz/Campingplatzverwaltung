@@ -10,17 +10,6 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public final class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable {
-    public enum CSVPosition {
-        VORNAME,
-        NACHNAME,
-        GESCHLECHT,
-        EMAIL,
-        TELEFONNUMMER,
-        KUNDENNUMMER,
-        AUSWEISNUMMER,
-        ANSCHRIFT
-    }
-
     public enum Attributes {
         VORNAME,
         NACHNAME,
@@ -29,6 +18,18 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
         TELEFONNUMMER,
         KUNDENNUMMER,
         AUSWEISNUMMER
+    }
+
+    public enum CSVPosition {
+        VORNAME,
+        NACHNAME,
+        GESCHLECHT,
+        EMAIL,
+        TELEFONNUMMER,
+        KUNDENNUMMER,
+        AUSWEISNUMMER,
+        ANSCHRIFT,
+        DUMMY_DATA
     }
 
     private final int kundennummer;
@@ -117,6 +118,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
         csvData[CSVPosition.KUNDENNUMMER.ordinal()] = Integer.toString(this.getKundennummer());
         csvData[CSVPosition.AUSWEISNUMMER.ordinal()] = this.getAusweisnummer();
         csvData[CSVPosition.ANSCHRIFT.ordinal()] = this.getAnschrift().getPrimaryKey().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -130,7 +132,8 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
                 CSVPosition.TELEFONNUMMER.name(),
                 CSVPosition.KUNDENNUMMER.name(),
                 CSVPosition.AUSWEISNUMMER.name(),
-                CSVPosition.ANSCHRIFT.name()
+                CSVPosition.ANSCHRIFT.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

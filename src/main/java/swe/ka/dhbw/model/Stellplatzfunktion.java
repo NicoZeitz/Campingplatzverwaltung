@@ -30,7 +30,8 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
         GEBUEHR,
         MAXIMAL_ANZAHL,
         BESCHREIBUNG,
-        STATUS
+        STATUS,
+        DUMMY_DATA
     }
 
     private final List<Stellplatz> stellplaetze = new ArrayList<>();
@@ -88,6 +89,7 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
         csvData[CSVPosition.MAXIMAL_ANZAHL.ordinal()] = Integer.toString(this.getMaximalAnzahl());
         csvData[CSVPosition.BESCHREIBUNG.ordinal()] = this.getBeschreibung();
         csvData[CSVPosition.STATUS.ordinal()] = this.getStatus().name();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -98,7 +100,8 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
                 CSVPosition.GEBUEHR.name(),
                 CSVPosition.MAXIMAL_ANZAHL.name(),
                 CSVPosition.BESCHREIBUNG.name(),
-                CSVPosition.STATUS.name()
+                CSVPosition.STATUS.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

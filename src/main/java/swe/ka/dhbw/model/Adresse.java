@@ -50,7 +50,8 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
         ZUSATZ,
         ORT,
         PLZ,
-        LAND
+        LAND,
+        DUMMY_DATA
     }
 
     private final int adresseID;
@@ -190,6 +191,7 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
         csvData[CSVPosition.ORT.ordinal()] = this.getOrt();
         csvData[CSVPosition.PLZ.ordinal()] = this.getPLZ();
         csvData[CSVPosition.LAND.ordinal()] = this.getLand().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -202,7 +204,8 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
                 CSVPosition.ZUSATZ.name(),
                 CSVPosition.ORT.name(),
                 CSVPosition.PLZ.name(),
-                CSVPosition.LAND.name()
+                CSVPosition.LAND.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

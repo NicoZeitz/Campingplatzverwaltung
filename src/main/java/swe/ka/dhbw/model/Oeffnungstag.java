@@ -24,7 +24,8 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
     public enum CSVPosition {
         OEFFNUNGSTAG_ID,
         WOCHENTAG,
-        OEFFNUNGSZEITEN_IDS
+        OEFFNUNGSZEITEN_IDS,
+        DUMMY_DATA
     }
 
     private final int oeffnungstagId;
@@ -92,6 +93,7 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
                 .map(Oeffnungszeit::getPrimaryKey)
                 .map(Objects::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -100,7 +102,8 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
         return new String[] {
                 CSVPosition.OEFFNUNGSTAG_ID.name(),
                 CSVPosition.WOCHENTAG.name(),
-                CSVPosition.OEFFNUNGSZEITEN_IDS.name()
+                CSVPosition.OEFFNUNGSZEITEN_IDS.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

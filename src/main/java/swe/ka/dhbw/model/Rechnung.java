@@ -29,7 +29,8 @@ public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
         BANKVERBINDUNG,
         ZAHLUNGSZWECK,
         ZAHLUNGSZIEL,
-        ADRESSAT_ID
+        ADRESSAT_ID,
+        DUMMY_DATA
     }
 
     private final int rechnungsnummer;
@@ -157,6 +158,7 @@ public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
         csvData[CSVPosition.ZAHLUNGSZWECK.ordinal()] = this.getZahlungszweck();
         csvData[CSVPosition.ZAHLUNGSZIEL.ordinal()] = this.getZahlungsziel().toString();
         csvData[CSVPosition.ADRESSAT_ID.ordinal()] = this.getAdressat().getPrimaryKey().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -170,7 +172,8 @@ public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
                 CSVPosition.BANKVERBINDUNG.name(),
                 CSVPosition.ZAHLUNGSZWECK.name(),
                 CSVPosition.ZAHLUNGSZIEL.name(),
-                CSVPosition.ADRESSAT_ID.name()
+                CSVPosition.ADRESSAT_ID.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

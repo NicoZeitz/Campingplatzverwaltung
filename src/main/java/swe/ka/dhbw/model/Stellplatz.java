@@ -39,6 +39,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
         ANZAHL_PKW,
         ANZAHL_ZELTE,
         VERFUEGBARE_FUNKTIONEN_IDS,
+        DUMMY_DATA,
     }
 
     private final List<Stellplatzfunktion> verfuegbareFunktionen = new ArrayList<>();
@@ -222,6 +223,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
                 .map(Stellplatzfunktion::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -237,6 +239,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
                 CSVPosition.BARRIEREFREI.name(),
                 CSVPosition.ANZAHL_WOHNWAGEN.name(),
                 CSVPosition.ANZAHL_PKW.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

@@ -22,6 +22,7 @@ public class Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDe
         GEBUEHR,
         MAXIMAL_ANZAHL,
         BESCHREIBUNG,
+        DUMMY_DATA
     }
 
     protected final int leistungsbeschreibungId;
@@ -116,6 +117,7 @@ public class Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDe
         csvData[CSVPosition.GEBUEHR.ordinal()] = this.getGebuehr().toString();
         csvData[CSVPosition.MAXIMAL_ANZAHL.ordinal()] = Integer.toString(this.getMaximalAnzahl());
         csvData[CSVPosition.BESCHREIBUNG.ordinal()] = this.getBeschreibung();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
@@ -126,6 +128,7 @@ public class Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDe
                 CSVPosition.GEBUEHR.name(),
                 CSVPosition.MAXIMAL_ANZAHL.name(),
                 CSVPosition.BESCHREIBUNG.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 

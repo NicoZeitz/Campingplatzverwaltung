@@ -28,7 +28,8 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
         RECHNUNGSNUMMER,
         KOSTEN,
         ZUSTAENDIGE_FIRMA_ID,
-        ANLAGE_ID
+        ANLAGE_ID,
+        DUMMY_DATA
     }
 
     private final int wartungsnummer;
@@ -178,7 +179,17 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
 
     @Override
     public String[] getCSVData() {
-        return new String[0];
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.WARTUNGSNUMMER.ordinal()] = Integer.toString(this.getWartungsnummer());
+        csvData[CSVPosition.DUERCHFUEHRUNGSDATUM.ordinal()] = this.getDuerchfuehrungsdatum().toString();
+        csvData[CSVPosition.RECHNUNGSDATUM.ordinal()] = this.getRechnungsdatum().toString();
+        csvData[CSVPosition.AUFTRAGSNUMMER.ordinal()] = this.getAuftragsnummer();
+        csvData[CSVPosition.RECHNUNGSNUMMER.ordinal()] = this.getRechnungsnummer();
+        csvData[CSVPosition.KOSTEN.ordinal()] = this.getKosten().toString();
+        csvData[CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()] = this.getZustaendigeFirma().getPrimaryKey().toString();
+        csvData[CSVPosition.ANLAGE_ID.ordinal()] = this.getAnlage().getPrimaryKey().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
+        return csvData;
     }
 
     @Override
@@ -191,7 +202,8 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
                 CSVPosition.RECHNUNGSNUMMER.name(),
                 CSVPosition.KOSTEN.name(),
                 CSVPosition.ZUSTAENDIGE_FIRMA_ID.name(),
-                CSVPosition.ANLAGE_ID.name()
+                CSVPosition.ANLAGE_ID.name(),
+                CSVPosition.DUMMY_DATA.name()
         };
     }
 
