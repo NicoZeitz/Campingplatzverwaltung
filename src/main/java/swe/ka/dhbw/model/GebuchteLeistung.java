@@ -1,8 +1,13 @@
 package swe.ka.dhbw.model;
 
+import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.model.IPersistable;
+
 import java.time.LocalDate;
 
-public class GebuchteLeistung {
+public class GebuchteLeistung implements IDepictable, IPersistable, ICSVPersistable {
 
     private LocalDate buchungStart;
     private LocalDate buchungsEnde;
@@ -39,5 +44,35 @@ public class GebuchteLeistung {
 
     public void setBuchung(Buchung buchung) {
         this.buchung = buchung;
+    }
+
+    @Override
+    public String getElementID() {
+        return null;
+    }
+
+    @Override
+    public Attribute[] getAttributeArray() {
+        return new Attribute[0];
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
+        return IDepictable.super.setAttributeValues(attributeArray);
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[0];
+    }
+
+    @Override
+    public String[] getCSVData() {
+        return new String[0];
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return null;
     }
 }

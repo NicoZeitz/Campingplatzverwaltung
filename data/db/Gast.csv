@@ -1,0 +1,7 @@
+#VORNAME;NACHNAME;GESCHLECHT;EMAIL;TELEFONNUMMER;KUNDENNUMMER;AUSWEISNUMMER;ANSCHRIFT
+Johann;FreudigerMann;MAENNLICH;j@freudiger.mann;+0000000000;1;Ausweisnummer10;1
+Johanna;FreudigeFrau;WEIBLICH;j@freudige.frau;+0000000001;2;Ausweisnummer11;1
+Johannes;FreudigesKind;MAENNLICH;kind@freudige.de;+0000000002;3;Ausweisnummer12;1
+Peter;Zufall;MAENNLICH;peter.zufall64@gmx.de;+0000000003;4;Ausweisnummer13;1
+Tom;Müller;MAENNLICH;tom@muellermilch.tv;+0000000004;5;Ausweisnummer14;1
+Hans;Peter;MAENNLICH;hansepeter

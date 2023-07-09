@@ -10,6 +10,10 @@ public class Einrichtung extends Anlage {
     private Oeffnungstag oeffnungstag;
     private Fremdfirma zustaendigeFirma;
 
+    public Einrichtung(int anlageId, GPSPosition lage) {
+        super(anlageId, lage);
+    }
+
     public String getName() {
         return name;
     }
@@ -50,4 +54,23 @@ public class Einrichtung extends Anlage {
         this.zustaendigeFirma = zustaendigeFirma;
     }
 
+    @Override
+    public String getElementID() {
+        return null;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[0];
+    }
+
+    @Override
+    public String[] getCSVData() {
+        return new String[0];
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return null;
+    }
 }

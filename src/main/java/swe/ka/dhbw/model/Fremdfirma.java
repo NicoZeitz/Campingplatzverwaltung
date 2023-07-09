@@ -37,7 +37,4 @@ public class Fremdfirma {
         return wartungen;
     }
 
-    public void setWartungen(List<Wartung> wartungen) {
-        this.wartungen = wartungen;
-    }
 }

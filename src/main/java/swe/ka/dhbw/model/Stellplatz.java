@@ -15,6 +15,10 @@ public class Stellplatz extends Anlage {
     private List<Stellplatzfunktion> verfuegbareFunktionen;
     private List<Buchung> buchungen;
 
+    public Stellplatz(int anlageId, GPSPosition lage) {
+        super(anlageId, lage);
+    }
+
     public String getStellplatz() {
         return stellplatz;
     }
@@ -85,5 +89,25 @@ public class Stellplatz extends Anlage {
 
     public void setBuchungen(List<Buchung> buchungen) {
         this.buchungen = buchungen;
+    }
+
+    @Override
+    public String getElementID() {
+        return null;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[0];
+    }
+
+    @Override
+    public String[] getCSVData() {
+        return new String[0];
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return null;
     }
 }

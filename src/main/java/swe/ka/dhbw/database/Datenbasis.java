@@ -1,13 +1,14 @@
 package swe.ka.dhbw.database;
 
-import de.dhbwka.swe.utils.model.IPersistable;
+import java.io.IOException;
+import java.util.List;
 
-public interface Datenbasis {
-    void create(Class<?> c, IPersistable data);
+public interface Datenbasis<T> {
+    void create(Class<?> c, T data) throws IOException;
 
-    IPersistable[] read(Class<?> c);
+    List<T> read(Class<?> c) throws IOException;
 
-    void update(Class<?> c, IPersistable data);
+    void update(Class<?> c, T data) throws IOException;
 
-    void delete(Class<?> c, IPersistable data);
+    void delete(Class<?> c, T data) throws IOException;
 }

@@ -1,21 +1,25 @@
 package swe.ka.dhbw.model;
 
+import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
-public class Person {
-    public enum Geschlecht {
-        MAENNLICH,
-        WEIBLICH,
-        DIVERS,
-    }
+public class Person implements IDepictable, ICSVPersistable, IPersistable {
+    protected String vorname;
+    protected String nachname;
+    protected Geschlecht geschlecht;
+    protected String email;
+    protected String telefonnummer;
 
-    private String vorname;
-    private String nachname;
-    private Geschlecht geschlecht;
-    private String email;
-    private String telefonnummer;
-
-    public Person(final String vorname, final String nachname, final Geschlecht geschlecht, final String email, final String telefonnummer) {
+    public Person(
+            final String vorname,
+            final String nachname,
+            final Geschlecht geschlecht,
+            final String email,
+            final String telefonnummer
+    ) {
         this.setVorname(vorname);
         this.setNachname(nachname);
         this.setGeschlecht(geschlecht);
@@ -27,8 +31,8 @@ public class Person {
         return vorname;
     }
 
-    public void setVorname(String vorname) {
-        Validator.getInstance().validateNotNull(vorname, "Person.vorname");
+    public void setVorname(final String vorname) {
+        Validator.getInstance().validateNotEmpty(vorname);
         this.vorname = vorname;
     }
 
@@ -36,8 +40,8 @@ public class Person {
         return nachname;
     }
 
-    public void setNachname(String nachname) {
-        Validator.getInstance().validateNotNull(vorname, "Person.nachname");
+    public void setNachname(final String nachname) {
+        Validator.getInstance().validateNotEmpty(vorname);
         this.nachname = nachname;
     }
 
@@ -45,8 +49,8 @@ public class Person {
         return geschlecht;
     }
 
-    public void setGeschlecht(Geschlecht geschlecht) {
-        Validator.getInstance().validateNotNull(vorname, "Person.geschlecht");
+    public void setGeschlecht(final Geschlecht geschlecht) {
+        Validator.getInstance().validateNotEmpty(vorname);
         this.geschlecht = geschlecht;
     }
 
@@ -54,7 +58,7 @@ public class Person {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(final String email) {
         Validator.getInstance().validateEmail(email);
         this.email = email;
     }
@@ -63,8 +67,44 @@ public class Person {
         return telefonnummer;
     }
 
-    public void setTelefonnummer(String telefonnummer) {
+    public void setTelefonnummer(final String telefonnummer) {
         Validator.getInstance().validatePhoneNumber(telefonnummer);
         this.telefonnummer = telefonnummer;
+    }
+
+    @Override
+    public String getElementID() {
+        return null;
+    }
+
+    @Override
+    public Attribute[] getAttributeArray() {
+        return new Attribute[0];
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
+        return IDepictable.super.setAttributeValues(attributeArray);
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[0];
+    }
+
+    @Override
+    public String[] getCSVData() {
+        return new String[0];
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return null;
+    }
+
+    public enum Geschlecht {
+        MAENNLICH,
+        WEIBLICH,
+        DIVERS,
     }
 }

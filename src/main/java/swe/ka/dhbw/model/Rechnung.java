@@ -1,9 +1,14 @@
 package swe.ka.dhbw.model;
 
+import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.model.IPersistable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class Rechnung {
+public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
 
     private LocalDate rechnungsdatum;
     private int rechnungsnummer;
@@ -76,5 +81,35 @@ public class Rechnung {
 
     public void setAdressat(Gast adressat) {
         this.adressat = adressat;
+    }
+
+    @Override
+    public Attribute[] getAttributeArray() {
+        return new Attribute[0];
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
+        return IDepictable.super.setAttributeValues(attributeArray);
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[0];
+    }
+
+    @Override
+    public String[] getCSVData() {
+        return new String[0];
+    }
+
+    @Override
+    public String getElementID() {
+        return null;
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return null;
     }
 }

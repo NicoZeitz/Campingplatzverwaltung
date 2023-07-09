@@ -1,5 +1,7 @@
 package swe.ka.dhbw.util;
 
+import de.dhbwka.swe.utils.util.AppLogger;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -61,7 +63,9 @@ public final class ArgumentParser {
             return modifiers + "\t" + argument.description;
         }).collect(Collectors.joining("\n"));
 
-        System.out.println(message);
+        AppLogger.getInstance().info("Usage: java -jar <jar-file> [options]\n" +
+                "Options:\n" +
+                message);
     }
 
     public record CommandLineArgument<T>(String[] modifiers, String description, Optional<T> value) {

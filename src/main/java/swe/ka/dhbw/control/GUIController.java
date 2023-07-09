@@ -1,6 +1,7 @@
 package swe.ka.dhbw.control;
 
 import de.dhbwka.swe.utils.util.IOUtilities;
+import swe.ka.dhbw.database.EntityManager;
 import swe.ka.dhbw.event.GUIConfigurationObserver;
 import swe.ka.dhbw.event.GUIObserver;
 import swe.ka.dhbw.ui.GUIConfiguration;
@@ -38,5 +39,9 @@ public class GUIController {
 
     public void gatherConfigurationAndOpenMainGUI() {
         //this.guiConfiguration
+    }
+
+    public void setEntityManager(EntityManager entityManager) {
+        // UNIMPLEMENTED:
     }
 }

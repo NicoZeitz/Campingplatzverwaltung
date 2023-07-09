@@ -2,11 +2,18 @@ package swe.ka.dhbw.control;
 
 import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
+import de.dhbwka.swe.utils.util.AppLogger;
 import de.dhbwka.swe.utils.util.IOUtilities;
+import swe.ka.dhbw.database.CSVDatenbasis;
+import swe.ka.dhbw.database.EntityFactory;
+import swe.ka.dhbw.database.EntityManager;
 import swe.ka.dhbw.ui.GUIBuchung;
+import swe.ka.dhbw.util.ArgumentParseException;
 import swe.ka.dhbw.util.ArgumentParser;
 
 import java.awt.*;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public final class Campingplatzverwaltung {
     private static Campingplatzverwaltung instance;
@@ -21,20 +28,32 @@ public final class Campingplatzverwaltung {
         return instance;
     }
 
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws IOException {
         try {
             final var arguments = ArgumentParser.parse(args);
             final var campingplatz = Campingplatzverwaltung.getInstance();
             campingplatz.startApplication(arguments);
-        } catch (final Exception argumentException) {
+        } catch (final ArgumentParseException argumentException) {
             ArgumentParser.printCommandLineArguments();
-            System.out.println(argumentException);
+            AppLogger.getInstance().error(argumentException);
             System.exit(1);
         }
     }
 
-    public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) {
-        var controller = GUIController.getInstance();
+    public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) throws IOException {
+        final var controller = GUIController.getInstance();
+        final var entityManager = EntityManager.getInstance();
+        final var entityFactory = EntityFactory.getInstance();
+        final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
+        final var database = new CSVDatenbasis(dbPath);
+
+        entityFactory.setEntityManager(entityManager);
+        entityFactory.setDatabase(database);
+        entityFactory.loadAllEntities();
+
+        entityManager.getAll().forEach(entity -> AppLogger.getInstance().info(entity.toString()));
+
+        controller.setEntityManager(entityManager);
         controller.showConfiguration();
 
 

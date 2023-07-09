@@ -2,41 +2,59 @@ package swe.ka.dhbw.model;
 
 import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.IAttributed;
+import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
 public class GPSPosition implements IAttributed {
-    public static final int LATITUDE = 0;
-    public static final int LONGITUDE = 1;
+    private double latitude;
+    private double longitude;
 
-    private Attribute[] attributes;
-    
-    public GPSPosition(double latitude, double longitude) {
-        this.attributes = new Attribute[] {
-                new Attribute("latitude", this, Double.class, latitude, latitude, true),
-                new Attribute("longitude", this, Double.class, longitude, longitude, true)
-        };
+    public GPSPosition(final double latitude, final double longitude) {
+        this.setLatitude(latitude);
+        this.setLongitude(longitude);
     }
 
     public double getLatitude() {
-        return (Double) this.attributes[LATITUDE].getValue();
+        return this.latitude;
     }
 
-    public void setLatitude(double latitude) throws Exception {
-        this.attributes[LATITUDE].setValue(latitude);
+    public void setLatitude(final double latitude) {
+        Validator.getInstance().validateInRange(latitude, -90d, 90d);
+        this.latitude = latitude;
     }
 
     public double getLongitude() {
-        return (Double) this.attributes[LONGITUDE].getValue();
+        return this.longitude;
     }
 
-    public void setLongitude(double longitude) throws Exception {
-        this.attributes[LONGITUDE].setValue(longitude);
+    public void setLongitude(final double longitude) {
+        Validator.getInstance().validateInRange(longitude, -180d, 180d);
+        this.longitude = longitude;
     }
 
     @Override
     public Attribute[] getAttributeArray() {
-        return this.attributes;
+        return new Attribute[] {
+                new Attribute(Attributes.LATITUDE.name(), this, Double.class, this.getLatitude(), this.getLatitude(), true),
+                new Attribute(Attributes.LONGITUDE.name(), this, Double.class, this.getLongitude(), this.getLongitude(), true)
+        };
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray().clone();
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+
+            if (name.equals(Attributes.LATITUDE.name()) && !value.equals(this.getLatitude())) {
+                this.setLatitude((double) value);
+            } else if (name.equals(Attributes.LONGITUDE.name()) && !value.equals(this.getLongitude())) {
+                this.setLongitude((double) value);
+            }
+        }
+        return oldAttributeArray;
     }
 
     @Override
@@ -48,14 +66,20 @@ public class GPSPosition implements IAttributed {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof GPSPosition that)) return false;
-        return Double.compare(that.getLatitude(), this.getLatitude()) == 0 && Double.compare(that.getLongitude(), this.getLongitude()) == 0;
+        return Double.compare(that.getLatitude(), this.getLatitude()) == 0 &&
+                Double.compare(that.getLongitude(), this.getLongitude()) == 0;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(this.getLatitude(), this.getLongitude());
+    }
+
+    public enum Attributes {
+        LATITUDE,
+        LONGITUDE
     }
 }
