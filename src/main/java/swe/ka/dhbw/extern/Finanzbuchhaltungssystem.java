@@ -1,4 +1,4 @@
-package swe.ka.dhbw.model;
+package swe.ka.dhbw.extern;
 
 public final class Finanzbuchhaltungssystem {
     private Finanzbuchhaltungssystem() {

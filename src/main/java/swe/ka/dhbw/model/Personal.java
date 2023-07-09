@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Personal extends Person implements IDepictable, ICSVPersistable, IPersistable {
     public enum Rolle {
@@ -41,7 +42,8 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
         TELEFONNUMMER,
         PERSONALNUMMER,
         GEBURTSTAG,
-        ROLLE
+        ROLLE,
+        STOERUNGEN_IDS
     }
 
     private final List<Stoerung> stoerungen = new ArrayList<>();
@@ -145,6 +147,11 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
         csvData[CSVPosition.PERSONALNUMMER.ordinal()] = String.valueOf(this.getNummer());
         csvData[CSVPosition.GEBURTSTAG.ordinal()] = this.getGeburtstag().toString();
         csvData[CSVPosition.ROLLE.ordinal()] = this.getBenutzerrolle().toString();
+        csvData[CSVPosition.STOERUNGEN_IDS.ordinal()] = this.getStoerungen()
+                .stream()
+                .map(Stoerung::getPrimaryKey)
+                .map(Objects::toString)
+                .collect(Collectors.joining(","));
         return csvData;
     }
 
@@ -159,7 +166,8 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
                 CSVPosition.TELEFONNUMMER.toString(),
                 CSVPosition.PERSONALNUMMER.toString(),
                 CSVPosition.GEBURTSTAG.toString(),
-                CSVPosition.ROLLE.toString()
+                CSVPosition.ROLLE.toString(),
+                CSVPosition.STOERUNGEN_IDS.toString()
         };
     }
 
@@ -204,5 +212,18 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
                 ", email='" + this.getEmail() +
                 ", telefonnummer='" + this.getTelefonnummer() +
                 '}';
+    }
+
+    public void addStoerung(final Stoerung stoerung) {
+        Validator.getInstance().validateNotNull(stoerung);
+        this.stoerungen.add(stoerung);
+        if (!stoerung.getVerantwortlicher().equals(this)) {
+            stoerung.setVerantwortlicher(this);
+        }
+    }
+
+    public void removeStoerung(final Stoerung stoerung) {
+        Validator.getInstance().validateNotNull(stoerung);
+        this.stoerungen.remove(stoerung);
     }
 }

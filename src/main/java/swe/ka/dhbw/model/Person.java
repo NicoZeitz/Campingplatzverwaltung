@@ -1,11 +1,12 @@
 package swe.ka.dhbw.model;
 
 import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
-public class Person implements IDepictable, IPersistable {
+public class Person implements IDepictable, IPersistable, ICSVPersistable {
     public enum Geschlecht {
         MAENNLICH,
         WEIBLICH,
@@ -13,6 +14,15 @@ public class Person implements IDepictable, IPersistable {
     }
 
     public enum Attributes {
+        PERSON_ID,
+        VORNAME,
+        NACHNAME,
+        GESCHLECHT,
+        EMAIL,
+        TELEFONNUMMER
+    }
+
+    public enum CSVPosition {
         PERSON_ID,
         VORNAME,
         NACHNAME,
@@ -122,6 +132,30 @@ public class Person implements IDepictable, IPersistable {
                         this.getTelefonnummer(),
                         this.getTelefonnummer(),
                         true)
+        };
+    }
+
+    @Override
+    public String[] getCSVData() {
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.PERSON_ID.ordinal()] = Integer.toString(this.getPersonId());
+        csvData[CSVPosition.VORNAME.ordinal()] = this.getVorname();
+        csvData[CSVPosition.NACHNAME.ordinal()] = this.getNachname();
+        csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().name();
+        csvData[CSVPosition.EMAIL.ordinal()] = this.getEmail();
+        csvData[CSVPosition.TELEFONNUMMER.ordinal()] = this.getTelefonnummer();
+        return csvData;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.PERSON_ID.name(),
+                CSVPosition.VORNAME.name(),
+                CSVPosition.NACHNAME.name(),
+                CSVPosition.GESCHLECHT.name(),
+                CSVPosition.EMAIL.name(),
+                CSVPosition.TELEFONNUMMER.name()
         };
     }
 

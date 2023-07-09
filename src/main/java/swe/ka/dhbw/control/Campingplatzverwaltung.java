@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public final class Campingplatzverwaltung {
+    public static final String VERSION = "1.0.0";
     private static Campingplatzverwaltung instance;
 
     private Campingplatzverwaltung() {
@@ -46,6 +47,7 @@ public final class Campingplatzverwaltung {
         final var entityFactory = EntityFactory.getInstance();
         final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
         final var database = new CSVDatenbasis(dbPath);
+
 
         entityFactory.setEntityManager(entityManager);
         entityFactory.setDatabase(database);

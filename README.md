@@ -6,6 +6,7 @@ Software für Campingplatzverwaltung für Softwareengineering
 
 bei zweiseitigen Beziehungen die set/add/remvoe Methoden anpassen
 bei mehrseitigen Beziheungen die equals/string/hashcode Methoden anpassen
+FOTO klasse
 
 # Änderungen
 
