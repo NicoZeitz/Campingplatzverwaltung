@@ -2,6 +2,22 @@
 
 Software für Campingplatzverwaltung für Softwareengineering
 
+# CSV TODO
+
+-   Bereich
+-   Buchung
+-   Chipkarte
+-   Einrichtung
+-   Fremdfirma
+-   GebuchteLeistung
+-   Gerätschaft
+-   Leistungsbeschreibung
+-   Personal
+-   Stellplatz
+-   Stellplatzfunktion
+-   Stoerung
+-   Wartung
+
 # TODO
 
 bei zweiseitigen Beziehungen die set/add/remvoe Methoden anpassen
