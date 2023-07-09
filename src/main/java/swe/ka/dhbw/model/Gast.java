@@ -6,6 +6,7 @@ import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public final class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable {
@@ -43,7 +44,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
             final int kundennummer,
             final String ausweisnummer
     ) {
-        super(vorname, nachname, geschlecht, email, telefonnummer);
+        super(kundennummer, vorname, nachname, geschlecht, email, telefonnummer);
         Validator.getInstance().validateGreaterThan(kundennummer, 0);
         this.kundennummer = kundennummer;
         this.setAusweisnummer(ausweisnummer);
@@ -82,23 +83,27 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
 
     @Override
     public Attribute[] getAttributeArray() {
-        return new Attribute[] {
-                new Attribute(Attributes.VORNAME.name(), this, String.class, this.vorname, this.vorname, true),
-                new Attribute(Attributes.NACHNAME.name(), this, String.class, nachname, nachname, true),
-                new Attribute(Attributes.GESCHLECHT.name(), this, Geschlecht.class, geschlecht, geschlecht, true),
-                new Attribute(Attributes.EMAIL.name(), this, String.class, email, email, true),
-                new Attribute(Attributes.TELEFONNUMMER.name(), this, String.class, telefonnummer, telefonnummer, true),
-                new Attribute(Attributes.KUNDENNUMMER.name(),
-                        this,
-                        int.class,
-                        kundennummer,
-                        kundennummer,
-                        true,
-                        false,
-                        false,
-                        true),
-                new Attribute(Attributes.AUSWEISNUMMER.name(), this, String.class, ausweisnummer, ausweisnummer, true),
-        };
+        final var superAttributes = super.getAttributeArray();
+        final var attributes = Arrays.copyOf(superAttributes, superAttributes.length + 2);
+        attributes[Attributes.KUNDENNUMMER.ordinal()] = new Attribute(
+                Attributes.KUNDENNUMMER.name(),
+                this,
+                Integer.class,
+                this.getKundennummer(),
+                this.getKundennummer(),
+                true,
+                false,
+                false,
+                true);
+        attributes[Attributes.AUSWEISNUMMER.ordinal()] = new Attribute(
+                Attributes.AUSWEISNUMMER.name(),
+                this,
+                String.class,
+                this.getAusweisnummer(),
+                this.getAusweisnummer(),
+                true);
+
+        return attributes;
     }
 
     @Override
@@ -148,6 +153,8 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
     public Attribute[] setAttributeValues(Attribute[] attributeArray) {
         final var oldAttributeArray = this.getAttributeArray();
 
+        super.setAttributeValues(attributeArray);
+
         for (final var attribute : attributeArray) {
             final var name = attribute.getName();
             final var value = attribute.getValue();
@@ -156,17 +163,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
                 throw new IllegalArgumentException("Kundennummer darf nicht geändert werden!");
             }
 
-            if (name.equals(Attributes.VORNAME.name()) && !value.equals(this.getVorname())) {
-                this.setVorname((String) value);
-            } else if (name.equals(Attributes.NACHNAME.name()) && !value.equals(this.getNachname())) {
-                this.setNachname((String) value);
-            } else if (name.equals(Attributes.GESCHLECHT.name()) && !value.equals(this.getGeschlecht())) {
-                this.setGeschlecht((Geschlecht) value);
-            } else if (name.equals(Attributes.EMAIL.name()) && !value.equals(this.getEmail())) {
-                this.setEmail((String) value);
-            } else if (name.equals(Attributes.TELEFONNUMMER.name()) && !value.equals(this.getTelefonnummer())) {
-                this.setTelefonnummer((String) value);
-            } else if (name.equals(Attributes.AUSWEISNUMMER.name()) && !value.equals(this.getAusweisnummer())) {
+            if (name.equals(Attributes.AUSWEISNUMMER.name()) && !value.equals(this.getAusweisnummer())) {
                 this.setAusweisnummer((String) value);
             }
         }

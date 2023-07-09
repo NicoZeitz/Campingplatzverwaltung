@@ -5,6 +5,7 @@ Software für Campingplatzverwaltung für Softwareengineering
 # TODO
 
 bei zweiseitigen Beziehungen die set/add/remvoe Methoden anpassen
+bei mehrseitigen Beziheungen die equals/string/hashcode Methoden anpassen
 
 # Änderungen
 

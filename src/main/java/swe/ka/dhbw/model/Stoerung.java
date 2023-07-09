@@ -9,6 +9,7 @@ import swe.ka.dhbw.util.Validator;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
@@ -134,6 +135,18 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
     }
 
     @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final Stoerung that)) return false;
+        return this.getStoerungsnummer() == that.getStoerungsnummer() &&
+                Objects.equals(this.getTitel(), that.getTitel()) &&
+                Objects.equals(this.getBeschreibung(), that.getBeschreibung()) &&
+                Objects.equals(this.getErstellungsdatum(), that.getErstellungsdatum()) &&
+                Objects.equals(this.getBehebungsdatum(), that.getBehebungsdatum()) &&
+                this.getStatus() == that.getStatus();
+    }
+
+    @Override
     public Attribute[] getAttributeArray() {
         return new Attribute[] {
                 new Attribute(Attributes.STOERUNGSNUMMER.name(),
@@ -212,6 +225,16 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(this.getStoerungsnummer(),
+                this.getTitel(),
+                this.getBeschreibung(),
+                this.getErstellungsdatum(),
+                this.getBehebungsdatum(),
+                this.getStatus());
+    }
+
+    @Override
     public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
         final var oldAttributeArray = this.getAttributeArray();
 
@@ -236,6 +259,21 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
             }
         }
         return oldAttributeArray;
+    }
+
+    @Override
+    public String toString() {
+        return "Stoerung{" +
+                "stoerungsnummer=" + this.getStoerungsnummer() +
+                ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
+                ", titel='" + this.getTitel() +
+                ", beschreibung='" + this.getBeschreibung() +
+                ", erstellungsdatum=" + this.getErstellungsdatum() +
+                ", behebungsdatum=" + this.getBehebungsdatum() +
+                ", status=" + this.getStatus() +
+                ", verantwortlicher=" + this.getVerantwortlicher() +
+                ", stellplatzfunktion=" + this.getStellplatzfunktion() +
+                '}';
     }
 
     public void addFoto(final Foto foto) {

@@ -1,7 +1,6 @@
 package swe.ka.dhbw.model;
 
 import de.dhbwka.swe.utils.model.Attribute;
-import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
@@ -10,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public abstract class Anlage implements IDepictable, IPersistable, ICSVPersistable {
+public abstract class Anlage implements IDepictable, IPersistable {
     public enum Attributes {
         ANLAGE_ID,
         LAGE_LATITUDE,
@@ -91,6 +90,16 @@ public abstract class Anlage implements IDepictable, IPersistable, ICSVPersistab
     }
 
     @Override
+    public String getElementID() {
+        return Integer.toString(this.getAnlageId());
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.getAnlageId();
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(this.getLage(), this.getBereich(), this.getFotos());
     }
@@ -119,9 +128,9 @@ public abstract class Anlage implements IDepictable, IPersistable, ICSVPersistab
     @Override
     public String toString() {
         return "Anlage{" +
-                "lage=" + lage +
-                ", bereich=" + bereich +
-                ", fotos=[" + fotos.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
+                "lage=" + this.getLage() +
+                ", bereich=" + this.getBereich() +
+                ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
                 '}';
     }
 

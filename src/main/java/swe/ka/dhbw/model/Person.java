@@ -1,36 +1,53 @@
 package swe.ka.dhbw.model;
 
 import de.dhbwka.swe.utils.model.Attribute;
-import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
-public class Person implements IDepictable, ICSVPersistable, IPersistable {
+public class Person implements IDepictable, IPersistable {
     public enum Geschlecht {
         MAENNLICH,
         WEIBLICH,
         DIVERS,
     }
-    
+
+    public enum Attributes {
+        PERSON_ID,
+        VORNAME,
+        NACHNAME,
+        GESCHLECHT,
+        EMAIL,
+        TELEFONNUMMER
+    }
+
+    protected final int personId;
     protected String vorname;
     protected String nachname;
     protected Geschlecht geschlecht;
     protected String email;
     protected String telefonnummer;
 
+
     public Person(
+            final int personId,
             final String vorname,
             final String nachname,
             final Geschlecht geschlecht,
             final String email,
             final String telefonnummer
     ) {
+        Validator.getInstance().validateGreaterThanEqual(personId, 0);
+        this.personId = personId;
         this.setVorname(vorname);
         this.setNachname(nachname);
         this.setGeschlecht(geschlecht);
         this.setEmail(email);
         this.setTelefonnummer(telefonnummer);
+    }
+
+    public int getPersonId() {
+        return personId;
     }
 
     public String getVorname() {
@@ -80,31 +97,67 @@ public class Person implements IDepictable, ICSVPersistable, IPersistable {
 
     @Override
     public Attribute[] getAttributeArray() {
-        return new Attribute[0];
-    }
-
-    @Override
-    public String[] getCSVData() {
-        return new String[0];
-    }
-
-    @Override
-    public String[] getCSVHeader() {
-        return new String[0];
+        return new Attribute[] {
+                new Attribute(Attributes.PERSON_ID.name(),
+                        this,
+                        Integer.class,
+                        this.getPersonId(),
+                        this.getPersonId(),
+                        false,
+                        false,
+                        false,
+                        true),
+                new Attribute(Attributes.VORNAME.name(), this, String.class, this.getVorname(), this.getVorname(), true),
+                new Attribute(Attributes.NACHNAME.name(), this, String.class, this.getNachname(), this.getNachname(), true),
+                new Attribute(Attributes.GESCHLECHT.name(),
+                        this,
+                        Geschlecht.class,
+                        this.getGeschlecht(),
+                        this.getGeschlecht(),
+                        true),
+                new Attribute(Attributes.EMAIL.name(), this, String.class, this.getEmail(), this.getEmail(), true),
+                new Attribute(Attributes.TELEFONNUMMER.name(),
+                        this,
+                        String.class,
+                        this.getTelefonnummer(),
+                        this.getTelefonnummer(),
+                        true)
+        };
     }
 
     @Override
     public String getElementID() {
-        return null;
+        return Integer.toString(this.getPersonId());
     }
 
     @Override
     public Object getPrimaryKey() {
-        return null;
+        return this.getPersonId();
     }
 
     @Override
     public Attribute[] setAttributeValues(Attribute[] attributeArray) {
-        return IDepictable.super.setAttributeValues(attributeArray);
+        final var oldAttributeArray = this.getAttributeArray();
+
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+            if (name.equals(Attributes.PERSON_ID.name()) && !value.equals(this.getPersonId())) {
+                throw new IllegalArgumentException("Person::setAttributeValues: Die PersonId darf nicht verändert werden!");
+            }
+
+            if (name.equals(Attributes.VORNAME.name()) && !value.equals(this.getVorname())) {
+                this.setVorname((String) value);
+            } else if (name.equals(Attributes.NACHNAME.name()) && !value.equals(this.getNachname())) {
+                this.setNachname((String) value);
+            } else if (name.equals(Attributes.GESCHLECHT.name()) && !value.equals(this.getGeschlecht())) {
+                this.setGeschlecht((Geschlecht) value);
+            } else if (name.equals(Attributes.EMAIL.name()) && !value.equals(this.getEmail())) {
+                this.setEmail((String) value);
+            } else if (name.equals(Attributes.TELEFONNUMMER.name()) && !value.equals(this.getTelefonnummer())) {
+                this.setTelefonnummer((String) value);
+            }
+        }
+        return oldAttributeArray;
     }
 }

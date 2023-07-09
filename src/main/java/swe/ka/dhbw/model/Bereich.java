@@ -1,6 +1,9 @@
 package swe.ka.dhbw.model;
 
 import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.util.ArrayList;
@@ -9,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class Bereich extends Anlage {
+public final class Bereich extends Anlage implements ICSVPersistable, IDepictable, IPersistable {
     public enum Attributes {
         ANLAGE_ID,
         LAGE_LATITUDE,
@@ -114,16 +117,6 @@ public final class Bereich extends Anlage {
                 CSVPosition.BESCHREIBUNG.name(),
                 CSVPosition.ANLAGEN_IDS.name()
         };
-    }
-
-    @Override
-    public String getElementID() {
-        return Integer.toString(this.getAnlageId());
-    }
-
-    @Override
-    public Object getPrimaryKey() {
-        return this.getAnlageId();
     }
 
     @Override

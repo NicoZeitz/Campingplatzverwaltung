@@ -32,6 +32,7 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
         BESCHREIBUNG,
         STATUS
     }
+
     private final List<Stellplatz> stellplaetze = new ArrayList<>();
     private Status status;
 
@@ -136,10 +137,16 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
     public void addStellplatz(final Stellplatz stellplatz) {
         Validator.getInstance().validateNotNull(stellplatz);
         this.stellplaetze.add(stellplatz);
+        if (!stellplatz.getVerfuegbareFunktionen().contains(this)) {
+            stellplatz.addVerfuegbareFunktion(this);
+        }
     }
 
     public void removeStellplatz(final Stellplatz stellplatz) {
         Validator.getInstance().validateNotNull(stellplatz);
         this.stellplaetze.remove(stellplatz);
+        if (stellplatz.getVerfuegbareFunktionen().contains(this)) {
+            stellplatz.removeVerfuegbareFunktion(this);
+        }
     }
 }
