@@ -4,59 +4,129 @@ import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
+import swe.ka.dhbw.util.Validator;
 
-public class Chipkarte implements IDepictable, IPersistable, ICSVPersistable {
+import java.util.Objects;
 
-    private int nummer;
+public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
+    public enum Status {
+        VERFUEGBAR, IN_VERWENDUNG
+    }
+
+    public enum Attributes {
+        NUMMER,
+        STATUS
+    }
+
+    public enum CSVPosition {
+        NUMMER,
+        STATUS
+    }
+
+    private final int nummer;
     private Status status;
+
+    public Chipkarte(final int nummer) {
+        this(nummer, Status.VERFUEGBAR);
+    }
+
+    public Chipkarte(final int nummer, final Status status) {
+        Validator.getInstance().validateGreaterThanEqual(nummer, 0);
+        this.nummer = nummer;
+        this.setStatus(status);
+    }
 
     public int getNummer() {
         return nummer;
-    }
-
-    public void setNummer(int nummer) {
-        this.nummer = nummer;
     }
 
     public Status getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(final Status status) {
+        Validator.getInstance().validateNotNull(status);
         this.status = status;
     }
 
     @Override
-    public String getElementID() {
-        return null;
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final Chipkarte that)) return false;
+        return this.getNummer() == that.getNummer() &&
+                this.getStatus() == that.getStatus();
     }
 
     @Override
     public Attribute[] getAttributeArray() {
-        return new Attribute[0];
-    }
-
-    @Override
-    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
-        return IDepictable.super.setAttributeValues(attributeArray);
-    }
-
-    @Override
-    public String[] getCSVHeader() {
-        return new String[0];
+        return new Attribute[] {
+                new Attribute(Attributes.NUMMER.name(),
+                        this,
+                        Integer.class,
+                        this.getNummer(),
+                        this.getNummer(),
+                        true,
+                        false,
+                        false,
+                        true),
+                new Attribute(Attributes.STATUS.name(), this, Status.class, this.getStatus(), this.getStatus(), true)
+        };
     }
 
     @Override
     public String[] getCSVData() {
-        return new String[0];
+        return new String[] {
+                Integer.toString(this.getNummer()),
+                this.getStatus().name()
+        };
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.NUMMER.name(),
+                CSVPosition.STATUS.name()
+        };
+    }
+
+    @Override
+    public String getElementID() {
+        return Integer.toString(this.getNummer());
     }
 
     @Override
     public Object getPrimaryKey() {
-        return null;
+        return this.getNummer();
     }
 
-    public enum Status {
-        VERFUEGBAR, IN_VERWENDUNG
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getNummer(), this.getStatus());
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray();
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+
+            if (name.equals(Attributes.NUMMER.name()) && !value.equals(this.nummer)) {
+                throw new IllegalArgumentException("Die Nummer einer Chipkarte darf nicht verändert werden!");
+            }
+
+            if (name.equals(Attributes.STATUS.name()) && !value.equals(this.getStatus())) {
+                this.setStatus((Status) value);
+            }
+        }
+        return oldAttributeArray;
+    }
+
+    @Override
+    public String toString() {
+        return "Chipkarte{" +
+                "nummer=" + nummer +
+                ", status=" + status +
+                '}';
     }
 }

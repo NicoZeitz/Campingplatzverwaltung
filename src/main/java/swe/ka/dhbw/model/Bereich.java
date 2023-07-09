@@ -3,14 +3,33 @@ package swe.ka.dhbw.model;
 import de.dhbwka.swe.utils.model.Attribute;
 import swe.ka.dhbw.util.Validator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class Bereich extends Anlage {
+public final class Bereich extends Anlage {
+    public enum Attributes {
+        ANLAGE_ID,
+        LAGE_LATITUDE,
+        LAGE_LONGITUDE,
+        KENNZEICHEN,
+        BESCHREIBUNG
+    }
+
+    public enum CSVPosition {
+        ANLAGEID,
+        LAGE_LATITUDE,
+        LAGE_LONGITUDE,
+        KENNZEICHEN,
+        BESCHREIBUNG,
+        ANLAGEN_IDS
+    }
+
+    private final List<Anlage> anlagen = new ArrayList<>();
     private char kennzeichen;
     private String beschreibung;
-    private List<Anlage> anlagen;
 
     public Bereich(final int anlageId, final GPSPosition lage, final char kennzeichen, final String beschreibung) {
         super(anlageId, lage);
@@ -39,35 +58,34 @@ public class Bereich extends Anlage {
         return this.anlagen;
     }
 
-    public void addAnlage(final Anlage anlage) {
-        Validator.getInstance().validateNotNull(anlage);
-        this.anlagen.add(anlage);
-    }
-
-    public void removeAnlage(final Anlage anlage) {
-        this.anlagen.remove(anlage);
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final Bereich that)) return false;
+        if (!super.equals(o)) return false;
+        return this.getKennzeichen() == that.getKennzeichen() &&
+                Objects.equals(this.getBeschreibung(), that.getBeschreibung());
     }
 
     @Override
-    public Object getPrimaryKey() {
-        return this.getAnlageId();
-    }
-
-    @Override
-    public String getElementID() {
-        return Integer.toString(this.getAnlageId());
-    }
-
-    @Override
-    public String[] getCSVHeader() {
-        return new String[] {
-                CSVPosition.ANLAGEID.name(),
-                CSVPosition.LAGE_LATITUDE.name(),
-                CSVPosition.LAGE_LONGITUDE.name(),
-                CSVPosition.KENNZEICHEN.name(),
-                CSVPosition.BESCHREIBUNG.name(),
-                CSVPosition.ANLAGEN_IDS.name()
-        };
+    public Attribute[] getAttributeArray() {
+        final var superAttributes = super.getAttributeArray();
+        final var attributes = Arrays.copyOf(superAttributes, superAttributes.length + 2);
+        attributes[Attributes.KENNZEICHEN.ordinal()] = new Attribute(
+                Attributes.KENNZEICHEN.name(),
+                this,
+                String.class,
+                this.getKennzeichen(),
+                this.getKennzeichen(),
+                true);
+        attributes[Attributes.BESCHREIBUNG.ordinal()] = new Attribute(
+                Attributes.BESCHREIBUNG.name(),
+                this,
+                String.class,
+                this.getBeschreibung(),
+                this.getBeschreibung(),
+                true);
+        return attributes;
     }
 
     @Override
@@ -87,30 +105,35 @@ public class Bereich extends Anlage {
     }
 
     @Override
-    public Attribute[] getAttributeArray() {
-        final var superAttributes = super.getAttributeArray();
-        final var attributes = new Attribute[superAttributes.length + 2];
-        Arrays.copyOfRange(superAttributes, 0, superAttributes.length - 1);
-        attributes[Attributes.KENNZEICHEN.ordinal()] = new Attribute(
-                Attributes.KENNZEICHEN.name(),
-                this,
-                String.class,
-                this.getKennzeichen(),
-                this.getKennzeichen(),
-                true);
-        attributes[Attributes.BESCHREIBUNG.ordinal()] = new Attribute(
-                Attributes.BESCHREIBUNG.name(),
-                this,
-                String.class,
-                this.getBeschreibung(),
-                this.getBeschreibung(),
-                true);
-        return attributes;
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.ANLAGEID.name(),
+                CSVPosition.LAGE_LATITUDE.name(),
+                CSVPosition.LAGE_LONGITUDE.name(),
+                CSVPosition.KENNZEICHEN.name(),
+                CSVPosition.BESCHREIBUNG.name(),
+                CSVPosition.ANLAGEN_IDS.name()
+        };
+    }
+
+    @Override
+    public String getElementID() {
+        return Integer.toString(this.getAnlageId());
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.getAnlageId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), this.getKennzeichen(), this.getBeschreibung());
     }
 
     @Override
     public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
-        final var oldAttributeArray = this.getAttributeArray().clone();
+        final var oldAttributeArray = this.getAttributeArray();
 
         super.setAttributeValues(attributeArray);
 
@@ -127,20 +150,23 @@ public class Bereich extends Anlage {
         return oldAttributeArray;
     }
 
-    public enum Attributes {
-        ANLAGE_ID,
-        LAGE_LATITUDE,
-        LAGE_LONGITUDE,
-        KENNZEICHEN,
-        BESCHREIBUNG
+    @Override
+    public String toString() {
+        return "Bereich{" +
+                "kennzeichen=" + this.getKennzeichen() +
+                ", beschreibung='" + this.getBeschreibung() +
+                ", lage=" + this.getLage() +
+                ", bereich=" + this.getBereich() +
+                ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
+                '}';
     }
 
-    public enum CSVPosition {
-        ANLAGEID,
-        LAGE_LATITUDE,
-        LAGE_LONGITUDE,
-        KENNZEICHEN,
-        BESCHREIBUNG,
-        ANLAGEN_IDS
+    public void addAnlage(final Anlage anlage) {
+        Validator.getInstance().validateNotNull(anlage);
+        this.anlagen.add(anlage);
+    }
+
+    public void removeAnlage(final Anlage anlage) {
+        this.anlagen.remove(anlage);
     }
 }

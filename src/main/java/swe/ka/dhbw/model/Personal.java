@@ -1,28 +1,35 @@
 package swe.ka.dhbw.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Personal extends Person{
+public class Personal extends Person {
 
-    private int nummer;
-    private LocalDate geburtstag;
-    private Rolle benutzerrolle;
-    private List<Stoerung> stoerungen;
-
-    public Personal(String vorname, String nachname, Geschlecht geschlecht, String email, String telefonnummer, int nummer, LocalDate geburtstag, Rolle benutzerrolle, List<Stoerung> stoerungen) {
-        super(vorname, nachname, geschlecht, email, telefonnummer);
-        this.nummer = nummer;
-        this.geburtstag = geburtstag;
-        this.benutzerrolle = benutzerrolle;
-        this.stoerungen = stoerungen;
-    }
-
-    public enum Rolle{
+    public enum Rolle {
         ADMINISTRATOR,
         PLATZWART,
         HAUSMEISTER,
         EMPFANG
+    }
+
+    private final List<Stoerung> stoerungen = new ArrayList<>();
+    private int nummer;
+    private LocalDate geburtstag;
+    private Rolle benutzerrolle;
+
+    public Personal(String vorname,
+                    String nachname,
+                    Geschlecht geschlecht,
+                    String email,
+                    String telefonnummer,
+                    int nummer,
+                    LocalDate geburtstag,
+                    Rolle benutzerrolle) {
+        super(vorname, nachname, geschlecht, email, telefonnummer);
+        this.nummer = nummer;
+        this.geburtstag = geburtstag;
+        this.benutzerrolle = benutzerrolle;
     }
 
     public int getNummer() {

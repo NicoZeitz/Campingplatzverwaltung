@@ -1,10 +1,12 @@
 package swe.ka.dhbw.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Stellplatz extends Anlage {
 
+    private final List<Stellplatzfunktion> verfuegbareFunktionen = new ArrayList<>();
     private String stellplatz;
     private BigDecimal gebuehr;
     private double groesse;
@@ -12,8 +14,6 @@ public class Stellplatz extends Anlage {
     private int anzahWohnwagen;
     private int anzahlPKW;
     private int anzahlZelte;
-    private List<Stellplatzfunktion> verfuegbareFunktionen;
-    private List<Buchung> buchungen;
 
     public Stellplatz(int anlageId, GPSPosition lage) {
         super(anlageId, lage);
@@ -78,22 +78,10 @@ public class Stellplatz extends Anlage {
     public List<Stellplatzfunktion> getVerfuegbareFunktionen() {
         return verfuegbareFunktionen;
     }
-
-    public void setVerfuegbareFunktionen(List<Stellplatzfunktion> verfuegbareFunktionen) {
-        this.verfuegbareFunktionen = verfuegbareFunktionen;
-    }
-
-    public List<Buchung> getBuchungen() {
-        return buchungen;
-    }
-
-    public void setBuchungen(List<Buchung> buchungen) {
-        this.buchungen = buchungen;
-    }
-
+    
     @Override
-    public String getElementID() {
-        return null;
+    public String[] getCSVData() {
+        return new String[0];
     }
 
     @Override
@@ -102,8 +90,8 @@ public class Stellplatz extends Anlage {
     }
 
     @Override
-    public String[] getCSVData() {
-        return new String[0];
+    public String getElementID() {
+        return null;
     }
 
     @Override

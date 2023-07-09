@@ -7,6 +7,12 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 public class Person implements IDepictable, ICSVPersistable, IPersistable {
+    public enum Geschlecht {
+        MAENNLICH,
+        WEIBLICH,
+        DIVERS,
+    }
+    
     protected String vorname;
     protected String nachname;
     protected Geschlecht geschlecht;
@@ -73,23 +79,8 @@ public class Person implements IDepictable, ICSVPersistable, IPersistable {
     }
 
     @Override
-    public String getElementID() {
-        return null;
-    }
-
-    @Override
     public Attribute[] getAttributeArray() {
         return new Attribute[0];
-    }
-
-    @Override
-    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
-        return IDepictable.super.setAttributeValues(attributeArray);
-    }
-
-    @Override
-    public String[] getCSVHeader() {
-        return new String[0];
     }
 
     @Override
@@ -98,13 +89,22 @@ public class Person implements IDepictable, ICSVPersistable, IPersistable {
     }
 
     @Override
+    public String[] getCSVHeader() {
+        return new String[0];
+    }
+
+    @Override
+    public String getElementID() {
+        return null;
+    }
+
+    @Override
     public Object getPrimaryKey() {
         return null;
     }
 
-    public enum Geschlecht {
-        MAENNLICH,
-        WEIBLICH,
-        DIVERS,
+    @Override
+    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
+        return IDepictable.super.setAttributeValues(attributeArray);
     }
 }

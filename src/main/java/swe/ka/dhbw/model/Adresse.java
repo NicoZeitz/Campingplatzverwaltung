@@ -9,7 +9,50 @@ import swe.ka.dhbw.util.Validator;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Adresse implements IPersistable, IDepictable, ICSVPersistable {
+public final class Adresse implements IPersistable, IDepictable, ICSVPersistable {
+    // Keine vollständige Liste
+    public enum Land {
+        DE("Deutschland"),
+        US("Vereinigte Staaten von Amerika"),
+        NL("Niederlande"),
+        GB("Großbritannien"),
+        PL("Polen"),
+        CA("Kanada"),
+        BE("Belgien"),
+        AT("Österreich"),
+        SE("Schweden"),
+        NO("Norwegen"),
+        FI("Finnland"),
+        FR("Frankreich"),
+        CH("Schweiz");
+
+        public final String name;
+
+        Land(final String name) {
+            this.name = name;
+        }
+    }
+
+    public enum Attributes {
+        ADRESSE_ID,
+        STRASSE,
+        HAUSNUMMER,
+        ZUSATZ,
+        ORT,
+        PLZ,
+        LAND
+    }
+
+    public enum CSVPosition {
+        ADRESSE_ID,
+        STRASSE,
+        HAUSNUMMER,
+        ZUSATZ,
+        ORT,
+        PLZ,
+        LAND
+    }
+
     private final int adresseID;
     private String strasse;
     private int hausnummer;
@@ -95,13 +138,15 @@ public class Adresse implements IPersistable, IDepictable, ICSVPersistable {
     }
 
     @Override
-    public Object getPrimaryKey() {
-        return this.getAdresseID();
-    }
-
-    @Override
-    public String getElementID() {
-        return Integer.toString(this.getAdresseID());
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Adresse that)) return false;
+        return this.getHausnummer() == that.getHausnummer() &&
+                Objects.equals(this.getStrasse(), that.getStrasse()) &&
+                Objects.equals(this.getZusatz(), that.getZusatz()) &&
+                Objects.equals(this.getOrt(), that.getOrt()) &&
+                Objects.equals(this.getPLZ(), that.getPLZ()) &&
+                Objects.equals(this.getLand(), that.getLand());
     }
 
     @Override
@@ -136,14 +181,62 @@ public class Adresse implements IPersistable, IDepictable, ICSVPersistable {
     }
 
     @Override
+    public String[] getCSVData() {
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.ADRESSE_ID.ordinal()] = Integer.toString(this.getAdresseID());
+        csvData[CSVPosition.STRASSE.ordinal()] = this.getStrasse();
+        csvData[CSVPosition.HAUSNUMMER.ordinal()] = Integer.toString(this.getHausnummer());
+        csvData[CSVPosition.ZUSATZ.ordinal()] = this.getZusatz().orElse("");
+        csvData[CSVPosition.ORT.ordinal()] = this.getOrt();
+        csvData[CSVPosition.PLZ.ordinal()] = this.getPLZ();
+        csvData[CSVPosition.LAND.ordinal()] = this.getLand().toString();
+        return csvData;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.ADRESSE_ID.name(),
+                CSVPosition.STRASSE.name(),
+                CSVPosition.HAUSNUMMER.name(),
+                CSVPosition.ZUSATZ.name(),
+                CSVPosition.ORT.name(),
+                CSVPosition.PLZ.name(),
+                CSVPosition.LAND.name()
+        };
+    }
+
+    @Override
+    public String getElementID() {
+        return Integer.toString(this.getAdresseID());
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.getAdresseID();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getAdresseID(),
+                this.getStrasse(),
+                this.getHausnummer(),
+                this.getZusatz(),
+                this.getOrt(),
+                this.getPLZ(),
+                this.getLand());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
-        final var oldAttributeArray = this.getAttributeArray().clone();
+        final var oldAttributeArray = this.getAttributeArray();
 
         for (final var attribute : attributeArray) {
             final var name = attribute.getName();
             final var value = attribute.getValue();
             if (name.equals(Attributes.ADRESSE_ID.name()) && !value.equals(this.getAdresseID())) {
-                throw new IllegalArgumentException("Die AdresseID darf nicht verändert werden!");
+                throw new IllegalArgumentException("Adresse::setAttributeValues: Die AdresseID darf nicht verändert werden!");
             }
 
             if (name.equals(Attributes.STRASSE.name()) && !value.equals(this.getStrasse())) {
@@ -164,55 +257,6 @@ public class Adresse implements IPersistable, IDepictable, ICSVPersistable {
     }
 
     @Override
-    public String[] getCSVHeader() {
-        return new String[] {
-                CSVPosition.ADRESSE_ID.name(),
-                CSVPosition.STRASSE.name(),
-                CSVPosition.HAUSNUMMER.name(),
-                CSVPosition.ZUSATZ.name(),
-                CSVPosition.ORT.name(),
-                CSVPosition.PLZ.name(),
-                CSVPosition.LAND.name()
-        };
-    }
-
-    @Override
-    public String[] getCSVData() {
-        final var csvData = new String[CSVPosition.values().length];
-        csvData[CSVPosition.ADRESSE_ID.ordinal()] = Integer.toString(this.getAdresseID());
-        csvData[CSVPosition.STRASSE.ordinal()] = this.getStrasse();
-        csvData[CSVPosition.HAUSNUMMER.ordinal()] = Integer.toString(this.getHausnummer());
-        csvData[CSVPosition.ZUSATZ.ordinal()] = this.getZusatz().orElse("");
-        csvData[CSVPosition.ORT.ordinal()] = this.getOrt();
-        csvData[CSVPosition.PLZ.ordinal()] = this.getPLZ();
-        csvData[CSVPosition.LAND.ordinal()] = this.getLand().toString();
-        return csvData;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Adresse that)) return false;
-        return this.getHausnummer() == that.getHausnummer() &&
-                Objects.equals(this.getStrasse(), that.getStrasse()) &&
-                Objects.equals(this.getZusatz(), that.getZusatz()) &&
-                Objects.equals(this.getOrt(), that.getOrt()) &&
-                Objects.equals(this.getPLZ(), that.getPLZ()) &&
-                Objects.equals(this.getLand(), that.getLand());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.getAdresseID(),
-                this.getStrasse(),
-                this.getHausnummer(),
-                this.getZusatz(),
-                this.getOrt(),
-                this.getPLZ(),
-                this.getLand());
-    }
-
-    @Override
     public String toString() {
         return "Adresse{" +
                 "strasse='" + this.getStrasse() + '\'' +
@@ -222,49 +266,5 @@ public class Adresse implements IPersistable, IDepictable, ICSVPersistable {
                 ", plz='" + this.getPLZ() + '\'' +
                 ", land='" + this.getLand() + '\'' +
                 '}';
-    }
-
-
-    // Keine vollständige Liste
-    public enum Land {
-        DE("Deutschland"),
-        US("Vereinigte Staaten von Amerika"),
-        NL("Niederlande"),
-        GB("Großbritannien"),
-        PL("Polen"),
-        CA("Kanada"),
-        BE("Belgien"),
-        AT("Österreich"),
-        SE("Schweden"),
-        NO("Norwegen"),
-        FI("Finnland"),
-        FR("Frankreich"),
-        CH("Schweiz");
-
-        public final String name;
-
-        Land(final String name) {
-            this.name = name;
-        }
-    }
-
-    public enum Attributes {
-        ADRESSE_ID,
-        STRASSE,
-        HAUSNUMMER,
-        ZUSATZ,
-        ORT,
-        PLZ,
-        LAND
-    }
-
-    public enum CSVPosition {
-        ADRESSE_ID,
-        STRASSE,
-        HAUSNUMMER,
-        ZUSATZ,
-        ORT,
-        PLZ,
-        LAND
     }
 }

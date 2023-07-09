@@ -9,6 +9,25 @@ import swe.ka.dhbw.util.Validator;
 import java.util.Objects;
 
 public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
+    public enum Attributes {
+        AUSRUESTUNG_ID,
+        BEZEICHNUNG,
+        ANZAHL,
+        BREITE,
+        HOEHE
+    }
+
+    public enum CSVPosition {
+        DISCRIMINATOR,
+        AUSRUESTUNG_ID,
+        BEZEICHNUNG,
+        ANZAHL,
+        BREITE,
+        HOEHE,
+        KENNZEICHEN,
+        FAHRZEUGTYP
+    }
+
     protected final int ausruestungID;
     protected String bezeichnung;
     protected int anzahl;
@@ -28,13 +47,13 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
         this.setHoehe(hoehe);
     }
 
-    public String getBezeichnung() {
-        return this.bezeichnung;
+    public double getHoehe() {
+        return this.hoehe;
     }
 
-    public void setBezeichnung(final String bezeichnung) {
-        Validator.getInstance().validateNotEmpty(bezeichnung);
-        this.bezeichnung = bezeichnung;
+    public void setHoehe(final double hoehe) {
+        Validator.getInstance().validateGreaterThanEqual(hoehe, 0);
+        this.hoehe = hoehe;
     }
 
     public int getAnzahl() {
@@ -46,6 +65,15 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
         this.anzahl = anzahl;
     }
 
+    public String getBezeichnung() {
+        return this.bezeichnung;
+    }
+
+    public void setBezeichnung(final String bezeichnung) {
+        Validator.getInstance().validateNotEmpty(bezeichnung);
+        this.bezeichnung = bezeichnung;
+    }
+
     public double getBreite() {
         return this.breite;
     }
@@ -55,24 +83,14 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
         this.breite = breite;
     }
 
-    public double getHoehe() {
-        return this.hoehe;
-    }
-
-    public void setHoehe(final double hoehe) {
-        Validator.getInstance().validateGreaterThanEqual(hoehe, 0);
-        this.hoehe = hoehe;
-    }
-
-
     @Override
-    public String getElementID() {
-        return Integer.toString(this.ausruestungID);
-    }
-
-    @Override
-    public Object getPrimaryKey() {
-        return this.ausruestungID;
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Ausruestung that)) return false;
+        return this.getAnzahl() == that.getAnzahl() &&
+                Double.compare(this.getBreite(), that.getBreite()) == 0 &&
+                Double.compare(this.getHoehe(), that.getHoehe()) == 0 &&
+                Objects.equals(this.getBezeichnung(), that.getBezeichnung());
     }
 
     @Override
@@ -95,6 +113,20 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
     }
 
     @Override
+    public String[] getCSVData() {
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.DISCRIMINATOR.ordinal()] = this.getClass().getSimpleName();
+        csvData[CSVPosition.AUSRUESTUNG_ID.ordinal()] = Integer.toString(this.ausruestungID);
+        csvData[CSVPosition.BEZEICHNUNG.ordinal()] = this.bezeichnung;
+        csvData[CSVPosition.ANZAHL.ordinal()] = Integer.toString(this.anzahl);
+        csvData[CSVPosition.BREITE.ordinal()] = Double.toString(this.breite);
+        csvData[CSVPosition.HOEHE.ordinal()] = Double.toString(this.hoehe);
+        csvData[CSVPosition.KENNZEICHEN.ordinal()] = "";
+        csvData[CSVPosition.FAHRZEUGTYP.ordinal()] = "";
+        return csvData;
+    }
+
+    @Override
     public String[] getCSVHeader() {
         return new String[] {
                 // Single-Table Inheritance
@@ -111,32 +143,42 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
     }
 
     @Override
-    public String[] getCSVData() {
-        final var csvData = new String[CSVPosition.values().length];
-        csvData[CSVPosition.DISCRIMINATOR.ordinal()] = this.getClass().getSimpleName();
-        csvData[CSVPosition.AUSRUESTUNG_ID.ordinal()] = Integer.toString(this.ausruestungID);
-        csvData[CSVPosition.BEZEICHNUNG.ordinal()] = this.bezeichnung;
-        csvData[CSVPosition.ANZAHL.ordinal()] = Integer.toString(this.anzahl);
-        csvData[CSVPosition.BREITE.ordinal()] = Double.toString(this.breite);
-        csvData[CSVPosition.HOEHE.ordinal()] = Double.toString(this.hoehe);
-        csvData[CSVPosition.KENNZEICHEN.ordinal()] = "";
-        csvData[CSVPosition.FAHRZEUGTYP.ordinal()] = "";
-        return csvData;
+    public String getElementID() {
+        return Integer.toString(this.ausruestungID);
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Ausruestung that)) return false;
-        return this.getAnzahl() == that.getAnzahl() &&
-                Double.compare(that.getBreite(), this.getBreite()) == 0 &&
-                Double.compare(that.getHoehe(), this.getHoehe()) == 0 &&
-                Objects.equals(this.getBezeichnung(), that.getBezeichnung());
+    public Object getPrimaryKey() {
+        return this.ausruestungID;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(this.getBezeichnung(), this.getAnzahl(), this.getBreite(), this.getHoehe());
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray();
+
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+            if (name.equals(Attributes.AUSRUESTUNG_ID.name()) && !value.equals(this.ausruestungID)) {
+                throw new IllegalArgumentException("Die AusrüstungsID darf nicht verändert werden!");
+            }
+
+            if (name.equals(Attributes.BEZEICHNUNG.name()) && !value.equals(this.getBezeichnung())) {
+                this.setBezeichnung((String) value);
+            } else if (name.equals(Attributes.ANZAHL.name()) && !value.equals(this.getAnzahl())) {
+                this.setAnzahl((int) value);
+            } else if (name.equals(Attributes.BREITE.name()) && !value.equals(this.getBreite())) {
+                this.setBreite((double) value);
+            } else if (name.equals(Attributes.HOEHE.name()) && !value.equals(this.getHoehe())) {
+                this.setHoehe((double) value);
+            }
+        }
+        return oldAttributeArray;
     }
 
     @Override
@@ -147,24 +189,5 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
                 ", breite=" + breite +
                 ", hoehe=" + hoehe +
                 '}';
-    }
-
-    public enum Attributes {
-        AUSRUESTUNG_ID,
-        BEZEICHNUNG,
-        ANZAHL,
-        BREITE,
-        HOEHE
-    }
-
-    public enum CSVPosition {
-        DISCRIMINATOR,
-        AUSRUESTUNG_ID,
-        BEZEICHNUNG,
-        ANZAHL,
-        BREITE,
-        HOEHE,
-        KENNZEICHEN,
-        FAHRZEUGTYP
     }
 }

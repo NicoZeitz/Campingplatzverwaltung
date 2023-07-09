@@ -6,7 +6,12 @@ import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
-public class GPSPosition implements IAttributed {
+public final class GPSPosition implements IAttributed {
+    public enum Attributes {
+        LATITUDE,
+        LONGITUDE
+    }
+
     private double latitude;
     private double longitude;
 
@@ -34,6 +39,14 @@ public class GPSPosition implements IAttributed {
     }
 
     @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GPSPosition that)) return false;
+        return Double.compare(that.getLatitude(), this.getLatitude()) == 0 &&
+                Double.compare(that.getLongitude(), this.getLongitude()) == 0;
+    }
+
+    @Override
     public Attribute[] getAttributeArray() {
         return new Attribute[] {
                 new Attribute(Attributes.LATITUDE.name(), this, Double.class, this.getLatitude(), this.getLatitude(), true),
@@ -42,8 +55,13 @@ public class GPSPosition implements IAttributed {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(this.getLatitude(), this.getLongitude());
+    }
+
+    @Override
     public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
-        final var oldAttributeArray = this.getAttributeArray().clone();
+        final var oldAttributeArray = this.getAttributeArray();
         for (final var attribute : attributeArray) {
             final var name = attribute.getName();
             final var value = attribute.getValue();
@@ -63,23 +81,5 @@ public class GPSPosition implements IAttributed {
                 "latitude=" + this.getLatitude() +
                 ", longitude=" + this.getLongitude() +
                 '}';
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof GPSPosition that)) return false;
-        return Double.compare(that.getLatitude(), this.getLatitude()) == 0 &&
-                Double.compare(that.getLongitude(), this.getLongitude()) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.getLatitude(), this.getLongitude());
-    }
-
-    public enum Attributes {
-        LATITUDE,
-        LONGITUDE
     }
 }

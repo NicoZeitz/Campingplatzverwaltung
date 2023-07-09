@@ -10,7 +10,19 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable {
-    private int oeffnungszeitID;
+    public enum CSVPosition {
+        OEFFNUNGSZEIT_ID,
+        START,
+        ENDE
+    }
+
+    public enum Attributes {
+        OEFFNUNGSZEIT_ID,
+        START,
+        ENDE
+    }
+
+    private final int oeffnungszeitID;
     private LocalTime start;
     private LocalTime ende;
 
@@ -43,14 +55,10 @@ public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable
     }
 
     @Override
-    public Object getPrimaryKey() {
-        return this.oeffnungszeitID;
-    }
-
-
-    @Override
-    public String getElementID() {
-        return Integer.toString(this.oeffnungszeitID);
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Oeffnungszeit that)) return false;
+        return Objects.equals(this.getStart(), that.getStart()) && Objects.equals(this.getEnde(), that.getEnde());
     }
 
     @Override
@@ -71,15 +79,6 @@ public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable
     }
 
     @Override
-    public String[] getCSVHeader() {
-        return new String[] {
-                CSVPosition.OEFFNUNGSZEIT_ID.name(),
-                CSVPosition.START.name(),
-                CSVPosition.ENDE.name()
-        };
-    }
-
-    @Override
     public String[] getCSVData() {
         final var csvData = new String[CSVPosition.values().length];
         csvData[CSVPosition.OEFFNUNGSZEIT_ID.ordinal()] = Integer.toString(this.oeffnungszeitID);
@@ -89,18 +88,22 @@ public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable
     }
 
     @Override
-    public String toString() {
-        return "Oeffnungszeit{" +
-                "start=" + start +
-                ", ende=" + ende +
-                '}';
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.OEFFNUNGSZEIT_ID.name(),
+                CSVPosition.START.name(),
+                CSVPosition.ENDE.name()
+        };
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Oeffnungszeit that)) return false;
-        return Objects.equals(this.getStart(), that.getStart()) && Objects.equals(this.getEnde(), that.getEnde());
+    public String getElementID() {
+        return Integer.toString(this.oeffnungszeitID);
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.oeffnungszeitID;
     }
 
     @Override
@@ -108,15 +111,11 @@ public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable
         return Objects.hash(this.getStart(), this.getEnde());
     }
 
-    public enum CSVPosition {
-        OEFFNUNGSZEIT_ID,
-        START,
-        ENDE
-    }
-
-    public enum Attributes {
-        OEFFNUNGSZEIT_ID,
-        START,
-        ENDE
+    @Override
+    public String toString() {
+        return "Oeffnungszeit{" +
+                "start=" + start +
+                ", ende=" + ende +
+                '}';
     }
 }

@@ -8,7 +8,28 @@ import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
-public class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable {
+public final class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable {
+    public enum CSVPosition {
+        VORNAME,
+        NACHNAME,
+        GESCHLECHT,
+        EMAIL,
+        TELEFONNUMMER,
+        KUNDENNUMMER,
+        AUSWEISNUMMER,
+        ANSCHRIFT
+    }
+
+    public enum Attributes {
+        VORNAME,
+        NACHNAME,
+        GESCHLECHT,
+        EMAIL,
+        TELEFONNUMMER,
+        KUNDENNUMMER,
+        AUSWEISNUMMER
+    }
+
     private final int kundennummer;
     private String ausweisnummer;
     private Adresse anschrift;
@@ -51,13 +72,12 @@ public class Gast extends Person implements IPersistable, IDepictable, ICSVPersi
     }
 
     @Override
-    public Object getPrimaryKey() {
-        return this.getKundennummer();
-    }
-
-    @Override
-    public String getElementID() {
-        return Integer.toString(this.getKundennummer());
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Gast that)) return false;
+        return this.getKundennummer() == that.getKundennummer() &&
+                Objects.equals(this.getAusweisnummer(), that.getAusweisnummer()) &&
+                Objects.equals(this.getAnschrift(), that.getAnschrift());
     }
 
     @Override
@@ -82,8 +102,51 @@ public class Gast extends Person implements IPersistable, IDepictable, ICSVPersi
     }
 
     @Override
+    public String[] getCSVData() {
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.VORNAME.ordinal()] = this.getVorname();
+        csvData[CSVPosition.NACHNAME.ordinal()] = this.getNachname();
+        csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().toString();
+        csvData[CSVPosition.EMAIL.ordinal()] = this.getEmail();
+        csvData[CSVPosition.TELEFONNUMMER.ordinal()] = this.getTelefonnummer();
+        csvData[CSVPosition.KUNDENNUMMER.ordinal()] = Integer.toString(this.getKundennummer());
+        csvData[CSVPosition.AUSWEISNUMMER.ordinal()] = this.getAusweisnummer();
+        csvData[CSVPosition.ANSCHRIFT.ordinal()] = this.getAnschrift().getPrimaryKey().toString();
+        return csvData;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.VORNAME.name(),
+                CSVPosition.NACHNAME.name(),
+                CSVPosition.GESCHLECHT.name(),
+                CSVPosition.EMAIL.name(),
+                CSVPosition.TELEFONNUMMER.name(),
+                CSVPosition.KUNDENNUMMER.name(),
+                CSVPosition.AUSWEISNUMMER.name(),
+                CSVPosition.ANSCHRIFT.name()
+        };
+    }
+
+    @Override
+    public String getElementID() {
+        return Integer.toString(this.getKundennummer());
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.getKundennummer();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getKundennummer(), this.getAusweisnummer(), this.getAnschrift());
+    }
+
+    @Override
     public Attribute[] setAttributeValues(Attribute[] attributeArray) {
-        final var oldAttributeArray = this.getAttributeArray().clone();
+        final var oldAttributeArray = this.getAttributeArray();
 
         for (final var attribute : attributeArray) {
             final var name = attribute.getName();
@@ -112,35 +175,6 @@ public class Gast extends Person implements IPersistable, IDepictable, ICSVPersi
     }
 
     @Override
-    public String[] getCSVHeader() {
-        return new String[] {
-                CSVPosition.VORNAME.name(),
-                CSVPosition.NACHNAME.name(),
-                CSVPosition.GESCHLECHT.name(),
-                CSVPosition.EMAIL.name(),
-                CSVPosition.TELEFONNUMMER.name(),
-                CSVPosition.KUNDENNUMMER.name(),
-                CSVPosition.AUSWEISNUMMER.name(),
-                CSVPosition.ANSCHRIFT.name()
-        };
-    }
-
-    @Override
-    public String[] getCSVData() {
-        final var csvData = new String[CSVPosition.values().length];
-        csvData[CSVPosition.VORNAME.ordinal()] = this.getVorname();
-        csvData[CSVPosition.NACHNAME.ordinal()] = this.getNachname();
-        csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().toString();
-        csvData[CSVPosition.EMAIL.ordinal()] = this.getEmail();
-        csvData[CSVPosition.TELEFONNUMMER.ordinal()] = this.getTelefonnummer();
-        csvData[CSVPosition.KUNDENNUMMER.ordinal()] = Integer.toString(this.getKundennummer());
-        csvData[CSVPosition.AUSWEISNUMMER.ordinal()] = this.getAusweisnummer();
-        csvData[CSVPosition.ANSCHRIFT.ordinal()] = this.getAnschrift().getPrimaryKey().toString();
-        return csvData;
-    }
-
-
-    @Override
     public String toString() {
         return "Gast{" +
                 "kundennummer=" + this.getKundennummer() +
@@ -152,40 +186,5 @@ public class Gast extends Person implements IPersistable, IDepictable, ICSVPersi
                 ", email='" + this.getEmail() + '\'' +
                 ", telefonnummer='" + this.getTelefonnummer() + '\'' +
                 '}';
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Gast that)) return false;
-        return this.getKundennummer() == that.getKundennummer() &&
-                Objects.equals(this.getAusweisnummer(), that.getAusweisnummer()) &&
-                Objects.equals(this.getAnschrift(), that.getAnschrift());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.getKundennummer(), this.getAusweisnummer(), this.getAnschrift());
-    }
-
-    public enum CSVPosition {
-        VORNAME,
-        NACHNAME,
-        GESCHLECHT,
-        EMAIL,
-        TELEFONNUMMER,
-        KUNDENNUMMER,
-        AUSWEISNUMMER,
-        ANSCHRIFT
-    }
-
-    public enum Attributes {
-        VORNAME,
-        NACHNAME,
-        GESCHLECHT,
-        EMAIL,
-        TELEFONNUMMER,
-        KUNDENNUMMER,
-        AUSWEISNUMMER
     }
 }

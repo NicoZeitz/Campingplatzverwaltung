@@ -6,14 +6,30 @@ import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable {
-    private int oeffnungstagId;
+    public enum Wochentag {
+        MO, DI, MI, DO, FR, SA, SO
+    }
+
+    public enum Attributes {
+        OEFFNUNGSTAG_ID,
+        WOCHENTAG
+    }
+
+    public enum CSVPosition {
+        OEFFNUNGSTAG_ID,
+        WOCHENTAG,
+        OEFFNUNGSZEITEN_IDS
+    }
+
+    private final int oeffnungstagId;
     private Wochentag wochentag;
-    private List<Oeffnungszeit> oeffnungszeiten;
+    private List<Oeffnungszeit> oeffnungszeiten = new ArrayList<>();
 
     public Oeffnungstag(final int oeffnungstagId, final Wochentag wochentag) {
         Validator.getInstance().validateGreaterThan(oeffnungstagId, 0);
@@ -39,24 +55,13 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
         this.oeffnungszeiten = oeffnungszeiten;
     }
 
-    public void addOeffnungszeit(Oeffnungszeit oeffnungszeit) {
-        Validator.getInstance().validateNotNull(oeffnungszeit);
-        this.oeffnungszeiten.add(oeffnungszeit);
-    }
-
-    public void removeOeffnungszeit(Oeffnungszeit oeffnungszeit) {
-        Validator.getInstance().validateNotNull(oeffnungszeit);
-        this.oeffnungszeiten.remove(oeffnungszeit);
-    }
-
     @Override
-    public String getElementID() {
-        return Integer.toString(this.oeffnungstagId);
-    }
-
-    @Override
-    public Object getPrimaryKey() {
-        return this.oeffnungstagId;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Oeffnungstag that)) return false;
+        return getWochentag() == that.getWochentag() && Objects.equals(
+                getOeffnungszeiten(),
+                that.getOeffnungszeiten());
     }
 
     @Override
@@ -78,15 +83,6 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
     }
 
     @Override
-    public String[] getCSVHeader() {
-        return new String[] {
-                CSVPosition.OEFFNUNGSTAG_ID.name(),
-                CSVPosition.WOCHENTAG.name(),
-                CSVPosition.OEFFNUNGSZEITEN_IDS.name()
-        };
-    }
-
-    @Override
     public String[] getCSVData() {
         final var csvData = new String[CSVPosition.values().length];
         csvData[CSVPosition.OEFFNUNGSTAG_ID.ordinal()] = Integer.toString(this.oeffnungstagId);
@@ -100,12 +96,22 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Oeffnungstag that)) return false;
-        return getWochentag() == that.getWochentag() && Objects.equals(
-                getOeffnungszeiten(),
-                that.getOeffnungszeiten());
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.OEFFNUNGSTAG_ID.name(),
+                CSVPosition.WOCHENTAG.name(),
+                CSVPosition.OEFFNUNGSZEITEN_IDS.name()
+        };
+    }
+
+    @Override
+    public String getElementID() {
+        return Integer.toString(this.oeffnungstagId);
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.oeffnungstagId;
     }
 
     @Override
@@ -123,19 +129,13 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
                 '}';
     }
 
-    public enum Wochentag {
-        MO, DI, MI, DO, FR, SA, SO
+    public void addOeffnungszeit(Oeffnungszeit oeffnungszeit) {
+        Validator.getInstance().validateNotNull(oeffnungszeit);
+        this.oeffnungszeiten.add(oeffnungszeit);
     }
 
-    public enum Attributes {
-        OEFFNUNGSTAG_ID,
-        WOCHENTAG,
-        OEFFNUNGSZEITEN
-    }
-
-    public enum CSVPosition {
-        OEFFNUNGSTAG_ID,
-        WOCHENTAG,
-        OEFFNUNGSZEITEN_IDS
+    public void removeOeffnungszeit(Oeffnungszeit oeffnungszeit) {
+        Validator.getInstance().validateNotNull(oeffnungszeit);
+        this.oeffnungszeiten.remove(oeffnungszeit);
     }
 }

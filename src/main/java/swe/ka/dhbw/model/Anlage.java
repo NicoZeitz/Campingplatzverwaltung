@@ -7,8 +7,16 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public abstract class Anlage implements IDepictable, IPersistable, ICSVPersistable {
+    public enum Attributes {
+        ANLAGE_ID,
+        LAGE_LATITUDE,
+        LAGE_LONGITUDE,
+    }
+
     protected final int anlageId;
     protected GPSPosition lage;
     protected Bereich bereich;
@@ -46,13 +54,13 @@ public abstract class Anlage implements IDepictable, IPersistable, ICSVPersistab
         return this.fotos;
     }
 
-    public void addFoto(final Foto foto) {
-        Validator.getInstance().validateNotNull(foto);
-        this.fotos.add(foto);
-    }
-
-    public void removeFoto(final Foto foto) {
-        this.fotos.remove(foto);
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final Anlage that)) return false;
+        return Objects.equals(this.getLage(), that.getLage()) &&
+                Objects.equals(this.getBereich(), that.getBereich()) &&
+                Objects.equals(this.getFotos(), that.getFotos());
     }
 
     @Override
@@ -83,8 +91,13 @@ public abstract class Anlage implements IDepictable, IPersistable, ICSVPersistab
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(this.getLage(), this.getBereich(), this.getFotos());
+    }
+
+    @Override
     public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
-        final var oldAttributeArray = this.getAttributeArray().clone();
+        final var oldAttributeArray = this.getAttributeArray();
 
         for (final var attribute : attributeArray) {
             final var name = attribute.getName();
@@ -103,9 +116,21 @@ public abstract class Anlage implements IDepictable, IPersistable, ICSVPersistab
         return oldAttributeArray;
     }
 
-    public enum Attributes {
-        ANLAGE_ID,
-        LAGE_LATITUDE,
-        LAGE_LONGITUDE,
+    @Override
+    public String toString() {
+        return "Anlage{" +
+                "lage=" + lage +
+                ", bereich=" + bereich +
+                ", fotos=[" + fotos.stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
+                '}';
+    }
+
+    public void addFoto(final Foto foto) {
+        Validator.getInstance().validateNotNull(foto);
+        this.fotos.add(foto);
+    }
+
+    public void removeFoto(final Foto foto) {
+        this.fotos.remove(foto);
     }
 }

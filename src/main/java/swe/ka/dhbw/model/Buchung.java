@@ -7,21 +7,40 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public final class Buchung implements IPersistable, ICSVPersistable, IDepictable {
+    public enum Attributes {
+        BUCHUNGSNUMMER,
+        ANREISE,
+        ABREISE
+    }
+
+    public enum CSVPosition {
+        BUCHUNGSNUMMER,
+        ANREISE,
+        ABREISE,
+        GEBUCHTER_STELLPLATZ_ID,
+        AUSGEHAENDIGTE_CHIPKARTEN_IDS,
+        RECHNUNG_ID,
+        VERANTWORTLICHER_GAST_ID,
+        ZUGEHOERIGE_GAESTE_IDS,
+        GEBUCHTE_LEISTUNGEN_IDS
+    }
+
     private final int buchungsnummer;
+    private final List<Chipkarte> ausgehaendigteChipkarten = new ArrayList<>();
+    private final List<Ausruestung> mitgebrachteAusruestung = new ArrayList<>();
+    private final List<Gast> zugehoerigeGaeste = new ArrayList<>();
+    private final List<GebuchteLeistung> gebuchteLeistungen = new ArrayList<>();
     private LocalDateTime anreise;
     private LocalDateTime abreise;
     private Stellplatz gebuchterStellplatz;
-    private List<Chipkarte> ausgehaendigteChipkarten;
-    private List<Ausruestung> mitgebrachteAusruestung;
     private Rechnung rechnung;
     private Gast verantwortlicherGast;
-    private List<Gast> zugehoerigeGaeste;
-    private List<GebuchteLeistung> gebuchteLeistungen;
 
     public Buchung(final int buchungsnummer,
                    final LocalDateTime anreise,
@@ -66,26 +85,8 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         return this.ausgehaendigteChipkarten;
     }
 
-    public void addAusgehaendigteChipkarte(final Chipkarte chipkarte) {
-        Validator.getInstance().validateNotNull(chipkarte);
-        this.ausgehaendigteChipkarten.add(chipkarte);
-    }
-
-    public void removeAusgehaendigteChipkarte(final Chipkarte chipkarte) {
-        this.ausgehaendigteChipkarten.remove(chipkarte);
-    }
-
     public List<Ausruestung> getMitgebrachteAusruestung() {
         return this.mitgebrachteAusruestung;
-    }
-
-    public void addMitgebrachteAusruestung(final Ausruestung ausruestung) {
-        Validator.getInstance().validateNotNull(ausruestung);
-        this.mitgebrachteAusruestung.add(ausruestung);
-    }
-
-    public void removeMitgebrachteAusruestung(final Ausruestung ausruestung) {
-        this.mitgebrachteAusruestung.remove(ausruestung);
     }
 
     public Rechnung getRechnung() {
@@ -110,36 +111,24 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         return this.zugehoerigeGaeste;
     }
 
-    public void addZugehoerigerGast(final Gast gast) {
-        Validator.getInstance().validateNotNull(gast);
-        this.zugehoerigeGaeste.add(gast);
-    }
-
-    public void removeZugehoerigerGast(final Gast gast) {
-        this.zugehoerigeGaeste.remove(gast);
-    }
-
     public List<GebuchteLeistung> getGebuchteLeistungen() {
         return this.gebuchteLeistungen;
     }
 
-    public void addGebuchteLeistung(final GebuchteLeistung gebuchteLeistung) {
-        Validator.getInstance().validateNotNull(gebuchteLeistung);
-        this.gebuchteLeistungen.add(gebuchteLeistung);
-    }
-
-    public void removeGebuchteLeistung(final GebuchteLeistung gebuchteLeistung) {
-        this.gebuchteLeistungen.remove(gebuchteLeistung);
-    }
-
     @Override
-    public String getElementID() {
-        return Integer.toString(this.getBuchungsnummer());
-    }
-
-    @Override
-    public Object getPrimaryKey() {
-        return this.getBuchungsnummer();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Buchung that)) return false;
+        return this.getBuchungsnummer() == that.getBuchungsnummer() &&
+                Objects.equals(this.getAnreise(), that.getAnreise()) &&
+                Objects.equals(this.getAbreise(), that.getAbreise()) &&
+                Objects.equals(this.getGebuchterStellplatz(), that.getGebuchterStellplatz()) &&
+                Objects.equals(this.getAusgehaendigteChipkarten(), that.getAusgehaendigteChipkarten()) &&
+                Objects.equals(this.getMitgebrachteAusruestung(), that.getMitgebrachteAusruestung()) &&
+                Objects.equals(this.getRechnung(), that.getRechnung()) &&
+                Objects.equals(this.getVerantwortlicherGast(), that.getVerantwortlicherGast()) &&
+                Objects.equals(this.getZugehoerigeGaeste(), that.getZugehoerigeGaeste()) &&
+                Objects.equals(this.getGebuchteLeistungen(), that.getGebuchteLeistungen());
     }
 
     @Override
@@ -156,41 +145,6 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                         true),
                 new Attribute(Attributes.ANREISE.name(), this, LocalDateTime.class, this.getAnreise(), this.getAnreise(), true),
                 new Attribute(Attributes.ABREISE.name(), this, LocalDateTime.class, this.getAbreise(), this.getAbreise(), true),
-        };
-    }
-
-    @Override
-    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
-        final var oldAttributeArray = this.getAttributeArray().clone();
-
-        for (final var attribute : attributeArray) {
-            final var name = attribute.getName();
-            final var value = attribute.getValue();
-            if (name.equals(Attributes.BUCHUNGSNUMMER.name()) && !value.equals(this.getBuchungsnummer())) {
-                throw new IllegalArgumentException("Buchung::setAttributeValues: Die Buchungsnummer darf nicht verändert werden!");
-            }
-
-            if (name.equals(Attributes.ANREISE.name()) && !value.equals(this.getAnreise())) {
-                this.setAnreise((LocalDateTime) value);
-            } else if (name.equals(Attributes.ABREISE.name()) && !value.equals(this.getAbreise())) {
-                this.setAbreise((LocalDateTime) value);
-            }
-        }
-        return oldAttributeArray;
-    }
-
-    @Override
-    public String[] getCSVHeader() {
-        return new String[] {
-                CSVPosition.BUCHUNGSNUMMER.name(),
-                CSVPosition.ANREISE.name(),
-                CSVPosition.ABREISE.name(),
-                CSVPosition.GEBUCHTER_STELLPLATZ_ID.name(),
-                CSVPosition.AUSGEHAENDIGTE_CHIPKARTEN_IDS.name(),
-                CSVPosition.RECHNUNG_ID.name(),
-                CSVPosition.VERANTWORTLICHER_GAST_ID.name(),
-                CSVPosition.ZUGEHOERIGE_GAESTE_IDS.name(),
-                CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.name()
         };
     }
 
@@ -222,19 +176,28 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Buchung buchung)) return false;
-        return this.getBuchungsnummer() == buchung.getBuchungsnummer() &&
-                Objects.equals(this.getAnreise(), buchung.getAnreise()) &&
-                Objects.equals(this.getAbreise(), buchung.getAbreise()) &&
-                Objects.equals(this.getGebuchterStellplatz(), buchung.getGebuchterStellplatz()) &&
-                Objects.equals(this.getAusgehaendigteChipkarten(), buchung.getAusgehaendigteChipkarten()) &&
-                Objects.equals(this.getMitgebrachteAusruestung(), buchung.getMitgebrachteAusruestung()) &&
-                Objects.equals(this.getRechnung(), buchung.getRechnung()) &&
-                Objects.equals(this.getVerantwortlicherGast(), buchung.getVerantwortlicherGast()) &&
-                Objects.equals(this.getZugehoerigeGaeste(), buchung.getZugehoerigeGaeste()) &&
-                Objects.equals(this.getGebuchteLeistungen(), buchung.getGebuchteLeistungen());
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.BUCHUNGSNUMMER.name(),
+                CSVPosition.ANREISE.name(),
+                CSVPosition.ABREISE.name(),
+                CSVPosition.GEBUCHTER_STELLPLATZ_ID.name(),
+                CSVPosition.AUSGEHAENDIGTE_CHIPKARTEN_IDS.name(),
+                CSVPosition.RECHNUNG_ID.name(),
+                CSVPosition.VERANTWORTLICHER_GAST_ID.name(),
+                CSVPosition.ZUGEHOERIGE_GAESTE_IDS.name(),
+                CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.name()
+        };
+    }
+
+    @Override
+    public String getElementID() {
+        return Integer.toString(this.getBuchungsnummer());
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.getBuchungsnummer();
     }
 
     @Override
@@ -251,6 +214,26 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                 this.getZugehoerigeGaeste(),
                 this.getGebuchteLeistungen()
         );
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray();
+
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+            if (name.equals(Attributes.BUCHUNGSNUMMER.name()) && !value.equals(this.getBuchungsnummer())) {
+                throw new IllegalArgumentException("Buchung::setAttributeValues: Die Buchungsnummer darf nicht verändert werden!");
+            }
+
+            if (name.equals(Attributes.ANREISE.name()) && !value.equals(this.getAnreise())) {
+                this.setAnreise((LocalDateTime) value);
+            } else if (name.equals(Attributes.ABREISE.name()) && !value.equals(this.getAbreise())) {
+                this.setAbreise((LocalDateTime) value);
+            }
+        }
+        return oldAttributeArray;
     }
 
     @Override
@@ -277,21 +260,39 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                 '}';
     }
 
-    public enum Attributes {
-        BUCHUNGSNUMMER,
-        ANREISE,
-        ABREISE
+    public void addAusgehaendigteChipkarte(final Chipkarte chipkarte) {
+        Validator.getInstance().validateNotNull(chipkarte);
+        this.ausgehaendigteChipkarten.add(chipkarte);
     }
 
-    public enum CSVPosition {
-        BUCHUNGSNUMMER,
-        ANREISE,
-        ABREISE,
-        GEBUCHTER_STELLPLATZ_ID,
-        AUSGEHAENDIGTE_CHIPKARTEN_IDS,
-        RECHNUNG_ID,
-        VERANTWORTLICHER_GAST_ID,
-        ZUGEHOERIGE_GAESTE_IDS,
-        GEBUCHTE_LEISTUNGEN_IDS
+    public void addGebuchteLeistung(final GebuchteLeistung gebuchteLeistung) {
+        Validator.getInstance().validateNotNull(gebuchteLeistung);
+        this.gebuchteLeistungen.add(gebuchteLeistung);
+    }
+
+    public void addMitgebrachteAusruestung(final Ausruestung ausruestung) {
+        Validator.getInstance().validateNotNull(ausruestung);
+        this.mitgebrachteAusruestung.add(ausruestung);
+    }
+
+    public void addZugehoerigerGast(final Gast gast) {
+        Validator.getInstance().validateNotNull(gast);
+        this.zugehoerigeGaeste.add(gast);
+    }
+
+    public void removeAusgehaendigteChipkarte(final Chipkarte chipkarte) {
+        this.ausgehaendigteChipkarten.remove(chipkarte);
+    }
+
+    public void removeGebuchteLeistung(final GebuchteLeistung gebuchteLeistung) {
+        this.gebuchteLeistungen.remove(gebuchteLeistung);
+    }
+
+    public void removeMitgebrachteAusruestung(final Ausruestung ausruestung) {
+        this.mitgebrachteAusruestung.remove(ausruestung);
+    }
+
+    public void removeZugehoerigerGast(final Gast gast) {
+        this.zugehoerigeGaeste.remove(gast);
     }
 }

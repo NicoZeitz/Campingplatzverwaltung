@@ -7,6 +7,14 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public final class Fahrzeug extends Ausruestung {
+    public enum Attributes {
+        KENNZEICHEN, TYP
+    }
+
+    public enum Typ {
+        KFZ, WOHNMOBIL, WOHNWAGEN
+    }
+
     private String kennzeichen;
     private Typ typ;
 
@@ -36,14 +44,23 @@ public final class Fahrzeug extends Ausruestung {
     }
 
     public void setTyp(final Typ typ) {
+        Validator.getInstance().validateNotNull(typ);
         this.typ = typ;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Fahrzeug that)) return false;
+        if (!super.equals(o)) return false;
+        return Objects.equals(this.getKennzeichen(), that.getKennzeichen()) &&
+                this.getTyp() == that.getTyp();
     }
 
     @Override
     public Attribute[] getAttributeArray() {
         final var superAttributes = super.getAttributeArray();
-        final var attributes = new Attribute[superAttributes.length + 2];
-        Arrays.copyOfRange(superAttributes, 0, superAttributes.length - 1);
+        final var attributes = Arrays.copyOf(superAttributes, superAttributes.length + 2);
         attributes[attributes.length - 2] = new Attribute(
                 Attributes.KENNZEICHEN.name(),
                 this,
@@ -70,35 +87,38 @@ public final class Fahrzeug extends Ausruestung {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Fahrzeug fahrzeug)) return false;
-        if (!super.equals(o)) return false;
-        return Objects.equals(getKennzeichen(), fahrzeug.getKennzeichen()) && getTyp() == fahrzeug.getTyp();
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), this.getKennzeichen(), this.getTyp());
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), getKennzeichen(), getTyp());
+    public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray();
+
+        super.setAttributeValues(attributeArray);
+
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+
+            if (name.equals(Attributes.KENNZEICHEN.name()) && !value.equals(this.getKennzeichen())) {
+                this.setKennzeichen((String) value);
+            } else if (name.equals(Attributes.TYP.name()) && !value.equals(this.getTyp())) {
+                this.setTyp((Typ) value);
+            }
+        }
+        return oldAttributeArray;
     }
 
     @Override
     public String toString() {
         return "Fahrzeug{" +
-                "bezeichnung='" + bezeichnung + '\'' +
-                ", anzahl=" + anzahl +
-                ", breite=" + breite +
-                ", hoehe=" + hoehe +
-                ", kennzeichen='" + kennzeichen + '\'' +
-                ", typ=" + typ +
+                "bezeichnung='" + this.getBezeichnung() +
+                ", anzahl=" + this.getAnzahl() +
+                ", breite=" + this.getBreite() +
+                ", hoehe=" + this.getHoehe() +
+                ", kennzeichen='" + this.getKennzeichen() +
+                ", typ=" + this.getTyp() +
                 '}';
-    }
-
-    public enum Attributes {
-        KENNZEICHEN, TYP
-    }
-
-    public enum Typ {
-        KFZ, WOHNMOBIL, WOHNWAGEN
     }
 }
