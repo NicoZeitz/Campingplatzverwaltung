@@ -221,4 +221,17 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
                 ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
                 '}';
     }
+
+    public void addOeffnungstag(final Oeffnungstag oeffnungstag) {
+        Validator.getInstance().validateNotNull(oeffnungstag);
+        if (this.oeffnungstage.size() > 7) {
+            throw new IllegalArgumentException("Es können maximal 7 Öffnungstage angegeben werden.");
+        }
+
+        this.oeffnungstage.add(oeffnungstag);
+    }
+
+    public void removeOeffnungstag(final Oeffnungstag oeffnungstag) {
+        this.oeffnungstage.remove(oeffnungstag);
+    }
 }

@@ -2,6 +2,7 @@ package swe.ka.dhbw.database;
 
 import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IPersistable;
+import de.dhbwka.swe.utils.util.AppLogger;
 import swe.ka.dhbw.model.*;
 import swe.ka.dhbw.util.Validator;
 
@@ -128,6 +129,21 @@ public class EntityFactory {
         }
 
         this.resolveUnresolvedReferences();
+
+        for (final var classes : this.missingReferences.keySet()) {
+            if (this.missingReferences.get(classes).isEmpty()) {
+                continue;
+            }
+
+            for (final var primaryKey : this.missingReferences.get(classes).keySet()) {
+                if (this.missingReferences.get(classes).get(primaryKey).isEmpty()) {
+                    continue;
+                }
+
+                AppLogger.getInstance()
+                        .warning("EntityFactory::loadAllEntities: Could not resolve reference from " + classes.getSimpleName() + " with primary key " + primaryKey);
+            }
+        }
     }
 
     public void resolveUnresolvedReferences() {
@@ -191,7 +207,19 @@ public class EntityFactory {
     }
 
     private IPersistable createBereichFromCSVData(final String[] csvData) {
-        return null;
+        final var bereich = new Bereich(
+                Integer.parseInt(csvData[Bereich.CSVPosition.ANLAGEID.ordinal()]),
+                new GPSPosition(
+                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LATITUDE.ordinal()]),
+                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LONGITUDE.ordinal()])
+                ),
+                csvData[Bereich.CSVPosition.KENNZEICHEN.ordinal()].charAt(0),
+                csvData[Bereich.CSVPosition.BESCHREIBUNG.ordinal()]
+        );
+        for (final var anlageId : csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Stellplatz.class, Integer.parseInt(anlageId), bereich::addAnlage);
+        }
+        return bereich;
     }
 
     private IPersistable createBuchungFromCSVData(final String[] csvData) {
@@ -236,7 +264,22 @@ public class EntityFactory {
     }
 
     private IPersistable createEinrichtungFromCSVData(final String[] csvData) {
-        return null;
+        final var einrichtung = new Einrichtung(
+                Integer.parseInt(csvData[Einrichtung.CSVPosition.ANLAGE_ID.ordinal()]),
+                new GPSPosition(
+                        Double.parseDouble(csvData[Einrichtung.CSVPosition.LAGE_LATITUDE.ordinal()]),
+                        Double.parseDouble(csvData[Einrichtung.CSVPosition.LAGE_LONGITUDE.ordinal()])
+                ),
+                csvData[Einrichtung.CSVPosition.NAME.ordinal()],
+                csvData[Einrichtung.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDateTime.parse(csvData[Einrichtung.CSVPosition.LETZTE_WARTUNG.ordinal()])
+        );
+        for (final var oeffnungstagId : csvData[Einrichtung.CSVPosition.OEFFNUNGSTAGE_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Oeffnungstag.class, Integer.parseInt(oeffnungstagId), einrichtung::addOeffnungstag);
+        }
+        final var fremdfirmaId = Integer.parseInt(csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
+        this.onReferenceFound(Fremdfirma.class, fremdfirmaId, einrichtung::setZustaendigeFirma);
+        return einrichtung;
     }
 
     private IPersistable createFotoFromCSVData(final String[] csvData) {
