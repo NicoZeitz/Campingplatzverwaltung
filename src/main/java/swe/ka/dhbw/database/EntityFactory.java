@@ -345,7 +345,27 @@ public class EntityFactory {
     }
 
     private IPersistable createStellplatzFromCSVData(final String[] csvData) {
-        return null;
+        final var stellplatz = new Stellplatz(
+                Integer.parseInt(csvData[Stellplatz.CSVPosition.ANLAGE_ID.ordinal()]),
+                new GPSPosition(
+                        Double.parseDouble(csvData[Stellplatz.CSVPosition.LAGE_LATITUDE.ordinal()]),
+                        Double.parseDouble(csvData[Stellplatz.CSVPosition.LAGE_LONGITUDE.ordinal()])
+                ),
+                csvData[Stellplatz.CSVPosition.STELLPLATZ.ordinal()],
+                new BigDecimal(csvData[Stellplatz.CSVPosition.GEBUEHR.ordinal()]),
+                Double.parseDouble(csvData[Stellplatz.CSVPosition.GROESSE.ordinal()]),
+                Boolean.parseBoolean(csvData[Stellplatz.CSVPosition.BARRIEREFREI.ordinal()]),
+                Integer.parseInt(csvData[Stellplatz.CSVPosition.ANZAHL_WOHNWAGEN.ordinal()]),
+                Integer.parseInt(csvData[Stellplatz.CSVPosition.ANZAHL_PKW.ordinal()]),
+                Integer.parseInt(csvData[Stellplatz.CSVPosition.ANZAHL_ZELTE.ordinal()])
+        );
+        for (final var stellplatzfunktionId : csvData[Stellplatz.CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.ordinal()].trim()
+                .split(",")) {
+            this.onReferenceFound(Stellplatzfunktion.class,
+                    Integer.parseInt(stellplatzfunktionId),
+                    stellplatz::addVerfuegbareFunktion);
+        }
+        return stellplatz;
     }
 
     private IPersistable createStellplatzfunktionFromCSVData(final String[] csvData) {
