@@ -248,7 +248,22 @@ public class EntityFactory {
     }
 
     private IPersistable createEinrichtungFromCSVData(final String[] csvData) {
-        return null;
+        final var einrichtung = new Einrichtung(
+                Integer.parseInt(csvData[Einrichtung.CSVPosition.ANLAGE_ID.ordinal()]),
+                new GPSPosition(
+                        Double.parseDouble(csvData[Einrichtung.CSVPosition.LAGE_LATITUDE.ordinal()]),
+                        Double.parseDouble(csvData[Einrichtung.CSVPosition.LAGE_LONGITUDE.ordinal()])
+                ),
+                csvData[Einrichtung.CSVPosition.NAME.ordinal()],
+                csvData[Einrichtung.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDateTime.parse(csvData[Einrichtung.CSVPosition.LETZTE_WARTUNG.ordinal()])
+        );
+        for (final var oeffnungstagId : csvData[Einrichtung.CSVPosition.OEFFNUNGSTAGE_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Oeffnungstag.class, Integer.parseInt(oeffnungstagId), einrichtung::addOeffnungstag);
+        }
+        final var fremdfirmaId = Integer.parseInt(csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
+        this.onReferenceFound(Fremdfirma.class, fremdfirmaId, einrichtung::setZustaendigeFirma);
+        return einrichtung;
     }
 
     private IPersistable createFotoFromCSVData(final String[] csvData) {
