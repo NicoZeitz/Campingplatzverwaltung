@@ -191,7 +191,19 @@ public class EntityFactory {
     }
 
     private IPersistable createBereichFromCSVData(final String[] csvData) {
-        return null;
+        final var bereich = new Bereich(
+                Integer.parseInt(csvData[Bereich.CSVPosition.ANLAGEID.ordinal()]),
+                new GPSPosition(
+                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LATITUDE.ordinal()]),
+                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LONGITUDE.ordinal()])
+                ),
+                csvData[Bereich.CSVPosition.KENNZEICHEN.ordinal()].charAt(0),
+                csvData[Bereich.CSVPosition.BESCHREIBUNG.ordinal()]
+        );
+        for (final var anlageId : csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Stellplatz.class, Integer.parseInt(anlageId), bereich::addAnlage);
+        }
+        return bereich;
     }
 
     private IPersistable createBuchungFromCSVData(final String[] csvData) {
