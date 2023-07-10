@@ -1,89 +1,324 @@
 package swe.ka.dhbw.model;
 
+import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.model.IPersistable;
+import swe.ka.dhbw.util.Validator;
+
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class Stellplatz extends Anlage {
+public final class Stellplatz extends Anlage implements ICSVPersistable, IPersistable, IDepictable {
+    public enum Attributes {
+        ANLAGE_ID,
+        LAGE_LATITUDE,
+        LAGE_LONGITUDE,
+        STELLPLATZ,
+        GEBUEHR,
+        GROESSE,
+        BARRIEREFREI,
+        ANZAHL_WOHNWAGEN,
+        ANZAHL_PKW,
+        ANZAHL_ZELTE,
+    }
 
-    private String stellplatz;
+    public enum CSVPosition {
+        ANLAGE_ID,
+        LAGE_LATITUDE,
+        LAGE_LONGITUDE,
+        STELLPLATZ,
+        GEBUEHR,
+        GROESSE,
+        BARRIEREFREI,
+        ANZAHL_WOHNWAGEN,
+        ANZAHL_PKW,
+        ANZAHL_ZELTE,
+        VERFUEGBARE_FUNKTIONEN_IDS,
+        DUMMY_DATA,
+    }
+
+    private final List<Stellplatzfunktion> verfuegbareFunktionen = new ArrayList<>();
+    private final String stellplatz;
     private BigDecimal gebuehr;
     private double groesse;
     private boolean barrierefrei;
     private int anzahWohnwagen;
     private int anzahlPKW;
     private int anzahlZelte;
-    private List<Stellplatzfunktion> verfuegbareFunktionen;
-    private List<Buchung> buchungen;
 
-    public String getStellplatz() {
-        return stellplatz;
+    public Stellplatz(final int anlageId,
+                      final GPSPosition lage,
+                      final String stellplatz,
+                      final BigDecimal gebuehr,
+                      final double groesse,
+                      final boolean barrierefrei,
+                      final int anzahWohnwagen,
+                      final int anzahlPKW,
+                      final int anzahlZelte) {
+        super(anlageId, lage);
+        Validator.getInstance().validateNotEmpty(stellplatz);
+        this.stellplatz = stellplatz;
+        this.setGebuehr(gebuehr);
+        this.setGroesse(groesse);
+        this.setBarrierefrei(barrierefrei);
+        this.setAnzahWohnwagen(anzahWohnwagen);
+        this.setAnzahlPKW(anzahlPKW);
+        this.setAnzahlZelte(anzahlZelte);
     }
 
-    public void setStellplatz(String stellplatz) {
-        this.stellplatz = stellplatz;
+    public String getStellplatz() {
+        return this.stellplatz;
     }
 
     public BigDecimal getGebuehr() {
-        return gebuehr;
+        return this.gebuehr;
     }
 
-    public void setGebuehr(BigDecimal gebuehr) {
+    public void setGebuehr(final BigDecimal gebuehr) {
+        Validator.getInstance().validateNotNull(gebuehr);
+        Validator.getInstance().validateGreaterThanEqual(gebuehr.doubleValue(), 0d);
         this.gebuehr = gebuehr;
     }
 
     public double getGroesse() {
-        return groesse;
+        return this.groesse;
     }
 
-    public void setGroesse(double groesse) {
+    public void setGroesse(final double groesse) {
+        Validator.getInstance().validateGreaterThanEqual(groesse, 0d);
         this.groesse = groesse;
     }
 
     public boolean isBarrierefrei() {
-        return barrierefrei;
+        return this.barrierefrei;
     }
 
-    public void setBarrierefrei(boolean barrierefrei) {
+    public void setBarrierefrei(final boolean barrierefrei) {
         this.barrierefrei = barrierefrei;
     }
 
     public int getAnzahWohnwagen() {
-        return anzahWohnwagen;
+        return this.anzahWohnwagen;
     }
 
-    public void setAnzahWohnwagen(int anzahWohnwagen) {
+    public void setAnzahWohnwagen(final int anzahWohnwagen) {
+        Validator.getInstance().validateGreaterThanEqual(anzahWohnwagen, 0);
         this.anzahWohnwagen = anzahWohnwagen;
     }
 
     public int getAnzahlPKW() {
-        return anzahlPKW;
+        return this.anzahlPKW;
     }
 
-    public void setAnzahlPKW(int anzahlPKW) {
+    public void setAnzahlPKW(final int anzahlPKW) {
+        Validator.getInstance().validateGreaterThanEqual(anzahlPKW, 0);
         this.anzahlPKW = anzahlPKW;
     }
 
     public int getAnzahlZelte() {
-        return anzahlZelte;
+        return this.anzahlZelte;
     }
 
-    public void setAnzahlZelte(int anzahlZelte) {
+    public void setAnzahlZelte(final int anzahlZelte) {
+        Validator.getInstance().validateGreaterThanEqual(anzahlZelte, 0);
         this.anzahlZelte = anzahlZelte;
     }
 
     public List<Stellplatzfunktion> getVerfuegbareFunktionen() {
-        return verfuegbareFunktionen;
+        return this.verfuegbareFunktionen;
     }
 
-    public void setVerfuegbareFunktionen(List<Stellplatzfunktion> verfuegbareFunktionen) {
-        this.verfuegbareFunktionen = verfuegbareFunktionen;
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final Stellplatz that)) return false;
+        if (!super.equals(o)) return false;
+        return Double.compare(that.getGroesse(), this.getGroesse()) == 0 &&
+                this.isBarrierefrei() == that.isBarrierefrei() &&
+                this.getAnzahWohnwagen() == that.getAnzahWohnwagen() &&
+                this.getAnzahlPKW() == that.getAnzahlPKW() &&
+                this.getAnzahlZelte() == that.getAnzahlZelte() &&
+                Objects.equals(this.getStellplatz(), that.getStellplatz()) &&
+                Objects.equals(this.getGebuehr(), that.getGebuehr());
     }
 
-    public List<Buchung> getBuchungen() {
-        return buchungen;
+    @Override
+    public Attribute[] getAttributeArray() {
+        final var superAttributes = super.getAttributeArray();
+        final var attributes = Arrays.copyOf(superAttributes, superAttributes.length + 7);
+        attributes[Attributes.STELLPLATZ.ordinal()] = new Attribute(
+                Attributes.STELLPLATZ.name(),
+                this,
+                String.class,
+                this.getStellplatz(),
+                this.getStellplatz(),
+                true,
+                false,
+                false,
+                true);
+        attributes[Attributes.GEBUEHR.ordinal()] = new Attribute(
+                Attributes.GEBUEHR.name(),
+                this,
+                BigDecimal.class,
+                this.getGebuehr(),
+                this.getGebuehr(),
+                true);
+        attributes[Attributes.GROESSE.ordinal()] = new Attribute(
+                Attributes.GROESSE.name(),
+                this,
+                Double.class,
+                this.getGroesse(),
+                this.getGroesse(),
+                true);
+        attributes[Attributes.BARRIEREFREI.ordinal()] = new Attribute(
+                Attributes.BARRIEREFREI.name(),
+                this,
+                Boolean.class,
+                this.isBarrierefrei(),
+                this.isBarrierefrei(),
+                true);
+        attributes[Attributes.ANZAHL_WOHNWAGEN.ordinal()] = new Attribute(
+                Attributes.ANZAHL_WOHNWAGEN.name(),
+                this,
+                Integer.class,
+                this.getAnzahWohnwagen(),
+                this.getAnzahWohnwagen(),
+                true);
+        attributes[Attributes.ANZAHL_PKW.ordinal()] = new Attribute(
+                Attributes.ANZAHL_PKW.name(),
+                this,
+                Integer.class,
+                this.getAnzahlPKW(),
+                this.getAnzahlPKW(),
+                true);
+        attributes[Attributes.ANZAHL_ZELTE.ordinal()] = new Attribute(
+                Attributes.ANZAHL_ZELTE.name(),
+                this,
+                Integer.class,
+                this.getAnzahlZelte(),
+                this.getAnzahlZelte(),
+                true);
+        return attributes;
     }
 
-    public void setBuchungen(List<Buchung> buchungen) {
-        this.buchungen = buchungen;
+    @Override
+    public String[] getCSVData() {
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.ANLAGE_ID.ordinal()] = Integer.toString(this.getAnlageId());
+        csvData[CSVPosition.LAGE_LATITUDE.ordinal()] = Double.toString(this.getLage().getLatitude());
+        csvData[CSVPosition.LAGE_LONGITUDE.ordinal()] = Double.toString(this.getLage().getLongitude());
+        csvData[CSVPosition.STELLPLATZ.ordinal()] = this.getStellplatz();
+        csvData[CSVPosition.GEBUEHR.ordinal()] = this.getGebuehr().toString();
+        csvData[CSVPosition.GROESSE.ordinal()] = Double.toString(this.getGroesse());
+        csvData[CSVPosition.BARRIEREFREI.ordinal()] = Boolean.toString(this.isBarrierefrei());
+        csvData[CSVPosition.ANZAHL_WOHNWAGEN.ordinal()] = Integer.toString(this.getAnzahWohnwagen());
+        csvData[CSVPosition.ANZAHL_PKW.ordinal()] = Integer.toString(this.getAnzahlPKW());
+        csvData[CSVPosition.ANZAHL_ZELTE.ordinal()] = Integer.toString(this.getAnzahlZelte());
+        csvData[CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.ordinal()] = this.getVerfuegbareFunktionen().stream()
+                .map(Stellplatzfunktion::getPrimaryKey)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
+        return csvData;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.ANLAGE_ID.name(),
+                CSVPosition.LAGE_LATITUDE.name(),
+                CSVPosition.LAGE_LONGITUDE.name(),
+                CSVPosition.STELLPLATZ.name(),
+                CSVPosition.GEBUEHR.name(),
+                CSVPosition.GROESSE.name(),
+                CSVPosition.BARRIEREFREI.name(),
+                CSVPosition.ANZAHL_WOHNWAGEN.name(),
+                CSVPosition.ANZAHL_PKW.name(),
+                CSVPosition.DUMMY_DATA.name()
+        };
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(),
+                this.getStellplatz(),
+                this.getGebuehr(),
+                this.getGroesse(),
+                this.isBarrierefrei(),
+                this.getAnzahWohnwagen(),
+                this.getAnzahlPKW(),
+                this.getAnzahlZelte());
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray();
+
+        super.setAttributeValues(attributeArray);
+
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+
+            if (name.equals(Attributes.STELLPLATZ.name()) && !value.equals(this.getStellplatz())) {
+                throw new UnsupportedOperationException("Stellplatz::setAttributeValues: Stellplatz darf nicht verändert werden!");
+            }
+
+            if (name.equals(Attributes.GEBUEHR.name()) && !value.equals(this.getGebuehr())) {
+                this.setGebuehr((BigDecimal) value);
+            } else if (name.equals(Attributes.GROESSE.name()) && !value.equals(this.getGroesse())) {
+                this.setGroesse((double) value);
+            } else if (name.equals(Attributes.BARRIEREFREI.name()) && !value.equals(this.isBarrierefrei())) {
+                this.setBarrierefrei((boolean) value);
+            } else if (name.equals(Attributes.ANZAHL_WOHNWAGEN.name()) && !value.equals(this.getAnzahWohnwagen())) {
+                this.setAnzahWohnwagen((int) value);
+            } else if (name.equals(Attributes.ANZAHL_PKW.name()) && !value.equals(this.getAnzahlPKW())) {
+                this.setAnzahlPKW((int) value);
+            } else if (name.equals(Attributes.ANZAHL_ZELTE.name()) && !value.equals(this.getAnzahlZelte())) {
+                this.setAnzahlZelte((int) value);
+            }
+        }
+        return oldAttributeArray;
+    }
+
+    @Override
+    public String toString() {
+        return "Stellplatz{" +
+                "verfuegbareFunktionen=[" + this.getVerfuegbareFunktionen()
+                .stream()
+                .map(Objects::toString)
+                .collect(Collectors.joining(", ")) + "]" +
+                ", stellplatz='" + this.getStellplatz() +
+                ", gebuehr=" + this.getGroesse() +
+                ", groesse=" + this.getGroesse() +
+                ", barrierefrei=" + this.isBarrierefrei() +
+                ", anzahWohnwagen=" + this.getAnzahWohnwagen() +
+                ", anzahlPKW=" + this.getAnzahlPKW() +
+                ", anzahlZelte=" + this.getAnzahlZelte() +
+                ", lage=" + this.getLage() +
+                ", bereich=" + this.getBereich() +
+                ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
+                '}';
+    }
+
+    public void addVerfuegbareFunktion(final Stellplatzfunktion funktion) {
+        Validator.getInstance().validateNotNull(funktion);
+        this.verfuegbareFunktionen.add(funktion);
+        if (!funktion.getStellplaetze().contains(this)) {
+            funktion.addStellplatz(this);
+        }
+    }
+
+    public void removeVerfuegbareFunktion(final Stellplatzfunktion funktion) {
+        Validator.getInstance().validateNotNull(funktion);
+        this.verfuegbareFunktionen.remove(funktion);
+        if (funktion.getStellplaetze().contains(this)) {
+            funktion.removeStellplatz(this);
+        }
     }
 }

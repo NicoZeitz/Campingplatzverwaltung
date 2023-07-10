@@ -1,29 +1,155 @@
 package swe.ka.dhbw.model;
 
+import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.model.IPersistable;
+import swe.ka.dhbw.util.Validator;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public class Stellplatzfunktion extends Leistungsbeschreibung {
-
-    private Status status;
-    private List<Stellplatz> stellplaetze;
-
-    public Status getStatus() {
-        return status;
+public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
+    public enum Status {
+        AKTIV, INAKTIV, GESTOERT
     }
 
-    public void setStatus(Status status) {
+    public enum Attributes {
+        LEISTUNGSBESCHREIBUNG_ID,
+        GEBUEHR,
+        MAXIMAL_ANZAHL,
+        BESCHREIBUNG,
+        STATUS
+    }
+
+    public enum CSVPosition {
+        LEISTUNGSBESCHREIBUNG_ID,
+        GEBUEHR,
+        MAXIMAL_ANZAHL,
+        BESCHREIBUNG,
+        STATUS,
+        DUMMY_DATA
+    }
+
+    private final List<Stellplatz> stellplaetze = new ArrayList<>();
+    private Status status;
+
+    public Stellplatzfunktion(final int leistungsbeschreibungId,
+                              final BigDecimal gebuehr,
+                              final int maximalAnzahl,
+                              final String beschreibung,
+                              final Status status) {
+        super(leistungsbeschreibungId, gebuehr, maximalAnzahl, beschreibung);
+        this.setStatus(status);
+    }
+
+    public Status getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(final Status status) {
+        Validator.getInstance().validateNotNull(status);
         this.status = status;
     }
 
     public List<Stellplatz> getStellplaetze() {
-        return stellplaetze;
+        return this.stellplaetze;
     }
 
-    public void setStellplaetze(List<Stellplatz> stellplaetze) {
-        this.stellplaetze = stellplaetze;
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final Stellplatzfunktion that)) return false;
+        if (!super.equals(o)) return false;
+        return this.getStatus() == that.getStatus();
     }
 
-    public enum Status {
-        AKTIV, INAKTIV, GESTOERT
+    @Override
+    public Attribute[] getAttributeArray() {
+        final var superAttributes = super.getAttributeArray();
+        final var attributes = Arrays.copyOf(superAttributes, superAttributes.length + 1);
+        attributes[Attributes.STATUS.ordinal()] = new Attribute(
+                Attributes.STATUS.name(),
+                this,
+                Status.class,
+                this.getStatus(),
+                this.getStatus(),
+                true);
+        return attributes;
+    }
+
+    @Override
+    public String[] getCSVData() {
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()] = Integer.toString(this.getLeistungsbeschreibungId());
+        csvData[CSVPosition.GEBUEHR.ordinal()] = this.getGebuehr().toString();
+        csvData[CSVPosition.MAXIMAL_ANZAHL.ordinal()] = Integer.toString(this.getMaximalAnzahl());
+        csvData[CSVPosition.BESCHREIBUNG.ordinal()] = this.getBeschreibung();
+        csvData[CSVPosition.STATUS.ordinal()] = this.getStatus().name();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
+        return csvData;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.LEISTUNGSBESCHREIBUNG_ID.name(),
+                CSVPosition.GEBUEHR.name(),
+                CSVPosition.MAXIMAL_ANZAHL.name(),
+                CSVPosition.BESCHREIBUNG.name(),
+                CSVPosition.STATUS.name(),
+                CSVPosition.DUMMY_DATA.name()
+        };
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), this.getStatus());
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(final Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray();
+
+        super.setAttributeValues(attributeArray);
+
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+
+            if (name.equals(Attributes.STATUS.name()) && !value.equals(this.getStatus())) {
+                this.setStatus((Status) value);
+            }
+        }
+        return oldAttributeArray;
+    }
+
+    @Override
+    public String toString() {
+        return "Stellplatzfunktion{" +
+                "status=" + this.getStatus() +
+                ", gebuehr=" + this.getGebuehr() +
+                ", maximalAnzahl=" + this.getMaximalAnzahl() +
+                ", beschreibung='" + this.getBeschreibung() +
+                '}';
+    }
+
+    public void addStellplatz(final Stellplatz stellplatz) {
+        Validator.getInstance().validateNotNull(stellplatz);
+        this.stellplaetze.add(stellplatz);
+        if (!stellplatz.getVerfuegbareFunktionen().contains(this)) {
+            stellplatz.addVerfuegbareFunktion(this);
+        }
+    }
+
+    public void removeStellplatz(final Stellplatz stellplatz) {
+        Validator.getInstance().validateNotNull(stellplatz);
+        this.stellplaetze.remove(stellplatz);
+        if (stellplatz.getVerfuegbareFunktionen().contains(this)) {
+            stellplatz.removeVerfuegbareFunktion(this);
+        }
     }
 }

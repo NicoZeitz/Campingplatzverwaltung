@@ -1,12 +1,40 @@
 package swe.ka.dhbw.model;
 
+import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.model.IPersistable;
+import swe.ka.dhbw.util.Validator;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 
-public class Rechnung {
+public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
+    public enum Attributes {
+        RECHNUNGSNUMMER,
+        RECHNUNGSDATUM,
+        BETRAG_NETTO,
+        ZAHLUNGSANWEISUNG,
+        BANKVERBINDUNG,
+        ZAHLUNGSZWECK,
+        ZAHLUNGSZIEL
+    }
 
+    public enum CSVPosition {
+        RECHNUNGSNUMMER,
+        RECHNUNGSDATUM,
+        BETRAG_NETTO,
+        ZAHLUNGSANWEISUNG,
+        BANKVERBINDUNG,
+        ZAHLUNGSZWECK,
+        ZAHLUNGSZIEL,
+        ADRESSAT_ID,
+        DUMMY_DATA
+    }
+
+    private final int rechnungsnummer;
     private LocalDate rechnungsdatum;
-    private int rechnungsnummer;
     private BigDecimal betragNetto;
     private String zahlungsanweisung;
     private String bankverbindung;
@@ -14,67 +42,203 @@ public class Rechnung {
     private LocalDate zahlungsziel;
     private Gast adressat;
 
-    public LocalDate getRechnungsdatum() {
-        return rechnungsdatum;
-    }
-
-    public void setRechnungsdatum(LocalDate rechnungsdatum) {
-        this.rechnungsdatum = rechnungsdatum;
+    public Rechnung(final int rechnungsnummer,
+                    final LocalDate rechnungsdatum,
+                    final BigDecimal betragNetto,
+                    final String zahlungsanweisung,
+                    final String bankverbindung,
+                    final String zahlungszweck,
+                    final LocalDate zahlungsziel) {
+        Validator.getInstance().validateGreaterThanEqual(rechnungsnummer, 0);
+        this.rechnungsnummer = rechnungsnummer;
+        this.setRechnungsdatum(rechnungsdatum);
+        this.setBetragNetto(betragNetto);
+        this.setZahlungsanweisung(zahlungsanweisung);
+        this.setBankverbindung(bankverbindung);
+        this.setZahlungszweck(zahlungszweck);
+        this.setZahlungsziel(zahlungsziel);
     }
 
     public int getRechnungsnummer() {
-        return rechnungsnummer;
+        return this.rechnungsnummer;
     }
 
-    public void setRechnungsnummer(int rechnungsnummer) {
-        this.rechnungsnummer = rechnungsnummer;
+    public LocalDate getRechnungsdatum() {
+        return this.rechnungsdatum;
+    }
+
+    public void setRechnungsdatum(final LocalDate rechnungsdatum) {
+        Validator.getInstance().validateNotNull(rechnungsdatum);
+        this.rechnungsdatum = rechnungsdatum;
     }
 
     public BigDecimal getBetragNetto() {
-        return betragNetto;
+        return this.betragNetto;
     }
 
-    public void setBetragNetto(BigDecimal betragNetto) {
+    public void setBetragNetto(final BigDecimal betragNetto) {
+        Validator.getInstance().validateNotNull(betragNetto);
         this.betragNetto = betragNetto;
     }
 
     public String getZahlungsanweisung() {
-        return zahlungsanweisung;
+        return this.zahlungsanweisung;
     }
 
-    public void setZahlungsanweisung(String zahlungsanweisung) {
+    public void setZahlungsanweisung(final String zahlungsanweisung) {
+        Validator.getInstance().validateNotNull(zahlungsanweisung);
         this.zahlungsanweisung = zahlungsanweisung;
     }
 
     public String getBankverbindung() {
-        return bankverbindung;
+        return this.bankverbindung;
     }
 
-    public void setBankverbindung(String bankverbindung) {
+    public void setBankverbindung(final String bankverbindung) {
+        Validator.getInstance().validateNotEmpty(bankverbindung);
         this.bankverbindung = bankverbindung;
     }
 
     public String getZahlungszweck() {
-        return zahlungszweck;
+        return this.zahlungszweck;
     }
 
-    public void setZahlungszweck(String zahlungszweck) {
+    public void setZahlungszweck(final String zahlungszweck) {
+        Validator.getInstance().validateNotNull(zahlungszweck);
         this.zahlungszweck = zahlungszweck;
     }
 
     public LocalDate getZahlungsziel() {
-        return zahlungsziel;
+        return this.zahlungsziel;
     }
 
-    public void setZahlungsziel(LocalDate zahlungsziel) {
+    public void setZahlungsziel(final LocalDate zahlungsziel) {
+        Validator.getInstance().validateNotNull(zahlungsziel);
         this.zahlungsziel = zahlungsziel;
     }
 
     public Gast getAdressat() {
-        return adressat;
+        return this.adressat;
     }
 
-    public void setAdressat(Gast adressat) {
+    public void setAdressat(final Gast adressat) {
+        Validator.getInstance().validateNotNull(adressat);
         this.adressat = adressat;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final Rechnung that)) return false;
+        return this.getRechnungsnummer() == that.getRechnungsnummer() &&
+                Objects.equals(this.getRechnungsdatum(), that.getRechnungsdatum()) &&
+                Objects.equals(this.getBetragNetto(), that.getBetragNetto()) &&
+                Objects.equals(this.getZahlungsanweisung(), that.getZahlungsanweisung()) &&
+                Objects.equals(this.getBankverbindung(), that.getBankverbindung()) &&
+                Objects.equals(this.getZahlungszweck(), that.getZahlungszweck()) &&
+                Objects.equals(this.getZahlungsziel(), that.getZahlungsziel()) &&
+                Objects.equals(this.getAdressat(), that.getAdressat());
+    }
+
+    @Override
+    public Attribute[] getAttributeArray() {
+        return new Attribute[] {
+
+        };
+    }
+
+    @Override
+    public String[] getCSVData() {
+        final var csvData = new String[CSVPosition.values().length];
+        csvData[CSVPosition.RECHNUNGSNUMMER.ordinal()] = String.valueOf(this.getRechnungsnummer());
+        csvData[CSVPosition.RECHNUNGSDATUM.ordinal()] = this.getRechnungsdatum().toString();
+        csvData[CSVPosition.BETRAG_NETTO.ordinal()] = this.getBetragNetto().toString();
+        csvData[CSVPosition.ZAHLUNGSANWEISUNG.ordinal()] = this.getZahlungsanweisung();
+        csvData[CSVPosition.BANKVERBINDUNG.ordinal()] = this.getBankverbindung();
+        csvData[CSVPosition.ZAHLUNGSZWECK.ordinal()] = this.getZahlungszweck();
+        csvData[CSVPosition.ZAHLUNGSZIEL.ordinal()] = this.getZahlungsziel().toString();
+        csvData[CSVPosition.ADRESSAT_ID.ordinal()] = this.getAdressat().getPrimaryKey().toString();
+        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
+        return csvData;
+    }
+
+    @Override
+    public String[] getCSVHeader() {
+        return new String[] {
+                CSVPosition.RECHNUNGSNUMMER.name(),
+                CSVPosition.RECHNUNGSDATUM.name(),
+                CSVPosition.BETRAG_NETTO.name(),
+                CSVPosition.ZAHLUNGSANWEISUNG.name(),
+                CSVPosition.BANKVERBINDUNG.name(),
+                CSVPosition.ZAHLUNGSZWECK.name(),
+                CSVPosition.ZAHLUNGSZIEL.name(),
+                CSVPosition.ADRESSAT_ID.name(),
+                CSVPosition.DUMMY_DATA.name()
+        };
+    }
+
+    @Override
+    public String getElementID() {
+        return Integer.toString(this.getRechnungsnummer());
+    }
+
+    @Override
+    public Object getPrimaryKey() {
+        return this.getRechnungsnummer();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getRechnungsnummer(),
+                this.getRechnungsdatum(),
+                this.getBetragNetto(),
+                this.getZahlungsanweisung(),
+                this.getBankverbindung(),
+                this.getZahlungszweck(),
+                this.getZahlungsziel(),
+                this.getAdressat());
+    }
+
+    @Override
+    public Attribute[] setAttributeValues(Attribute[] attributeArray) {
+        final var oldAttributeArray = this.getAttributeArray();
+
+        for (final var attribute : attributeArray) {
+            final var name = attribute.getName();
+            final var value = attribute.getValue();
+            if (name.equals(Attributes.RECHNUNGSNUMMER.name()) && !value.equals(this.getRechnungsnummer())) {
+                throw new IllegalArgumentException(
+                        "Rechnung::setAttributeValues: Die Rechnungsnummer darf nicht verändert werden!");
+            }
+
+            if (name.equals(Attributes.RECHNUNGSDATUM.name()) && !value.equals(this.getRechnungsdatum())) {
+                this.setRechnungsdatum((LocalDate) value);
+            } else if (name.equals(Attributes.BETRAG_NETTO.name()) && !value.equals(this.getBetragNetto())) {
+                this.setBetragNetto((BigDecimal) value);
+            } else if (name.equals(Attributes.ZAHLUNGSANWEISUNG.name()) && !value.equals(this.getZahlungsanweisung())) {
+                this.setZahlungsanweisung((String) value);
+            } else if (name.equals(Attributes.BANKVERBINDUNG.name()) && !value.equals(this.getBankverbindung())) {
+                this.setBankverbindung((String) value);
+            } else if (name.equals(Attributes.ZAHLUNGSZWECK.name()) && !value.equals(this.getZahlungszweck())) {
+                this.setZahlungszweck((String) value);
+            } else if (name.equals(Attributes.ZAHLUNGSZIEL.name()) && !value.equals(this.getZahlungsziel())) {
+                this.setZahlungsziel((LocalDate) value);
+            }
+        }
+        return oldAttributeArray;
+    }
+
+    @Override
+    public String toString() {
+        return "Rechnung{" +
+                "rechnungsnummer=" + this.getRechnungsnummer() +
+                ", rechnungsdatum=" + this.getRechnungsdatum() +
+                ", betragNetto=" + this.getBetragNetto() +
+                ", zahlungsanweisung='" + this.getZahlungsanweisung() +
+                ", bankverbindung='" + this.getBankverbindung() +
+                ", zahlungszweck='" + this.getZahlungszweck() +
+                ", zahlungsziel=" + this.getZahlungsziel() +
+                ", adressat=" + this.getAdressat() +
+                '}';
     }
 }
