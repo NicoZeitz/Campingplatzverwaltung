@@ -229,7 +229,10 @@ public class EntityFactory {
     }
 
     private IPersistable createChipkarteFromCSVData(final String[] csvData) {
-        return null;
+        return new Chipkarte(
+                Integer.parseInt(csvData[Chipkarte.CSVPosition.NUMMER.ordinal()]),
+                Chipkarte.Status.valueOf(csvData[Chipkarte.CSVPosition.STATUS.ordinal()])
+        );
     }
 
     private IPersistable createEinrichtungFromCSVData(final String[] csvData) {
