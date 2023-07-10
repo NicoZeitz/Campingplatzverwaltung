@@ -2,6 +2,7 @@ package swe.ka.dhbw.database;
 
 import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IPersistable;
+import de.dhbwka.swe.utils.util.AppLogger;
 import swe.ka.dhbw.model.*;
 import swe.ka.dhbw.util.Validator;
 
@@ -128,6 +129,21 @@ public class EntityFactory {
         }
 
         this.resolveUnresolvedReferences();
+
+        for (final var classes : this.missingReferences.keySet()) {
+            if (this.missingReferences.get(classes).isEmpty()) {
+                continue;
+            }
+
+            for (final var primaryKey : this.missingReferences.get(classes).keySet()) {
+                if (this.missingReferences.get(classes).get(primaryKey).isEmpty()) {
+                    continue;
+                }
+
+                AppLogger.getInstance()
+                        .warning("EntityFactory::loadAllEntities: Could not resolve reference from " + classes.getSimpleName() + " with primary key " + primaryKey);
+            }
+        }
     }
 
     public void resolveUnresolvedReferences() {
