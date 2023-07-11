@@ -333,7 +333,14 @@ public class EntityFactory {
     }
 
     private IPersistable createGeraetschaftFromCSVData(final String[] csvData) {
-        return null;
+        return new Geraetschaft(
+                Integer.parseInt(csvData[Geraetschaft.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
+                new BigDecimal(csvData[Geraetschaft.CSVPosition.GEBUEHR.ordinal()]),
+                Integer.parseInt(csvData[Geraetschaft.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
+                csvData[Geraetschaft.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDate.parse(csvData[Geraetschaft.CSVPosition.ANSCHAFFUNGSDATUM.ordinal()]),
+                csvData[Geraetschaft.CSVPosition.ZUSTAND.ordinal()]
+        );
     }
 
     private IPersistable createLeistungsbeschreibungFromCSVData(final String[] csvData) {
