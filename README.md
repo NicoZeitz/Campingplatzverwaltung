@@ -4,7 +4,6 @@ Software für Campingplatzverwaltung für Softwareengineering
 
 # CSV TODO
 
-- Bereich
 - Buchung
 - Einrichtung
 - Fremdfirma

@@ -7,16 +7,16 @@ import de.dhbwka.swe.utils.util.IOUtilities;
 import swe.ka.dhbw.database.CSVDatenbasis;
 import swe.ka.dhbw.database.EntityFactory;
 import swe.ka.dhbw.database.EntityManager;
-import swe.ka.dhbw.model.Bereich;
-import swe.ka.dhbw.model.Buchung;
-import swe.ka.dhbw.model.GPSPosition;
+import swe.ka.dhbw.model.*;
 import swe.ka.dhbw.ui.GUIBuchung;
 import swe.ka.dhbw.util.ArgumentParseException;
 import swe.ka.dhbw.util.ArgumentParser;
 
 import java.awt.*;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 
@@ -52,6 +52,46 @@ public final class Campingplatzverwaltung {
         final var entityFactory = EntityFactory.getInstance();
         final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
         final var database = new CSVDatenbasis(dbPath);
+
+        /*
+        database.create(
+                Einrichtung.class,
+                new Einrichtung()
+        );
+        database.create(
+                Fremdfirma.class,
+                new Fremdfirma()
+        );
+        database.create(
+                GebuchteLeistung.class,
+                new GebuchteLeistung()
+        );
+        database.create(
+                Leistungsbeschreibung.class,
+                new Leistungsbeschreibung()
+        );
+        database.create(
+                Personal.class,
+                new Personal()
+        );
+        database.create(
+                Stellplatzfunktion.class,
+                new Stellplatzfunktion()
+        );
+        database.create(
+                Stoerung.class,
+                new Stoerung()
+        );
+        database.create(
+                Stellplatz.class,
+                new Stellplatz()
+        );
+        database.create(
+                Wartung.class,
+                new Wartung()
+        );
+        */
+
 
         entityFactory.setEntityManager(entityManager);
         entityFactory.setDatabase(database);

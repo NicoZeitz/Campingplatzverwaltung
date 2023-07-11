@@ -32,6 +32,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         LETZTE_WARTUNG,
         OEFFNUNGSTAGE_IDS,
         ZUSTAENDIGE_FIRMA_ID,
+        FOTO_IDS,
         DUMMY_DATA
     }
 
@@ -155,13 +156,17 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
         csvData[CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()] = this.getZustaendigeFirma().getPrimaryKey().toString();
+        csvData[CSVPosition.FOTO_IDS.ordinal()] = this.getFotos().stream()
+                .map(Foto::getPrimaryKey)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
     @Override
     public String[] getCSVHeader() {
-        return new String[] {
+        return new String[]{
                 CSVPosition.ANLAGE_ID.name(),
                 CSVPosition.LAGE_LATITUDE.name(),
                 CSVPosition.LAGE_LONGITUDE.name(),
