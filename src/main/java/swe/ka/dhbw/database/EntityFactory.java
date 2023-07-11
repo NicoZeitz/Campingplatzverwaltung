@@ -292,7 +292,18 @@ public class EntityFactory {
     }
 
     private IPersistable createFremdfirmaFromCSVData(final String[] csvData) {
-        return null;
+        final var fremdfirma = new Fremdfirma(
+                Integer.parseInt(csvData[Fremdfirma.CSVPosition.FREMDFIRMA_ID.ordinal()]),
+                csvData[Fremdfirma.CSVPosition.NAME.ordinal()]
+        );
+        for (final var wartungsId : csvData[Fremdfirma.CSVPosition.WARTUNG_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Wartung.class, Integer.parseInt(wartungsId), fremdfirma::addWartung);
+        }
+        final var anschriftId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSCHRIFT_ID.ordinal()]);
+        this.onReferenceFound(Adresse.class, anschriftId, fremdfirma::setAnschrift);
+        final var ansprechpersonId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSPRECHPERSON_ID.ordinal()]);
+        this.onReferenceFound(Person.class, ansprechpersonId, fremdfirma::setAnsprechperson);
+        return fremdfirma;
     }
 
     private IPersistable createGastFromCSVData(final String[] csvData) {
@@ -324,7 +335,6 @@ public class EntityFactory {
     private IPersistable createGeraetschaftFromCSVData(final String[] csvData) {
         return null;
     }
-
 
     private IPersistable createLeistungsbeschreibungFromCSVData(final String[] csvData) {
         return new Leistungsbeschreibung(
@@ -422,11 +432,32 @@ public class EntityFactory {
     }
 
     private IPersistable createStellplatzfunktionFromCSVData(final String[] csvData) {
-        return null;
+        final var stellplatzFunktion = new Stellplatzfunktion(
+                Integer.parseInt(csvData[Stellplatzfunktion.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
+                new BigDecimal(csvData[Stellplatzfunktion.CSVPosition.GEBUEHR.ordinal()]),
+                Integer.parseInt(csvData[Stellplatzfunktion.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
+                csvData[Stellplatzfunktion.CSVPosition.BESCHREIBUNG.ordinal()],
+                Stellplatzfunktion.Status.valueOf(csvData[Stellplatzfunktion.CSVPosition.STATUS.ordinal()])
+        );
+        for (final var stellplatzId : csvData[Stellplatzfunktion.CSVPosition.STELLPLATZ_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Stellplatz.class, Integer.parseInt(stellplatzId), stellplatzFunktion::addStellplatz);
+        }
+
+        return stellplatzFunktion;
     }
 
     private IPersistable createStoerungFromCSVData(final String[] csvData) {
-        return null;
+        final var stoerung = new Stoerung(
+                Integer.parseInt(csvData[Stoerung.CSVPosition.STOERUNGSNUMMER.ordinal()]),
+                csvData[Stoerung.CSVPosition.TITEL.ordinal()],
+                csvData[Stoerung.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDate.parse(csvData[Stoerung.CSVPosition.ERSTELLUNGSDATUM.ordinal()]),
+                LocalDate.parse(csvData[Stoerung.CSVPosition.BEHEBUNGSDATUM.ordinal()]),
+                Stoerung.Status.valueOf(csvData[Stoerung.CSVPosition.STATUS.ordinal()])
+        );
+        final var stellplatzFunktionId = Integer.parseInt(csvData[Stoerung.CSVPosition.STELLPLATZFUNKTION_ID.ordinal()]);
+        this.onReferenceFound(Stellplatzfunktion.class, stellplatzFunktionId, stoerung::setStellplatzfunktion);
+        return stoerung;
     }
 
     private IPersistable createWartungFromCSVData(final String[] csvData) {
@@ -447,18 +478,10 @@ public class EntityFactory {
         return wartung;
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends IPersistable> void onReferenceFound(final Class<T> c, final Object id, final Consumer<T> callback) {
-        var keyToEntity = this.missingReferences.get(c);
-        if (keyToEntity == null) {
-            keyToEntity = new HashMap<>();
-            this.missingReferences.put(c, keyToEntity);
-        }
-
-        var callbacks = this.missingReferences.get(c).get(id);
-        if (callbacks == null) {
-            callbacks = new HashSet<>();
-            this.missingReferences.get(c).put(id, callbacks);
-        }
+        var keyToEntity = this.missingReferences.computeIfAbsent(c, k -> new HashMap<>());
+        var callbacks = keyToEntity.computeIfAbsent(id, k -> new HashSet<>());
 
         callbacks.add((Consumer<IPersistable>) callback);
 
