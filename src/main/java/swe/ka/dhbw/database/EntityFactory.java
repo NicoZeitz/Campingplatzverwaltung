@@ -100,7 +100,7 @@ public class EntityFactory {
     }
 
     public void loadAllEntities() throws IOException {
-        final var entityClasses = new Class<?>[] {
+        final var entityClasses = new Class<?>[]{
                 Adresse.class,
                 Ausruestung.class,
                 Bereich.class,
@@ -311,7 +311,14 @@ public class EntityFactory {
     }
 
     private IPersistable createGebuchteLeistungFromCSVData(final String[] csvData) {
-        return null;
+        final var gebuchteLeistung = new GebuchteLeistung(
+                Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.GEBUCHTE_LEISTUNG_ID.ordinal()]),
+                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNG_START.ordinal()]),
+                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNGS_ENDE.ordinal()])
+        );
+        final var leistungsBeschreibungId = Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]);
+        this.onReferenceFound(Leistungsbeschreibung.class, leistungsBeschreibungId, gebuchteLeistung::setLeistungsbeschreibung);
+        return gebuchteLeistung;
     }
 
     private IPersistable createGeraetschaftFromCSVData(final String[] csvData) {
@@ -423,7 +430,21 @@ public class EntityFactory {
     }
 
     private IPersistable createWartungFromCSVData(final String[] csvData) {
-        return null;
+        final var wartung = new Wartung(
+                Integer.parseInt(csvData[Wartung.CSVPosition.WARTUNGSNUMMER.ordinal()]),
+                LocalDate.parse(csvData[Wartung.CSVPosition.DUERCHFUEHRUNGSDATUM.ordinal()]),
+                LocalDate.parse(csvData[Wartung.CSVPosition.RECHNUNGSDATUM.ordinal()]),
+                csvData[Wartung.CSVPosition.AUFTRAGSNUMMER.ordinal()],
+                csvData[Wartung.CSVPosition.RECHNUNGSNUMMER.ordinal()],
+                new BigDecimal(csvData[Wartung.CSVPosition.KOSTEN.ordinal()])
+        );
+        final var fremdFirmaId = Integer.parseInt(csvData[Wartung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
+        this.onReferenceFound(Fremdfirma.class, fremdFirmaId, wartung::setZustaendigeFirma);
+        final var anlageId = Integer.parseInt(csvData[Wartung.CSVPosition.ANLAGE_ID.ordinal()]);
+        // TODO: we need to get the correct type here and unique ids for all anlagen
+        // Also possible to just add a new CSVPosition in the data from Wartung indicating the anlage type as discriminator
+        this.onReferenceFound(Anlage.class, anlageId, wartung::setAnlage);
+        return wartung;
     }
 
     private <T extends IPersistable> void onReferenceFound(final Class<T> c, final Object id, final Consumer<T> callback) {
