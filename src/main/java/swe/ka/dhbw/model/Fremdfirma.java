@@ -73,6 +73,16 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
         return this.wartungen;
     }
 
+    public void addWartung(final Wartung wartung) {
+        Validator.getInstance().validateNotNull(wartung);
+        this.wartungen.add(wartung);
+    }
+
+    public void removeWartung(final Wartung wartung) {
+        Validator.getInstance().validateNotNull(wartung);
+        this.wartungen.remove(wartung);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
@@ -85,7 +95,7 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
 
     @Override
     public Attribute[] getAttributeArray() {
-        return new Attribute[] {
+        return new Attribute[]{
                 new Attribute(Attributes.FREMDFIRMA_ID.name(),
                         this,
                         Integer.class,
@@ -115,7 +125,7 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
 
     @Override
     public String[] getCSVHeader() {
-        return new String[] {
+        return new String[]{
                 CSVPosition.FREMDFIRMA_ID.name(),
                 CSVPosition.NAME.name(),
                 CSVPosition.ANSCHRIFT_ID.name(),

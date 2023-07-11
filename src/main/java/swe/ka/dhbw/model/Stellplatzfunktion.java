@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
     public enum Status {
@@ -31,6 +32,7 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
         MAXIMAL_ANZAHL,
         BESCHREIBUNG,
         STATUS,
+        STELLPLATZ_IDS,
         DUMMY_DATA
     }
 
@@ -89,18 +91,23 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
         csvData[CSVPosition.MAXIMAL_ANZAHL.ordinal()] = Integer.toString(this.getMaximalAnzahl());
         csvData[CSVPosition.BESCHREIBUNG.ordinal()] = this.getBeschreibung();
         csvData[CSVPosition.STATUS.ordinal()] = this.getStatus().name();
+        csvData[CSVPosition.STELLPLATZ_IDS.ordinal()] = this.getStellplaetze().stream()
+                .map(Stellplatz::getPrimaryKey)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
     @Override
     public String[] getCSVHeader() {
-        return new String[] {
+        return new String[]{
                 CSVPosition.LEISTUNGSBESCHREIBUNG_ID.name(),
                 CSVPosition.GEBUEHR.name(),
                 CSVPosition.MAXIMAL_ANZAHL.name(),
                 CSVPosition.BESCHREIBUNG.name(),
                 CSVPosition.STATUS.name(),
+                CSVPosition.STELLPLATZ_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
     }
