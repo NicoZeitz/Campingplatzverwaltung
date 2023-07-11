@@ -39,6 +39,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
         ANZAHL_PKW,
         ANZAHL_ZELTE,
         VERFUEGBARE_FUNKTIONEN_IDS,
+        FOTO_IDS,
         DUMMY_DATA,
     }
 
@@ -223,13 +224,17 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
                 .map(Stellplatzfunktion::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.FOTO_IDS.ordinal()] = this.getFotos().stream()
+                .map(Foto::getPrimaryKey)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
     @Override
     public String[] getCSVHeader() {
-        return new String[] {
+        return new String[]{
                 CSVPosition.ANLAGE_ID.name(),
                 CSVPosition.LAGE_LATITUDE.name(),
                 CSVPosition.LAGE_LONGITUDE.name(),

@@ -5,6 +5,7 @@ import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ public abstract class Anlage implements IDepictable, IPersistable {
     protected final int anlageId;
     protected GPSPosition lage;
     protected Bereich bereich;
-    protected List<Foto> fotos;
+    protected List<Foto> fotos = new ArrayList<>();
 
     public Anlage(final int anlageId, final GPSPosition lage) {
         Validator.getInstance().validateGreaterThanEqual(anlageId, 0);
@@ -64,7 +65,7 @@ public abstract class Anlage implements IDepictable, IPersistable {
 
     @Override
     public Attribute[] getAttributeArray() {
-        return new Attribute[] {
+        return new Attribute[]{
                 new Attribute(Attributes.ANLAGE_ID.name(),
                         this,
                         Integer.class,

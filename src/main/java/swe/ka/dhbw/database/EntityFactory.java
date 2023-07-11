@@ -219,6 +219,9 @@ public class EntityFactory {
         for (final var anlageId : csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()].trim().split(",")) {
             this.onReferenceFound(Stellplatz.class, Integer.parseInt(anlageId), bereich::addAnlage);
         }
+        for (final var fotoId : csvData[Bereich.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), bereich::addFoto);
+        }
         return bereich;
     }
 
@@ -279,6 +282,9 @@ public class EntityFactory {
         }
         final var fremdfirmaId = Integer.parseInt(csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
         this.onReferenceFound(Fremdfirma.class, fremdfirmaId, einrichtung::setZustaendigeFirma);
+        for (final var fotoId : csvData[Einrichtung.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), einrichtung::addFoto);
+        }
         return einrichtung;
     }
 
@@ -434,6 +440,9 @@ public class EntityFactory {
             this.onReferenceFound(Stellplatzfunktion.class,
                     Integer.parseInt(stellplatzfunktionId),
                     stellplatz::addVerfuegbareFunktion);
+        }
+        for (final var fotoId : csvData[Stellplatz.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), stellplatz::addFoto);
         }
         return stellplatz;
     }
