@@ -53,8 +53,6 @@ public final class Campingplatzverwaltung {
         final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
         final var database = new CSVDatenbasis(dbPath);
 
-        database.create(Buchung.class, new Buchung(1, LocalDateTime.of(2023, Month.MAY, 24, 14, 33), LocalDateTime.of(2023, Month.MAY, 28, 11, 49)));
-
         entityFactory.setEntityManager(entityManager);
         entityFactory.setDatabase(database);
         entityFactory.loadAllEntities();
