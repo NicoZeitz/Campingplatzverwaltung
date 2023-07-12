@@ -102,7 +102,6 @@ public final class Campingplatzverwaltung {
         controller.setEntityManager(entityManager);
         controller.showConfiguration();
 
-
         var config = Configuration.builder().build();
         System.out.println(config);
         System.out.println(arguments);
