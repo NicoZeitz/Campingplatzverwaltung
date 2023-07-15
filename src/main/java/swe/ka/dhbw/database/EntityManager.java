@@ -26,6 +26,7 @@ public class EntityManager {
                 .toList();
     }
 
+    @SuppressWarnings("unchecked")
     public <Entity extends IPersistable> List<Entity> find(final Class<Entity> c) {
         final var allOfClass = this.allElements.get(c);
         if (allOfClass == null) {
@@ -38,6 +39,7 @@ public class EntityManager {
                 .toList();
     }
 
+    @SuppressWarnings("unchecked")
     public <Entity extends IPersistable> Optional<Entity> findOne(final Class<Entity> c, final Object primaryKey) {
         return Optional.ofNullable(this.allElements.get(c))
                 .map(map -> (Entity) map.get(primaryKey));
@@ -60,11 +62,8 @@ public class EntityManager {
     }
 
     public <Entity extends IPersistable> void persist(final Entity element) {
-        var allOfClass = this.allElements.get(element.getClass());
-        if (allOfClass == null) {
-            allOfClass = new HashMap<>();
-            this.allElements.put(element.getClass(), allOfClass);
-        }
+        var allOfClass = this.allElements
+                .computeIfAbsent(element.getClass(), k -> new HashMap<>());
 
         allOfClass.put(element.getPrimaryKey(), element);
     }

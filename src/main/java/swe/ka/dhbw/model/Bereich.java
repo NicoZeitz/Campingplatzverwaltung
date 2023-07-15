@@ -28,6 +28,7 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
         KENNZEICHEN,
         BESCHREIBUNG,
         ANLAGEN_IDS,
+        FOTO_IDS,
         DUMMY_DATA
     }
 
@@ -105,19 +106,25 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
                 .map(Anlage::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.FOTO_IDS.ordinal()] = this.getFotos()
+                .stream()
+                .map(Foto::getPrimaryKey)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
 
     @Override
     public String[] getCSVHeader() {
-        return new String[] {
+        return new String[]{
                 CSVPosition.ANLAGEID.name(),
                 CSVPosition.LAGE_LATITUDE.name(),
                 CSVPosition.LAGE_LONGITUDE.name(),
                 CSVPosition.KENNZEICHEN.name(),
                 CSVPosition.BESCHREIBUNG.name(),
                 CSVPosition.ANLAGEN_IDS.name(),
+                CSVPosition.FOTO_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
     }

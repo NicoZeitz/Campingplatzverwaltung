@@ -100,7 +100,7 @@ public class EntityFactory {
     }
 
     public void loadAllEntities() throws IOException {
-        final var entityClasses = new Class<?>[] {
+        final var entityClasses = new Class<?>[]{
                 Adresse.class,
                 Ausruestung.class,
                 Bereich.class,
@@ -219,6 +219,9 @@ public class EntityFactory {
         for (final var anlageId : csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()].trim().split(",")) {
             this.onReferenceFound(Stellplatz.class, Integer.parseInt(anlageId), bereich::addAnlage);
         }
+        for (final var fotoId : csvData[Bereich.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), bereich::addFoto);
+        }
         return bereich;
     }
 
@@ -279,6 +282,9 @@ public class EntityFactory {
         }
         final var fremdfirmaId = Integer.parseInt(csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
         this.onReferenceFound(Fremdfirma.class, fremdfirmaId, einrichtung::setZustaendigeFirma);
+        for (final var fotoId : csvData[Einrichtung.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), einrichtung::addFoto);
+        }
         return einrichtung;
     }
 
@@ -292,7 +298,18 @@ public class EntityFactory {
     }
 
     private IPersistable createFremdfirmaFromCSVData(final String[] csvData) {
-        return null;
+        final var fremdfirma = new Fremdfirma(
+                Integer.parseInt(csvData[Fremdfirma.CSVPosition.FREMDFIRMA_ID.ordinal()]),
+                csvData[Fremdfirma.CSVPosition.NAME.ordinal()]
+        );
+        for (final var wartungsId : csvData[Fremdfirma.CSVPosition.WARTUNG_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Wartung.class, Integer.parseInt(wartungsId), fremdfirma::addWartung);
+        }
+        final var anschriftId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSCHRIFT_ID.ordinal()]);
+        this.onReferenceFound(Adresse.class, anschriftId, fremdfirma::setAnschrift);
+        final var ansprechpersonId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSPRECHPERSON_ID.ordinal()]);
+        this.onReferenceFound(Person.class, ansprechpersonId, fremdfirma::setAnsprechperson);
+        return fremdfirma;
     }
 
     private IPersistable createGastFromCSVData(final String[] csvData) {
@@ -311,13 +328,26 @@ public class EntityFactory {
     }
 
     private IPersistable createGebuchteLeistungFromCSVData(final String[] csvData) {
-        return null;
+        final var gebuchteLeistung = new GebuchteLeistung(
+                Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.GEBUCHTE_LEISTUNG_ID.ordinal()]),
+                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNG_START.ordinal()]),
+                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNGS_ENDE.ordinal()])
+        );
+        final var leistungsBeschreibungId = Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]);
+        this.onReferenceFound(Leistungsbeschreibung.class, leistungsBeschreibungId, gebuchteLeistung::setLeistungsbeschreibung);
+        return gebuchteLeistung;
     }
 
     private IPersistable createGeraetschaftFromCSVData(final String[] csvData) {
-        return null;
+        return new Geraetschaft(
+                Integer.parseInt(csvData[Geraetschaft.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
+                new BigDecimal(csvData[Geraetschaft.CSVPosition.GEBUEHR.ordinal()]),
+                Integer.parseInt(csvData[Geraetschaft.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
+                csvData[Geraetschaft.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDate.parse(csvData[Geraetschaft.CSVPosition.ANSCHAFFUNGSDATUM.ordinal()]),
+                csvData[Geraetschaft.CSVPosition.ZUSTAND.ordinal()]
+        );
     }
-
 
     private IPersistable createLeistungsbeschreibungFromCSVData(final String[] csvData) {
         return new Leistungsbeschreibung(
@@ -411,33 +441,63 @@ public class EntityFactory {
                     Integer.parseInt(stellplatzfunktionId),
                     stellplatz::addVerfuegbareFunktion);
         }
+        for (final var fotoId : csvData[Stellplatz.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), stellplatz::addFoto);
+        }
         return stellplatz;
     }
 
     private IPersistable createStellplatzfunktionFromCSVData(final String[] csvData) {
-        return null;
+        final var stellplatzFunktion = new Stellplatzfunktion(
+                Integer.parseInt(csvData[Stellplatzfunktion.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
+                new BigDecimal(csvData[Stellplatzfunktion.CSVPosition.GEBUEHR.ordinal()]),
+                Integer.parseInt(csvData[Stellplatzfunktion.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
+                csvData[Stellplatzfunktion.CSVPosition.BESCHREIBUNG.ordinal()],
+                Stellplatzfunktion.Status.valueOf(csvData[Stellplatzfunktion.CSVPosition.STATUS.ordinal()])
+        );
+        for (final var stellplatzId : csvData[Stellplatzfunktion.CSVPosition.STELLPLATZ_IDS.ordinal()].trim().split(",")) {
+            this.onReferenceFound(Stellplatz.class, Integer.parseInt(stellplatzId), stellplatzFunktion::addStellplatz);
+        }
+
+        return stellplatzFunktion;
     }
 
     private IPersistable createStoerungFromCSVData(final String[] csvData) {
-        return null;
+        final var stoerung = new Stoerung(
+                Integer.parseInt(csvData[Stoerung.CSVPosition.STOERUNGSNUMMER.ordinal()]),
+                csvData[Stoerung.CSVPosition.TITEL.ordinal()],
+                csvData[Stoerung.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDate.parse(csvData[Stoerung.CSVPosition.ERSTELLUNGSDATUM.ordinal()]),
+                LocalDate.parse(csvData[Stoerung.CSVPosition.BEHEBUNGSDATUM.ordinal()]),
+                Stoerung.Status.valueOf(csvData[Stoerung.CSVPosition.STATUS.ordinal()])
+        );
+        final var stellplatzFunktionId = Integer.parseInt(csvData[Stoerung.CSVPosition.STELLPLATZFUNKTION_ID.ordinal()]);
+        this.onReferenceFound(Stellplatzfunktion.class, stellplatzFunktionId, stoerung::setStellplatzfunktion);
+        return stoerung;
     }
 
     private IPersistable createWartungFromCSVData(final String[] csvData) {
-        return null;
+        final var wartung = new Wartung(
+                Integer.parseInt(csvData[Wartung.CSVPosition.WARTUNGSNUMMER.ordinal()]),
+                LocalDate.parse(csvData[Wartung.CSVPosition.DUERCHFUEHRUNGSDATUM.ordinal()]),
+                LocalDate.parse(csvData[Wartung.CSVPosition.RECHNUNGSDATUM.ordinal()]),
+                csvData[Wartung.CSVPosition.AUFTRAGSNUMMER.ordinal()],
+                csvData[Wartung.CSVPosition.RECHNUNGSNUMMER.ordinal()],
+                new BigDecimal(csvData[Wartung.CSVPosition.KOSTEN.ordinal()])
+        );
+        final var fremdFirmaId = Integer.parseInt(csvData[Wartung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
+        this.onReferenceFound(Fremdfirma.class, fremdFirmaId, wartung::setZustaendigeFirma);
+        final var anlageId = Integer.parseInt(csvData[Wartung.CSVPosition.ANLAGE_ID.ordinal()]);
+        // TODO: we need to get the correct type here and unique ids for all anlagen
+        // Also possible to just add a new CSVPosition in the data from Wartung indicating the anlage type as discriminator
+        this.onReferenceFound(Anlage.class, anlageId, wartung::setAnlage);
+        return wartung;
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends IPersistable> void onReferenceFound(final Class<T> c, final Object id, final Consumer<T> callback) {
-        var keyToEntity = this.missingReferences.get(c);
-        if (keyToEntity == null) {
-            keyToEntity = new HashMap<>();
-            this.missingReferences.put(c, keyToEntity);
-        }
-
-        var callbacks = this.missingReferences.get(c).get(id);
-        if (callbacks == null) {
-            callbacks = new HashSet<>();
-            this.missingReferences.get(c).put(id, callbacks);
-        }
+        var keyToEntity = this.missingReferences.computeIfAbsent(c, k -> new HashMap<>());
+        var callbacks = keyToEntity.computeIfAbsent(id, k -> new HashSet<>());
 
         callbacks.add((Consumer<IPersistable>) callback);
 
