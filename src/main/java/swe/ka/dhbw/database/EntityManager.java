@@ -56,6 +56,7 @@ public class EntityManager {
                 .orElse(0) + 1;
     }
 
+    @SuppressWarnings("unchecked")
     public <Entity extends IPersistable> void persist(final Entity element) {
         if (this.contains(element)) {
             return;
