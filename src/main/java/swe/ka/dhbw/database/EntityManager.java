@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// UNIMPLEMENTED: connection to database
-// UNIMPLEMENTED: subclasses
 public class EntityManager {
     private static EntityManager instance;
     private final List<? extends IPersistable> allElements = new ArrayList<>();
