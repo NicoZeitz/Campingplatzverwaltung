@@ -7,9 +7,7 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class Buchung implements IPersistable, ICSVPersistable, IDepictable {
@@ -33,14 +31,15 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     }
 
     private final int buchungsnummer;
-    private final List<Chipkarte> ausgehaendigteChipkarten = new ArrayList<>();
+    private final Set<Chipkarte> ausgehaendigteChipkarten = new LinkedHashSet<>();
     private final List<Ausruestung> mitgebrachteAusruestung = new ArrayList<>();
-    private final List<Gast> zugehoerigeGaeste = new ArrayList<>();
+    private final Set<Gast> zugehoerigeGaeste = new LinkedHashSet<>();
     private final List<GebuchteLeistung> gebuchteLeistungen = new ArrayList<>();
     private LocalDateTime anreise;
     private LocalDateTime abreise;
     private Stellplatz gebuchterStellplatz;
-    private Rechnung rechnung;
+    private Optional<Rechnung> rechnung = Optional.empty();
+    ;
     private Gast verantwortlicherGast;
 
     public Buchung(final int buchungsnummer,
@@ -82,7 +81,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         this.gebuchterStellplatz = gebuchterStellplatz;
     }
 
-    public List<Chipkarte> getAusgehaendigteChipkarten() {
+    public Collection<Chipkarte> getAusgehaendigteChipkarten() {
         return this.ausgehaendigteChipkarten;
     }
 
@@ -90,11 +89,15 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         return this.mitgebrachteAusruestung;
     }
 
-    public Rechnung getRechnung() {
+    public Optional<Rechnung> getRechnung() {
         return this.rechnung;
     }
 
     public void setRechnung(final Rechnung rechnung) {
+        this.setRechnung(Optional.of(rechnung));
+    }
+
+    public void setRechnung(final Optional<Rechnung> rechnung) {
         Validator.getInstance().validateNotNull(rechnung);
         this.rechnung = rechnung;
     }
@@ -106,9 +109,12 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     public void setVerantwortlicherGast(final Gast verantwortlicherGast) {
         Validator.getInstance().validateNotNull(verantwortlicherGast);
         this.verantwortlicherGast = verantwortlicherGast;
+        if (!verantwortlicherGast.getBuchungen().contains(this)) {
+            verantwortlicherGast.addBuchung(this);
+        }
     }
 
-    public List<Gast> getZugehoerigeGaeste() {
+    public Collection<Gast> getZugehoerigeGaeste() {
         return this.zugehoerigeGaeste;
     }
 
@@ -161,7 +167,10 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                 .map(Chipkarte::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
-        csvData[CSVPosition.RECHNUNG_ID.ordinal()] = this.getRechnung().getPrimaryKey().toString();
+        csvData[CSVPosition.RECHNUNG_ID.ordinal()] = this.getRechnung()
+                .map(Rechnung::getPrimaryKey)
+                .map(Objects::toString)
+                .orElse("");
         csvData[CSVPosition.VERANTWORTLICHER_GAST_ID.ordinal()] = this.getVerantwortlicherGast().getPrimaryKey().toString();
         csvData[CSVPosition.ZUGEHOERIGE_GAESTE_IDS.ordinal()] = this.getZugehoerigeGaeste()
                 .stream()

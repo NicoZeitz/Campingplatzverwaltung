@@ -182,8 +182,8 @@ public class Foto implements IDepictable, ICSVPersistable, IPersistable {
     @Override
     public String toString() {
         return "Foto{" +
-                "titel='" + this.getTitel() +
-                ", beschreibung='" + this.getBeschreibung() +
+                "titel='" + this.getTitel() + '\'' +
+                ", beschreibung='" + this.getBeschreibung() + '\'' +
                 ", dateipfad=" + this.getDateipfad() +
                 '}';
     }

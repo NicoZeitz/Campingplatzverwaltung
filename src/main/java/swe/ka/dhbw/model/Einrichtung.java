@@ -7,10 +7,7 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class Einrichtung extends Anlage implements ICSVPersistable, IPersistable, IDepictable {
@@ -32,6 +29,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         LETZTE_WARTUNG,
         OEFFNUNGSTAGE_IDS,
         ZUSTAENDIGE_FIRMA_ID,
+        BEREICH_ID,
         FOTO_IDS,
         DUMMY_DATA
     }
@@ -40,7 +38,8 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
     private String beschreibung;
     private LocalDateTime letzteWartung;
     private List<Oeffnungstag> oeffnungstage = new ArrayList<>();
-    private Fremdfirma zustaendigeFirma;
+    private Optional<Fremdfirma> zustaendigeFirma = Optional.empty();
+    ;
 
     public Einrichtung(final int anlageId,
                        final GPSPosition lage,
@@ -93,13 +92,20 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         this.oeffnungstage = oeffnungstage;
     }
 
-    public Fremdfirma getZustaendigeFirma() {
+    public Optional<Fremdfirma> getZustaendigeFirma() {
         return this.zustaendigeFirma;
     }
 
     public void setZustaendigeFirma(final Fremdfirma zustaendigeFirma) {
+        this.setZustaendigeFirma(Optional.ofNullable(zustaendigeFirma));
+    }
+
+    public void setZustaendigeFirma(final Optional<Fremdfirma> zustaendigeFirma) {
         Validator.getInstance().validateNotNull(zustaendigeFirma);
         this.zustaendigeFirma = zustaendigeFirma;
+        if (zustaendigeFirma.isPresent() && !zustaendigeFirma.get().getEinrichtungen().contains(this)) {
+            zustaendigeFirma.get().addEinrichtung(this);
+        }
     }
 
     @Override
@@ -155,7 +161,14 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
                 .map(Oeffnungstag::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
-        csvData[CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()] = this.getZustaendigeFirma().getPrimaryKey().toString();
+        csvData[CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()] = this.getZustaendigeFirma()
+                .map(Fremdfirma::getPrimaryKey)
+                .map(Object::toString)
+                .orElse("");
+        csvData[CSVPosition.BEREICH_ID.ordinal()] = this.getBereich()
+                .map(Bereich::getPrimaryKey)
+                .map(Object::toString)
+                .orElse("");
         csvData[CSVPosition.FOTO_IDS.ordinal()] = this.getFotos().stream()
                 .map(Foto::getPrimaryKey)
                 .map(Object::toString)
@@ -166,7 +179,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
 
     @Override
     public String[] getCSVHeader() {
-        return new String[]{
+        return new String[] {
                 CSVPosition.ANLAGE_ID.name(),
                 CSVPosition.LAGE_LATITUDE.name(),
                 CSVPosition.LAGE_LONGITUDE.name(),
@@ -175,6 +188,8 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
                 CSVPosition.LETZTE_WARTUNG.name(),
                 CSVPosition.OEFFNUNGSTAGE_IDS.name(),
                 CSVPosition.ZUSTAENDIGE_FIRMA_ID.name(),
+                CSVPosition.BEREICH_ID.name(),
+                CSVPosition.FOTO_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
     }
@@ -213,8 +228,8 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
     @Override
     public String toString() {
         return "Einrichtung{" +
-                "name='" + this.getName() +
-                ", beschreibung='" + this.getBeschreibung() +
+                "name='" + this.getName() + '\'' +
+                ", beschreibung='" + this.getBeschreibung() + '\'' +
                 ", letzteWartung=" + this.getLetzteWartung() +
                 ", oeffnungstage=[" + this.getOeffnungstage()
                 .stream()

@@ -209,11 +209,11 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
                 "nummer=" + this.getNummer() +
                 ", geburtstag=" + this.getGeschlecht() +
                 ", benutzerrolle=" + this.getBenutzerrolle() +
-                ", vorname='" + this.getVorname() +
-                ", nachname='" + this.getNachname() +
+                ", vorname='" + this.getVorname() + '\'' +
+                ", nachname='" + this.getNachname() + '\'' +
                 ", geschlecht=" + this.getGeschlecht() +
-                ", email='" + this.getEmail() +
-                ", telefonnummer='" + this.getTelefonnummer() +
+                ", email='" + this.getEmail() + '\'' +
+                ", telefonnummer='" + this.getTelefonnummer() + '\'' +
                 '}';
     }
 

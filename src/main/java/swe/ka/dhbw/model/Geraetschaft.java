@@ -147,10 +147,10 @@ public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistab
     public String toString() {
         return "Geraetschaft{" +
                 "anschaffungsdatum=" + this.getAnschaffungsdatum() +
-                ", zustand='" + this.getZustand() +
+                ", zustand='" + this.getZustand() + '\'' +
                 ", gebuehr=" + this.getGebuehr() +
                 ", maximalAnzahl=" + this.getMaximalAnzahl() +
-                ", beschreibung='" + this.getBeschreibung() +
+                ", beschreibung='" + this.getBeschreibung() + '\'' +
                 '}';
     }
 }

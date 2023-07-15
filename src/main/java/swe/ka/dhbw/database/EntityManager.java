@@ -32,15 +32,17 @@ public class EntityManager {
                 .toList();
     }
 
-    public List<? extends IPersistable> find(final Class<?> c) {
-        return this.allElements
+    @SuppressWarnings("unchecked")
+    public <Entity extends IPersistable> List<Entity> find(final Class<Entity> c) {
+        return (List<Entity>) this.allElements
                 .stream()
                 .filter(entity -> this.isSubclass(entity, c))
                 .toList();
     }
 
-    public Optional<? extends IPersistable> findOne(final Class<?> c, final Object primaryKey) {
-        return this.allElements
+    @SuppressWarnings("unchecked")
+    public <Entity extends IPersistable> Optional<Entity> findOne(final Class<Entity> c, final Object primaryKey) {
+        return (Optional<Entity>) this.allElements
                 .stream()
                 .filter(entity -> this.isSubclass(entity, c))
                 .filter(entity -> entity.getPrimaryKey().equals(primaryKey))

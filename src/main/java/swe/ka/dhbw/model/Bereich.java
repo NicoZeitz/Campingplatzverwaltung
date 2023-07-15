@@ -6,10 +6,7 @@ import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class Bereich extends Anlage implements ICSVPersistable, IDepictable, IPersistable {
@@ -28,11 +25,12 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
         KENNZEICHEN,
         BESCHREIBUNG,
         ANLAGEN_IDS,
+        BEREICH_ID,
         FOTO_IDS,
         DUMMY_DATA
     }
 
-    private final List<Anlage> anlagen = new ArrayList<>();
+    private final Set<Anlage> anlagen = new LinkedHashSet<>();
     private char kennzeichen;
     private String beschreibung;
 
@@ -59,7 +57,7 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
         this.beschreibung = beschreibung;
     }
 
-    public List<Anlage> getAnlagen() {
+    public Collection<Anlage> getAnlagen() {
         return this.anlagen;
     }
 
@@ -106,6 +104,10 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
                 .map(Anlage::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.BEREICH_ID.ordinal()] = this.getBereich()
+                .map(Bereich::getPrimaryKey)
+                .map(Object::toString)
+                .orElse("");
         csvData[CSVPosition.FOTO_IDS.ordinal()] = this.getFotos()
                 .stream()
                 .map(Foto::getPrimaryKey)
@@ -117,13 +119,14 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
 
     @Override
     public String[] getCSVHeader() {
-        return new String[]{
+        return new String[] {
                 CSVPosition.ANLAGEID.name(),
                 CSVPosition.LAGE_LATITUDE.name(),
                 CSVPosition.LAGE_LONGITUDE.name(),
                 CSVPosition.KENNZEICHEN.name(),
                 CSVPosition.BESCHREIBUNG.name(),
                 CSVPosition.ANLAGEN_IDS.name(),
+                CSVPosition.BEREICH_ID.name(),
                 CSVPosition.FOTO_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
@@ -157,7 +160,7 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
     public String toString() {
         return "Bereich{" +
                 "kennzeichen=" + this.getKennzeichen() +
-                ", beschreibung='" + this.getBeschreibung() +
+                ", beschreibung='" + this.getBeschreibung() + '\'' +
                 ", lage=" + this.getLage() +
                 ", bereich=" + this.getBereich() +
                 ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
@@ -167,9 +170,13 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
     public void addAnlage(final Anlage anlage) {
         Validator.getInstance().validateNotNull(anlage);
         this.anlagen.add(anlage);
+        if (!anlage.getBereich().equals(Optional.of(this))) {
+            anlage.setBereich(Optional.of(this));
+        }
     }
 
     public void removeAnlage(final Anlage anlage) {
         this.anlagen.remove(anlage);
+        anlage.setBereich(Optional.empty());
     }
 }

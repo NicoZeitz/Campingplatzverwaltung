@@ -7,10 +7,7 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
@@ -36,7 +33,7 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
         DUMMY_DATA
     }
 
-    private final List<Stellplatz> stellplaetze = new ArrayList<>();
+    private final Set<Stellplatz> stellplaetze = new LinkedHashSet<>();
     private Status status;
 
     public Stellplatzfunktion(final int leistungsbeschreibungId,
@@ -57,7 +54,7 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
         this.status = status;
     }
 
-    public List<Stellplatz> getStellplaetze() {
+    public Collection<Stellplatz> getStellplaetze() {
         return this.stellplaetze;
     }
 
@@ -101,7 +98,7 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
 
     @Override
     public String[] getCSVHeader() {
-        return new String[]{
+        return new String[] {
                 CSVPosition.LEISTUNGSBESCHREIBUNG_ID.name(),
                 CSVPosition.GEBUEHR.name(),
                 CSVPosition.MAXIMAL_ANZAHL.name(),
@@ -140,7 +137,7 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
                 "status=" + this.getStatus() +
                 ", gebuehr=" + this.getGebuehr() +
                 ", maximalAnzahl=" + this.getMaximalAnzahl() +
-                ", beschreibung='" + this.getBeschreibung() +
+                ", beschreibung='" + this.getBeschreibung() + '\'' +
                 '}';
     }
 

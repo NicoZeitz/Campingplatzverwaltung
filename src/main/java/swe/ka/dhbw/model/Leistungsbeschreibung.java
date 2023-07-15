@@ -144,7 +144,7 @@ public abstract class Leistungsbeschreibung implements IPersistable, IDepictable
         return "Leistungsbeschreibung{" +
                 "gebuehr=" + gebuehr +
                 ", maximalAnzahl=" + maximalAnzahl +
-                ", beschreibung='" + beschreibung +
+                ", beschreibung='" + beschreibung + '\'' +
                 '}';
     }
 }

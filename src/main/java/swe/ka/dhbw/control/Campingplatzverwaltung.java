@@ -7,7 +7,6 @@ import de.dhbwka.swe.utils.util.IOUtilities;
 import swe.ka.dhbw.database.CSVDatenbasis;
 import swe.ka.dhbw.database.EntityFactory;
 import swe.ka.dhbw.database.EntityManager;
-import swe.ka.dhbw.model.Anlage;
 import swe.ka.dhbw.ui.GUIBuchung;
 import swe.ka.dhbw.util.ArgumentParseException;
 import swe.ka.dhbw.util.ArgumentParser;
@@ -49,41 +48,11 @@ public final class Campingplatzverwaltung {
         final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
         final var database = new CSVDatenbasis(dbPath);
 
-        entityFactory.setEntityManager(entityManager);
         entityFactory.setDatabase(database);
+        entityFactory.setEntityManager(entityManager);
         entityFactory.loadAllEntities();
 
-
-
-        /*
-        database.create(
-                Einrichtung.class,
-                new Einrichtung()
-        );
-        database.create(
-                Fremdfirma.class,
-                new Fremdfirma()
-        );
-        database.create(
-                GebuchteLeistung.class,
-                new GebuchteLeistung()
-        );
-        database.create(
-                Stoerung.class,
-                new Stoerung()
-        );
-        database.create(
-                Stellplatz.class,
-                new Stellplatz()
-        );
-        database.create(
-                Wartung.class,
-                new Wartung()
-        );
-        */
-
-
-        entityManager.find(Anlage.class).forEach(entity -> AppLogger.getInstance().info(entity.toString()));
+        entityManager.find().forEach(entity -> AppLogger.getInstance().info(entity.toString()));
 
         controller.setEntityManager(entityManager);
         controller.showConfiguration();

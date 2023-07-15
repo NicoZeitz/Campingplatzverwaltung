@@ -130,38 +130,34 @@ public class EntityFactory {
         }
 
         this.resolveUnresolvedReferences();
-
-        for (final var classes : this.missingReferences.keySet()) {
-            if (this.missingReferences.get(classes).isEmpty()) {
-                continue;
-            }
-
-            for (final var primaryKey : this.missingReferences.get(classes).keySet()) {
-                if (this.missingReferences.get(classes).get(primaryKey).isEmpty()) {
-                    continue;
-                }
-
-                AppLogger.getInstance()
-                        .warning("EntityFactory::loadAllEntities: Could not resolve reference from " + classes.getSimpleName() + " with primary key " + primaryKey);
-            }
-        }
+        // @formatter:off
+        this.missingReferences.keySet().forEach(clazz ->
+                this.missingReferences.get(clazz).keySet().forEach(primaryKey ->
+                        this.missingReferences.get(clazz).get(primaryKey).forEach(consumer -> {
+                            AppLogger.getInstance().warning("EntityFactory::loadAllEntities: Could not resolve reference for " + clazz.getSimpleName() + " with primary key " + primaryKey);
+                        })
+                )
+        );
+        // @formatter:on
     }
 
     public void resolveUnresolvedReferences() {
         for (final var entity : this.entityManager.find()) {
-            final var keyToEntity = this.missingReferences.get(entity.getClass());
-            if (keyToEntity == null) {
-                continue;
-            }
+            for (Class<?> clazz = entity.getClass(); !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
+                final var keyToEntity = this.missingReferences.get(clazz);
+                if (keyToEntity == null) {
+                    continue;
+                }
 
-            final var callbacks = keyToEntity.get(entity.getPrimaryKey());
-            if (callbacks == null) {
-                continue;
-            }
+                final var callbacks = keyToEntity.get(entity.getPrimaryKey());
+                if (callbacks == null) {
+                    continue;
+                }
 
-            callbacks.forEach((cb) -> cb.accept(entity));
-            callbacks.clear();
-            keyToEntity.remove(entity.getPrimaryKey());
+                callbacks.forEach((cb) -> cb.accept(entity));
+                callbacks.clear();
+                keyToEntity.remove(entity.getPrimaryKey());
+            }
         }
     }
 
@@ -217,12 +213,20 @@ public class EntityFactory {
                 csvData[Bereich.CSVPosition.KENNZEICHEN.ordinal()].charAt(0),
                 csvData[Bereich.CSVPosition.BESCHREIBUNG.ordinal()]
         );
-        for (final var anlageId : csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()].trim().split(",")) {
-            this.onReferenceFound(Stellplatz.class, Integer.parseInt(anlageId), bereich::addAnlage);
+
+        for (final var anlageId : this.getListValues(csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()])) {
+            this.onReferenceFound(Anlage.class, Integer.parseInt(anlageId), bereich::addAnlage);
         }
-        for (final var fotoId : csvData[Bereich.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+
+        final var bereichId = csvData[Bereich.CSVPosition.BEREICH_ID.ordinal()];
+        if (!bereichId.isEmpty()) {
+            this.onReferenceFound(Bereich.class, Integer.parseInt(bereichId), bereich::setBereich);
+        }
+
+        for (final var fotoId : this.getListValues(csvData[Bereich.CSVPosition.FOTO_IDS.ordinal()])) {
             this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), bereich::addFoto);
         }
+
         return bereich;
     }
 
@@ -243,17 +247,19 @@ public class EntityFactory {
                     buchung::addAusgehaendigteChipkarte);
         }
 
-        final var rechnungId = Integer.parseInt(csvData[Buchung.CSVPosition.RECHNUNG_ID.ordinal()]);
-        this.onReferenceFound(Rechnung.class, rechnungId, buchung::setRechnung);
+        final var rechnungId = csvData[Buchung.CSVPosition.RECHNUNG_ID.ordinal()];
+        if (!rechnungId.isEmpty()) {
+            this.onReferenceFound(Rechnung.class, Integer.parseInt(rechnungId), buchung::setRechnung);
+        }
 
-        for (final var zugehoerigerGastId : csvData[Buchung.CSVPosition.ZUGEHOERIGE_GAESTE_IDS.ordinal()].trim().split(",")) {
+        for (final var zugehoerigerGastId : this.getListValues(csvData[Buchung.CSVPosition.ZUGEHOERIGE_GAESTE_IDS.ordinal()])) {
             this.onReferenceFound(Gast.class, Integer.parseInt(zugehoerigerGastId), buchung::addZugehoerigerGast);
         }
 
         final var verantwortlicherGastId = Integer.parseInt(csvData[Buchung.CSVPosition.VERANTWORTLICHER_GAST_ID.ordinal()]);
         this.onReferenceFound(Gast.class, verantwortlicherGastId, buchung::setVerantwortlicherGast);
 
-        for (final var gebuchteLeistungId : csvData[Buchung.CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.ordinal()].trim().split(",")) {
+        for (final var gebuchteLeistungId : this.getListValues(csvData[Buchung.CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.ordinal()])) {
             this.onReferenceFound(GebuchteLeistung.class, Integer.parseInt(gebuchteLeistungId), buchung::addGebuchteLeistung);
         }
 
@@ -278,14 +284,25 @@ public class EntityFactory {
                 csvData[Einrichtung.CSVPosition.BESCHREIBUNG.ordinal()],
                 LocalDateTime.parse(csvData[Einrichtung.CSVPosition.LETZTE_WARTUNG.ordinal()])
         );
-        for (final var oeffnungstagId : csvData[Einrichtung.CSVPosition.OEFFNUNGSTAGE_IDS.ordinal()].trim().split(",")) {
+
+        for (final var oeffnungstagId : this.getListValues(csvData[Einrichtung.CSVPosition.OEFFNUNGSTAGE_IDS.ordinal()])) {
             this.onReferenceFound(Oeffnungstag.class, Integer.parseInt(oeffnungstagId), einrichtung::addOeffnungstag);
         }
-        final var fremdfirmaId = Integer.parseInt(csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
-        this.onReferenceFound(Fremdfirma.class, fremdfirmaId, einrichtung::setZustaendigeFirma);
-        for (final var fotoId : csvData[Einrichtung.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+
+        final var fremdfirmaId = csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()];
+        if (!fremdfirmaId.isEmpty()) {
+            this.onReferenceFound(Fremdfirma.class, Integer.parseInt(fremdfirmaId), einrichtung::setZustaendigeFirma);
+        }
+
+        final var bereichId = csvData[Einrichtung.CSVPosition.BEREICH_ID.ordinal()];
+        if (!bereichId.isEmpty()) {
+            this.onReferenceFound(Bereich.class, Integer.parseInt(bereichId), einrichtung::setBereich);
+        }
+
+        for (final var fotoId : this.getListValues(csvData[Einrichtung.CSVPosition.FOTO_IDS.ordinal()])) {
             this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), einrichtung::addFoto);
         }
+
         return einrichtung;
     }
 
@@ -303,13 +320,21 @@ public class EntityFactory {
                 Integer.parseInt(csvData[Fremdfirma.CSVPosition.FREMDFIRMA_ID.ordinal()]),
                 csvData[Fremdfirma.CSVPosition.NAME.ordinal()]
         );
-        for (final var wartungsId : csvData[Fremdfirma.CSVPosition.WARTUNG_IDS.ordinal()].trim().split(",")) {
+
+        for (final var wartungsId : this.getListValues(csvData[Fremdfirma.CSVPosition.WARTUNG_IDS.ordinal()])) {
             this.onReferenceFound(Wartung.class, Integer.parseInt(wartungsId), fremdfirma::addWartung);
         }
+
+        for (final var einrichtungsId : this.getListValues(csvData[Fremdfirma.CSVPosition.EINRICHTUNG_IDS.ordinal()])) {
+            this.onReferenceFound(Einrichtung.class, Integer.parseInt(einrichtungsId), fremdfirma::addEinrichtung);
+        }
+
         final var anschriftId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSCHRIFT_ID.ordinal()]);
         this.onReferenceFound(Adresse.class, anschriftId, fremdfirma::setAnschrift);
+
         final var ansprechpersonId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSPRECHPERSON_ID.ordinal()]);
         this.onReferenceFound(Person.class, ansprechpersonId, fremdfirma::setAnsprechperson);
+
         return fremdfirma;
     }
 
@@ -323,8 +348,14 @@ public class EntityFactory {
                 Integer.parseInt(csvData[Gast.CSVPosition.KUNDENNUMMER.ordinal()]),
                 csvData[Gast.CSVPosition.AUSWEISNUMMER.ordinal()]
         );
+
         final var anschriftId = Integer.parseInt(csvData[Gast.CSVPosition.ANSCHRIFT.ordinal()]);
         this.onReferenceFound(Adresse.class, anschriftId, gast::setAnschrift);
+
+        for (final var buchungId : this.getListValues(csvData[Gast.CSVPosition.BUCHUNG_IDS.ordinal()])) {
+            this.onReferenceFound(Buchung.class, Integer.parseInt(buchungId), gast::addBuchung);
+        }
+
         return gast;
     }
 
@@ -334,8 +365,10 @@ public class EntityFactory {
                 LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNG_START.ordinal()]),
                 LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNGS_ENDE.ordinal()])
         );
+
         final var leistungsBeschreibungId = Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]);
         this.onReferenceFound(Leistungsbeschreibung.class, leistungsBeschreibungId, gebuchteLeistung::setLeistungsbeschreibung);
+
         return gebuchteLeistung;
     }
 
@@ -355,9 +388,11 @@ public class EntityFactory {
                 Integer.parseInt(csvData[Oeffnungstag.CSVPosition.OEFFNUNGSTAG_ID.ordinal()]),
                 Oeffnungstag.Wochentag.valueOf(csvData[Oeffnungstag.CSVPosition.WOCHENTAG.ordinal()])
         );
-        for (final var oeffnungszeitId : csvData[Oeffnungstag.CSVPosition.OEFFNUNGSZEITEN_IDS.ordinal()].trim().split(",")) {
+
+        for (final var oeffnungszeitId : this.getListValues(csvData[Oeffnungstag.CSVPosition.OEFFNUNGSZEITEN_IDS.ordinal()])) {
             this.onReferenceFound(Oeffnungszeit.class, Integer.parseInt(oeffnungszeitId), oeffnungstag::addOeffnungszeit);
         }
+
         return oeffnungstag;
     }
 
@@ -391,9 +426,11 @@ public class EntityFactory {
                 LocalDate.parse(csvData[Personal.CSVPosition.GEBURTSTAG.ordinal()]),
                 Personal.Rolle.valueOf(csvData[Personal.CSVPosition.ROLLE.ordinal()])
         );
-        for (final var stoerungsId : csvData[Personal.CSVPosition.STOERUNGEN_IDS.ordinal()].trim().split(",")) {
+
+        for (final var stoerungsId : this.getListValues(csvData[Personal.CSVPosition.STOERUNGEN_IDS.ordinal()])) {
             this.onReferenceFound(Stoerung.class, Integer.parseInt(stoerungsId), personal::addStoerung);
         }
+
         return personal;
     }
 
@@ -407,8 +444,10 @@ public class EntityFactory {
                 csvData[Rechnung.CSVPosition.ZAHLUNGSZWECK.ordinal()],
                 LocalDate.parse(csvData[Rechnung.CSVPosition.ZAHLUNGSZIEL.ordinal()])
         );
+
         final var gastId = Integer.parseInt(csvData[Rechnung.CSVPosition.ADRESSAT_ID.ordinal()]);
         this.onReferenceFound(Gast.class, gastId, rechnung::setAdressat);
+
         return rechnung;
     }
 
@@ -427,15 +466,23 @@ public class EntityFactory {
                 Integer.parseInt(csvData[Stellplatz.CSVPosition.ANZAHL_PKW.ordinal()]),
                 Integer.parseInt(csvData[Stellplatz.CSVPosition.ANZAHL_ZELTE.ordinal()])
         );
+
         for (final var stellplatzfunktionId : csvData[Stellplatz.CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.ordinal()].trim()
                 .split(",")) {
             this.onReferenceFound(Stellplatzfunktion.class,
                     Integer.parseInt(stellplatzfunktionId),
                     stellplatz::addVerfuegbareFunktion);
         }
-        for (final var fotoId : csvData[Stellplatz.CSVPosition.FOTO_IDS.ordinal()].trim().split(",")) {
+
+        final var bereichId = csvData[Stellplatz.CSVPosition.BEREICH_ID.ordinal()];
+        if (!bereichId.isEmpty()) {
+            this.onReferenceFound(Bereich.class, Integer.parseInt(bereichId), stellplatz::setBereich);
+        }
+
+        for (final var fotoId : this.getListValues(csvData[Stellplatz.CSVPosition.FOTO_IDS.ordinal()])) {
             this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), stellplatz::addFoto);
         }
+
         return stellplatz;
     }
 
@@ -447,7 +494,8 @@ public class EntityFactory {
                 csvData[Stellplatzfunktion.CSVPosition.BESCHREIBUNG.ordinal()],
                 Stellplatzfunktion.Status.valueOf(csvData[Stellplatzfunktion.CSVPosition.STATUS.ordinal()])
         );
-        for (final var stellplatzId : csvData[Stellplatzfunktion.CSVPosition.STELLPLATZ_IDS.ordinal()].trim().split(",")) {
+
+        for (final var stellplatzId : this.getListValues(csvData[Stellplatzfunktion.CSVPosition.STELLPLATZ_IDS.ordinal()])) {
             this.onReferenceFound(Stellplatz.class, Integer.parseInt(stellplatzId), stellplatzFunktion::addStellplatz);
         }
 
@@ -459,12 +507,18 @@ public class EntityFactory {
                 Integer.parseInt(csvData[Stoerung.CSVPosition.STOERUNGSNUMMER.ordinal()]),
                 csvData[Stoerung.CSVPosition.TITEL.ordinal()],
                 csvData[Stoerung.CSVPosition.BESCHREIBUNG.ordinal()],
-                LocalDate.parse(csvData[Stoerung.CSVPosition.ERSTELLUNGSDATUM.ordinal()]),
-                LocalDate.parse(csvData[Stoerung.CSVPosition.BEHEBUNGSDATUM.ordinal()]),
+                LocalDateTime.parse(csvData[Stoerung.CSVPosition.ERSTELLUNGSDATUM.ordinal()]),
+                LocalDateTime.parse(csvData[Stoerung.CSVPosition.BEHEBUNGSDATUM.ordinal()]),
                 Stoerung.Status.valueOf(csvData[Stoerung.CSVPosition.STATUS.ordinal()])
         );
-        final var stellplatzFunktionId = Integer.parseInt(csvData[Stoerung.CSVPosition.STELLPLATZFUNKTION_ID.ordinal()]);
-        this.onReferenceFound(Stellplatzfunktion.class, stellplatzFunktionId, stoerung::setStellplatzfunktion);
+
+        final var stellplatzFunktionId = csvData[Stoerung.CSVPosition.STELLPLATZFUNKTION_ID.ordinal()];
+        if (!stellplatzFunktionId.isEmpty()) {
+            this.onReferenceFound(Stellplatzfunktion.class,
+                    Integer.parseInt(stellplatzFunktionId),
+                    stoerung::setStellplatzfunktion);
+        }
+
         return stoerung;
     }
 
@@ -477,13 +531,22 @@ public class EntityFactory {
                 csvData[Wartung.CSVPosition.RECHNUNGSNUMMER.ordinal()],
                 new BigDecimal(csvData[Wartung.CSVPosition.KOSTEN.ordinal()])
         );
-        final var fremdFirmaId = Integer.parseInt(csvData[Wartung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()]);
-        this.onReferenceFound(Fremdfirma.class, fremdFirmaId, wartung::setZustaendigeFirma);
+
+        final var fremdFirmaId = csvData[Wartung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()];
+        if (!fremdFirmaId.isEmpty()) {
+            this.onReferenceFound(Fremdfirma.class, Integer.parseInt(fremdFirmaId), wartung::setZustaendigeFirma);
+        }
+
         final var anlageId = Integer.parseInt(csvData[Wartung.CSVPosition.ANLAGE_ID.ordinal()]);
-        // TODO: we need to get the correct type here and unique ids for all anlagen
-        // Also possible to just add a new CSVPosition in the data from Wartung indicating the anlage type as discriminator
         this.onReferenceFound(Anlage.class, anlageId, wartung::setAnlage);
+
         return wartung;
+    }
+
+    private Iterable<String> getListValues(final String csvData) {
+        return Arrays.stream(csvData.trim().split(","))
+                .filter(s -> s.length() > 0) // remove empty string (occurs when no entries are in the list)
+                .toList();
     }
 
     @SuppressWarnings("unchecked")
@@ -493,7 +556,7 @@ public class EntityFactory {
 
         callbacks.add((Consumer<IPersistable>) callback);
 
-        var entity = this.entityManager.findOne(c, id);
+        final var entity = this.entityManager.findOne(c, id);
         if (entity.isPresent()) {
             callbacks.forEach((cb) -> cb.accept(entity.get()));
             callbacks.clear();
