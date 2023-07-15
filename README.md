@@ -6,8 +6,6 @@ Software für Campingplatzverwaltung für Softwareengineering
 
 - Einrichtung
 - Fremdfirma
-- Gerätschaft
-- Personal
 - Stoerung
 - Wartung
 

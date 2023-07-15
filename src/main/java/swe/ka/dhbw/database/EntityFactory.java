@@ -71,7 +71,7 @@ public class EntityFactory {
         } else if (c == GPSPosition.class) {
             throw new IllegalArgumentException("EntityFactor::createElement: GPSPosition cannot be created by itself");
         } else if (c == Leistungsbeschreibung.class) {
-            persistable = this.createLeistungsbeschreibungFromCSVData(csvData);
+            throw new IllegalArgumentException("EntityFactor::createElement: Leistungsbeschreibung is abstract");
         } else if (c == Oeffnungstag.class) {
             persistable = this.createOeffnungstagFromCSVData(csvData);
         } else if (c == Oeffnungszeit.class) {
@@ -100,7 +100,7 @@ public class EntityFactory {
     }
 
     public void loadAllEntities() throws IOException {
-        final var entityClasses = new Class<?>[]{
+        final var entityClasses = new Class<?>[] {
                 Adresse.class,
                 Ausruestung.class,
                 Bereich.class,
@@ -115,6 +115,7 @@ public class EntityFactory {
                 Leistungsbeschreibung.class,
                 Oeffnungstag.class,
                 Oeffnungszeit.class,
+                Person.class,
                 Personal.class,
                 Rechnung.class,
                 Stellplatz.class,
@@ -147,7 +148,7 @@ public class EntityFactory {
     }
 
     public void resolveUnresolvedReferences() {
-        for (final var entity : this.entityManager.getAll()) {
+        for (final var entity : this.entityManager.find()) {
             final var keyToEntity = this.missingReferences.get(entity.getClass());
             if (keyToEntity == null) {
                 continue;
@@ -346,15 +347,6 @@ public class EntityFactory {
                 csvData[Geraetschaft.CSVPosition.BESCHREIBUNG.ordinal()],
                 LocalDate.parse(csvData[Geraetschaft.CSVPosition.ANSCHAFFUNGSDATUM.ordinal()]),
                 csvData[Geraetschaft.CSVPosition.ZUSTAND.ordinal()]
-        );
-    }
-
-    private IPersistable createLeistungsbeschreibungFromCSVData(final String[] csvData) {
-        return new Leistungsbeschreibung(
-                Integer.parseInt(csvData[Leistungsbeschreibung.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
-                new BigDecimal(csvData[Leistungsbeschreibung.CSVPosition.GEBUEHR.ordinal()]),
-                Integer.parseInt(csvData[Leistungsbeschreibung.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
-                csvData[Leistungsbeschreibung.CSVPosition.BESCHREIBUNG.ordinal()]
         );
     }
 

@@ -2,12 +2,15 @@ package swe.ka.dhbw.database;
 
 import de.dhbwka.swe.utils.model.IPersistable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 // UNIMPLEMENTED: connection to database
+// UNIMPLEMENTED: subclasses
 public class EntityManager {
     private static EntityManager instance;
-    private final Map<Class<? extends IPersistable>, Map<Object, IPersistable>> allElements = new HashMap<>();
+    private final List<? extends IPersistable> allElements = new ArrayList<>();
 
     private EntityManager() {
     }
@@ -19,52 +22,65 @@ public class EntityManager {
         return instance;
     }
 
-    public List<IPersistable> getAll() {
-        return this.allElements.values()
-                .stream()
-                .flatMap(map -> map.values().stream())
-                .toList();
-    }
-
-    @SuppressWarnings("unchecked")
-    public <Entity extends IPersistable> List<Entity> find(final Class<Entity> c) {
-        final var allOfClass = this.allElements.get(c);
-        if (allOfClass == null) {
-            return new ArrayList<>();
-        }
-
-        return allOfClass.values()
-                .stream()
-                .map(entity -> (Entity) entity)
-                .toList();
-    }
-
-    @SuppressWarnings("unchecked")
-    public <Entity extends IPersistable> Optional<Entity> findOne(final Class<Entity> c, final Object primaryKey) {
-        return Optional.ofNullable(this.allElements.get(c))
-                .map(map -> (Entity) map.get(primaryKey));
-    }
-
     public <Entity extends IPersistable> boolean contains(final Entity element) {
-        final var allOfClass = this.allElements.get(element.getClass());
-        if (allOfClass == null) {
-            return false;
-        }
-
-        return allOfClass.containsKey(element.getPrimaryKey());
+        return this.findOne(element.getClass(), element.getPrimaryKey()).isPresent();
     }
 
-    public <Entity extends IPersistable> void remove(final Entity element) {
-        var allOfClass = this.allElements.get(element.getClass());
-        if (allOfClass != null) {
-            allOfClass.remove(element.getPrimaryKey());
-        }
+    public List<? extends IPersistable> find() {
+        return this.allElements
+                .stream()
+                .toList();
+    }
+
+    public List<? extends IPersistable> find(final Class<?> c) {
+        return this.allElements
+                .stream()
+                .filter(entity -> this.isSubclass(entity, c))
+                .toList();
+    }
+
+    public Optional<? extends IPersistable> findOne(final Class<?> c, final Object primaryKey) {
+        return this.allElements
+                .stream()
+                .filter(entity -> this.isSubclass(entity, c))
+                .filter(entity -> entity.getPrimaryKey().equals(primaryKey))
+                .findFirst();
+    }
+
+    public int generateNextPrimaryKey(final Class<?> c) {
+        return this.allElements
+                .stream()
+                .filter(entity -> this.isSubclass(entity, c))
+                .mapToInt(entity -> (int) entity.getPrimaryKey())
+                .max()
+                .orElse(0) + 1;
     }
 
     public <Entity extends IPersistable> void persist(final Entity element) {
-        var allOfClass = this.allElements
-                .computeIfAbsent(element.getClass(), k -> new HashMap<>());
+        if (this.contains(element)) {
+            return;
+        }
 
-        allOfClass.put(element.getPrimaryKey(), element);
+        ((List<Entity>) this.allElements).add(element);
+    }
+
+    public <Entity extends IPersistable> void remove(final Entity element) {
+        var i = 0;
+        for (final var entity : this.allElements) {
+            if (this.isSubclass(entity, element.getClass()) && entity.getPrimaryKey().equals(element.getPrimaryKey())) {
+                this.allElements.remove(i);
+                break;
+            }
+            i++;
+        }
+    }
+
+    private boolean isSubclass(final Object object, final Class<?> superclass) {
+        for (Class<?> clazz = object.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
+            if (clazz == superclass) {
+                return true;
+            }
+        }
+        return false;
     }
 }
