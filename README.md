@@ -4,15 +4,10 @@ Software für Campingplatzverwaltung für Softwareengineering
 
 # CSV TODO
 
-- Buchung
 - Einrichtung
 - Fremdfirma
-- GebuchteLeistung
 - Gerätschaft
-- Leistungsbeschreibung
 - Personal
-- Stellplatz
-- Stellplatzfunktion
 - Stoerung
 - Wartung
 
