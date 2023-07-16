@@ -5,28 +5,35 @@ import de.dhbwka.swe.utils.event.IUpdateEventSender;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.IDepictable;
-import de.dhbwka.swe.utils.util.IOUtilities;
 import swe.ka.dhbw.database.EntityManager;
 import swe.ka.dhbw.event.GUIBuchungObserver;
 import swe.ka.dhbw.event.GUIConfigurationObserver;
+import swe.ka.dhbw.event.GUIMainObserver;
 import swe.ka.dhbw.event.GUIObserver;
 import swe.ka.dhbw.model.Buchung;
-import swe.ka.dhbw.ui.BookingOverviewComponent;
-import swe.ka.dhbw.ui.GUIBuchung;
-import swe.ka.dhbw.ui.GUIConfiguration;
+import swe.ka.dhbw.ui.*;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class GUIController implements IUpdateEventSender {
     private static GUIController instance;
     private final Set<GUIObserver> guiObservers = new HashSet<>();
     private final Set<EventListener> updateEventObervers = new HashSet<>();
+    private final Map<String, WindowLocation> windowLocations = new HashMap<>();
     private GUIConfiguration guiConfiguration;
     private GUIBuchung guiBuchung;
+    private GUIPersonal guiPersonal;
+    private GUIGast guiGast;
+    private GUIEinrichtung guiEinrichtung;
+    private GUIStellplatz guiStellplatz;
     private EntityManager entityManager;
     private Campingplatzverwaltung app;
 
@@ -147,28 +154,129 @@ public class GUIController implements IUpdateEventSender {
             return;
         }
 
+        final var observer = new GUIBuchungObserver();
         this.guiBuchung = new GUIBuchung(this.app.getConfig(), this.getAppointments(), LocalDate.now());
-        this.guiBuchung.addObserver(new GUIBuchungObserver(this));
+        this.guiBuchung.addObserver(observer);
         this.addObserver(this.guiBuchung);
 
-        IOUtilities.openInJFrame(
-                this.guiBuchung,
-                800,
-                600,
-                50,
-                50,
-                "Buchungen",
-                Color.black,
-                true
-        );
+        final var windowLocation = this.windowLocations.computeIfAbsent("Buchungen", k -> new WindowLocation(50, 50, 800, 600));
+        this.openInJFrame(this.guiBuchung, windowLocation, "Buchungen", event -> {
+            final var window = event.getWindow();
+            this.windowLocations.put("Buchungen", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            this.guiObservers.remove(this.guiBuchung);
+            this.guiBuchung.removeObserver(observer);
+            this.guiBuchung = null;
+        });
     }
 
-    public void showConfiguration() {
+    public void openGUIConfiguration() {
         final var observer = new GUIConfigurationObserver();
         this.guiObservers.add(observer);
         this.guiConfiguration = new GUIConfiguration();
         this.guiConfiguration.addObserver(observer);
-        IOUtilities.openInJFrame(new GUIConfiguration(), 400, 400, 0, 0, "Configuration", java.awt.Color.black, true);
 
+        final var windowLocation = this.windowLocations.computeIfAbsent("Configuration", k -> new WindowLocation(50, 50, 800, 600));
+        this.openInJFrame(new GUIConfiguration(), windowLocation, "Configuration", event -> {
+            this.guiObservers.remove(observer);
+            this.guiConfiguration = null;
+        });
+
+    }
+
+    public void openGUIEinrichtung() {
+        if (this.guiEinrichtung != null) {
+            return;
+        }
+
+        this.guiEinrichtung = new GUIEinrichtung(this.app.getConfig());
+
+        final var windowLocation = this.windowLocations.computeIfAbsent("Einrichtung", k -> new WindowLocation(50, 50, 800, 600));
+        this.openInJFrame(this.guiEinrichtung, windowLocation, "Einrichtungen", event -> {
+            final var window = event.getWindow();
+            this.windowLocations.put("Einrichtung", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            this.guiEinrichtung = null;
+        });
+    }
+
+    public void openGUIGast() {
+        if (this.guiGast != null) {
+            return;
+        }
+
+        this.guiGast = new GUIGast(this.app.getConfig());
+
+        final var windowLocation = this.windowLocations.computeIfAbsent("Gast", k -> new WindowLocation(50, 50, 800, 600));
+        this.openInJFrame(this.guiGast, windowLocation, "Gäste", event -> {
+            final var window = event.getWindow();
+            this.windowLocations.put("Gast", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            this.guiGast = null;
+        });
+    }
+
+    public void openGUIMain() {
+        final var observer = new GUIMainObserver();
+        final var guiMain = new GUIMain(this.app.getConfig());
+        guiMain.addObserver(observer);
+
+        final var windowLocation = this.windowLocations.computeIfAbsent("Main", k -> new WindowLocation(100, 100, 800, 600));
+        this.openInJFrame(guiMain, windowLocation, "Campingplatzverwaltung", event -> this.exitApplication());
+    }
+
+    public void openGUIPersonal() {
+        if (this.guiPersonal != null) {
+            return;
+        }
+
+        this.guiPersonal = new GUIPersonal(this.app.getConfig());
+
+        final var windowLocation = this.windowLocations.computeIfAbsent("Personal", k -> new WindowLocation(50, 50, 800, 600));
+        this.openInJFrame(this.guiPersonal, windowLocation, "Personal", event -> {
+            final var window = event.getWindow();
+            this.windowLocations.put("Personal", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            this.guiPersonal = null;
+        });
+    }
+
+    public void openGUIStellplatz() {
+        if (this.guiStellplatz != null) {
+            return;
+        }
+
+        this.guiStellplatz = new GUIStellplatz(this.app.getConfig());
+
+        final var windowLocation = this.windowLocations.computeIfAbsent("Stellplatz", k -> new WindowLocation(50, 50, 800, 600));
+        this.openInJFrame(this.guiStellplatz, windowLocation, "Stellplätze", event -> {
+            final var window = event.getWindow();
+            this.windowLocations.put("Stellplatz", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            this.guiStellplatz = null;
+        });
+    }
+
+    private JFrame openInJFrame(final Container content,
+                                final WindowLocation windowLocation,
+                                final String title,
+                                final Consumer<WindowEvent> onExit) {
+        final JFrame frame = new JFrame(title == null ? content.getClass().getName() : title);
+        frame.setBackground(Color.white);
+        content.setBackground(Color.white);
+        frame.setSize(windowLocation.width > 0 ? windowLocation.width : 100,
+                windowLocation.height > 0 ? windowLocation.height : 100);
+        frame.setLocation(windowLocation.x > 0 ? windowLocation.x : 0, windowLocation.y > 0 ? windowLocation.y : 0);
+        frame.add(content, "Center");
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(final WindowEvent event) {
+                if (onExit != null) {
+                    onExit.accept(event);
+                }
+                frame.dispose();
+            }
+        });
+        frame.setVisible(true);
+        return frame;
+
+    }
+
+    private record WindowLocation(int x, int y, int width, int height) {
     }
 }

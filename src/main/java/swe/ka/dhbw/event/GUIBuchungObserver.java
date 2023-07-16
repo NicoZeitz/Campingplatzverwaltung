@@ -7,19 +7,14 @@ import swe.ka.dhbw.ui.BookingOverviewComponent;
 import java.time.LocalDate;
 
 public class GUIBuchungObserver extends GUIObserver {
-    private final GUIController controller;
-
-    public GUIBuchungObserver(GUIController controller) {
-        this.controller = controller;
-    }
-
+    
     @Override
     public void processGUIEvent(final GUIEvent ge) {
         // BookingOverviewComponent
         if (ge.getCmd() == BookingOverviewComponent.Commands.PREVIOUS_WEEK) {
-            this.controller.bookingOverviewPreviousWeek((LocalDate) ge.getData());
+            GUIController.getInstance().bookingOverviewPreviousWeek((LocalDate) ge.getData());
         } else if (ge.getCmd() == BookingOverviewComponent.Commands.NEXT_WEEK) {
-            this.controller.bookingOverviewNextWeek((LocalDate) ge.getData());
+            GUIController.getInstance().bookingOverviewNextWeek((LocalDate) ge.getData());
         } else if (ge.getCmd() == BookingOverviewComponent.Commands.BUCHUNG_SELECTED) {
             // ignore
         }

@@ -4,7 +4,6 @@ import de.dhbwka.swe.utils.util.AppLogger;
 import swe.ka.dhbw.database.CSVDatenbasis;
 import swe.ka.dhbw.database.EntityFactory;
 import swe.ka.dhbw.database.EntityManager;
-import swe.ka.dhbw.model.Buchung;
 import swe.ka.dhbw.util.ArgumentParseException;
 import swe.ka.dhbw.util.ArgumentParser;
 
@@ -57,9 +56,9 @@ public final class Campingplatzverwaltung {
         controller.setEntityManager(entityManager);
         controller.setApp(this);
 
-        entityManager.find(Buchung.class).forEach(entity -> AppLogger.getInstance().info(entity.toString()));
+        // TODO: configuration
 
-        controller.openGUIBuchung();
+        controller.openGUIMain();
 
 
         /*

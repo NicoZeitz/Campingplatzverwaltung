@@ -145,9 +145,13 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         if (ue.getCmd() == Commands.UPDATE_WEEK) {
             this.setCurrentWeek((LocalDate) ue.getData());
             this.timespanLabel.setText(this.getTimespanLabelText());
+            // remove the entire calendar component to avoid a bug where there are sometimes weird artifacts when window is in fullscreen
             this.calendar.removeAll();
-            // TODO:BUG: when switching and window is fullscreen sometimes there are weird artifacts
+            this.remove(this.calendar);
+            this.calendar = new JPanel(new GridBagLayout());
+            this.calendar.setBackground(Color.WHITE);
             this.initUIBuchungen(this.calendar);
+            this.add(this.calendar, BorderLayout.CENTER);
         }
     }
 
