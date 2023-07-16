@@ -3,7 +3,18 @@ package swe.ka.dhbw.control;
 import java.awt.*;
 
 public interface ReadonlyConfiguration {
+    enum WindowState {
+        WINDOWED,
+        MAXIMIZED
+    }
+
     Font getFont();
+
+    Font getLargeFont();
+
+    Font getSmallFont();
+
+    Font getHeaderFont();
 
     int getFontSize();
 
@@ -20,9 +31,4 @@ public interface ReadonlyConfiguration {
     WindowState getWindowState();
 
     Color getAccentColor();
-
-    public enum WindowState {
-        WINDOWED,
-        MAXIMIZED
-    }
 }
