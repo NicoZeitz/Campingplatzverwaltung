@@ -21,6 +21,26 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     }
 
     @Override
+    public void processGUIEvent(GUIEvent ge) {
+        final var source = ge.getSource();
+        if (!(source instanceof ButtonElement)) {
+            return;
+        }
+
+        final var command = ((ButtonElement) source).getCommand();
+        if (command != ButtonElement.Commands.BUTTON_PRESSED) {
+            return;
+        }
+
+        final var id = ((ButtonElement) source).getID();
+        if (id.equals(BUTTON_START_APP_ID)) {
+            GUIController.getInstance().gatherConfigurationAndOpenMainGUI();
+        } else if (id.equals(BUTTON_EXIT_APP_ID)) {
+            // GUIController.getInstance().exitApplication();
+        }
+    }
+
+    @Override
     public void processUpdateEvent(UpdateEvent ue) {
         System.out.println(ue);
     }
@@ -49,25 +69,5 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
                 .build();
         this.setLayout(new GridLayout(1, 1));
         this.add(buttonComponent);
-    }
-
-    @Override
-    public void processGUIEvent(GUIEvent ge) {
-        final var source = ge.getSource();
-        if (!(source instanceof ButtonElement)) {
-            return;
-        }
-
-        final var command = ((ButtonElement) source).getCommand();
-        if (command != ButtonElement.Commands.BUTTON_PRESSED) {
-            return;
-        }
-
-        final var id = ((ButtonElement) source).getID();
-        if (id.equals(BUTTON_START_APP_ID)) {
-            GUIController.getInstance().gatherConfigurationAndOpenMainGUI();
-        } else if (id.equals(BUTTON_EXIT_APP_ID)) {
-            GUIController.getInstance().exitApplication();
-        }
     }
 }

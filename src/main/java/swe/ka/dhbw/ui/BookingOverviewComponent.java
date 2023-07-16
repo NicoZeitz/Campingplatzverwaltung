@@ -149,7 +149,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
             this.calendar.removeAll();
             this.remove(this.calendar);
             this.calendar = new JPanel(new GridBagLayout());
-            this.calendar.setBackground(Color.WHITE);
+            this.calendar.setBackground(this.config.getBackgroundColor());
             this.initUIBuchungen(this.calendar);
             this.add(this.calendar, BorderLayout.CENTER);
         }
@@ -157,22 +157,24 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
 
     private void initUI() {
         this.setLayout(new BorderLayout());
-        this.setBackground(Color.WHITE);
+        this.setBackground(this.config.getBackgroundColor());
 
         // Titel
         final var title = new JPanel();
         title.setLayout(new GridLayout(2, 1, 0, 5));
-        title.setBackground(Color.WHITE);
+        title.setBackground(this.config.getBackgroundColor());
         title.setOpaque(true);
 
         final var titleHeader = new JLabel("Terminübersicht");
         titleHeader.setHorizontalAlignment(SwingConstants.CENTER);
         titleHeader.setFont(this.config.getHeaderFont());
+        titleHeader.setForeground(this.config.getTextColor());
         title.add(titleHeader);
 
         this.timespanLabel = new JLabel(this.getTimespanLabelText());
         this.timespanLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.timespanLabel.setFont(this.config.getFont());
+        this.timespanLabel.setForeground(this.config.getTextColor());
         title.add(this.timespanLabel);
 
         this.add(title, BorderLayout.NORTH);
@@ -182,7 +184,8 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
                 .builder(PREVIOUS_WEEK_BUTTON_ELEMENT_ID)
                 .toolTip("Vorherige Woche")
                 .font(this.config.getHeaderFont())
-                .backgroundColor(Color.WHITE)
+                .backgroundColor(this.config.getBackgroundColor())
+                .textColor(this.config.getTextColor())
                 .buttonText(this.getPreviousWeekLabel())
                 .build();
         previousWeek.addObserver(this); // cannot add in builder as this adds the observer two times
@@ -193,7 +196,8 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
                 .builder(NEXT_WEEK_BUTTON_ELEMENT_ID)
                 .toolTip("Nächste Woche")
                 .font(this.config.getHeaderFont())
-                .backgroundColor(Color.WHITE)
+                .backgroundColor(this.config.getBackgroundColor())
+                .textColor(this.config.getTextColor())
                 .buttonText(this.getNextWeekLabel())
                 .build();
         nextWeek.addObserver(this); // cannot add in builder as this adds the observer two times
@@ -201,7 +205,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
 
         // Main Calendar
         this.calendar = new JPanel(new GridBagLayout());
-        this.calendar.setBackground(Color.WHITE);
+        this.calendar.setBackground(this.config.getBackgroundColor());
         this.initUIBuchungen(this.calendar);
         this.add(this.calendar, BorderLayout.CENTER);
     }
@@ -217,12 +221,13 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
             header.setFont(this.config.getLargeFont());
             header.setHorizontalAlignment(SwingConstants.CENTER);
             header.setBackground(this.config.getAccentColor());
+            header.setForeground(this.config.getTextColor());
             header.setBorder(BorderFactory.createEmptyBorder());
             header.setOpaque(true);
 
             // Alle Buchungen an diesem Tag
             final var viewPort = new JPanel();
-            viewPort.setBackground(Color.WHITE);
+            viewPort.setBackground(this.config.getBackgroundColor());
             viewPort.setOpaque(true);
 
             final var buchungen = this.appointments.get(this.currentWeek.plusDays(i));
@@ -235,7 +240,8 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
                     entry.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BUCHUNG_SELECTED, buchung)));
                     entry.setToolTipText("Buchung anzeigen");
                     entry.setFont(this.config.getFont());
-                    entry.setBackground(new Color(238, 238, 238));
+                    entry.setForeground(this.config.getTextColor());
+                    entry.setBackground(this.config.getSecondaryBackgroundColor());
                     entry.setText("<html>%s</html>".formatted(buchung.getVisibleText().replaceAll("\n", "<br>")));
                     entry.setHorizontalAlignment(SwingConstants.CENTER);
                     entry.setBorder(BorderFactory.createEmptyBorder());
@@ -243,17 +249,18 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
                 }
 
                 final var padding = new JPanel();
-                padding.setBackground(Color.WHITE);
+                padding.setBackground(this.config.getBackgroundColor());
                 viewPort.add(padding, new GridBagConstraints(0, buchungen.size(), 1, 1, 1d, 1d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
                 // @formatter:on
             } else {
                 // Keine Buchungen vorhanden
                 final var infoMessage = new JLabel("Keine Buchungen");
                 infoMessage.setFont(this.config.getFont());
+                infoMessage.setForeground(this.config.getTextColor());
                 infoMessage.setHorizontalAlignment(SwingConstants.CENTER);
                 viewPort.add(infoMessage);
                 viewPort.setLayout(new GridLayout(1, 1));
-                viewPort.setBackground(new Color(238, 238, 238));
+                viewPort.setBackground(this.config.getSecondaryBackgroundColor());
             }
             // @formatter:off
             final var scrollPane = new JScrollPane(viewPort, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);

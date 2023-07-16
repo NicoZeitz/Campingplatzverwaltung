@@ -5,12 +5,14 @@ import de.dhbwka.swe.utils.event.IUpdateEventSender;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.IDepictable;
+import de.dhbwka.swe.utils.util.PropertyManager;
 import swe.ka.dhbw.database.EntityManager;
 import swe.ka.dhbw.event.GUIBuchungObserver;
 import swe.ka.dhbw.event.GUIConfigurationObserver;
 import swe.ka.dhbw.event.GUIMainObserver;
-import swe.ka.dhbw.event.GUIObserver;
+import swe.ka.dhbw.model.Bereich;
 import swe.ka.dhbw.model.Buchung;
+import swe.ka.dhbw.model.Foto;
 import swe.ka.dhbw.ui.*;
 
 import javax.swing.*;
@@ -22,13 +24,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class GUIController implements IUpdateEventSender {
     private static GUIController instance;
-    private final Set<GUIObserver> guiObservers = new HashSet<>();
     private final Set<EventListener> updateEventObervers = new HashSet<>();
-    private final Map<String, WindowLocation> windowLocations = new HashMap<>();
-    private GUIConfiguration guiConfiguration;
     private GUIBuchung guiBuchung;
     private GUIPersonal guiPersonal;
     private GUIGast guiGast;
@@ -36,6 +36,7 @@ public class GUIController implements IUpdateEventSender {
     private GUIStellplatz guiStellplatz;
     private EntityManager entityManager;
     private Campingplatzverwaltung app;
+    private Configuration.Builder configurationBuilder;
 
     private GUIController() {
     }
@@ -70,6 +71,7 @@ public class GUIController implements IUpdateEventSender {
                                 try {
                                     array[Buchung.Attributes.ANREISE.ordinal()].setValue(finalDate);
                                 } catch (Exception e) {
+                                    // ignore exception as it will not occur
                                 }
                                 return array;
                             }
@@ -92,9 +94,40 @@ public class GUIController implements IUpdateEventSender {
                     return entries.entrySet().stream();
                 }).collect(HashMap::new, (map, entry) -> {
                     map.put(entry.getKey(), entry.getValue());
-                }, (map1, map2) -> {
-                    map1.putAll(map2);
-                });
+                }, HashMap::putAll);
+    }
+
+    private List<? extends IDepictable> getBuchungen() {
+        return this.entityManager
+                .find(Buchung.class)
+                .stream()
+                .map(b -> new IDepictable() {
+                    @Override
+                    public Attribute[] getAttributeArray() {
+                        final var verantwortlicherGast = b.getVerantwortlicherGast();
+                        final var stellplatz = b.getGebuchterStellplatz();
+                        final var bereich = stellplatz.getBereich();
+
+                        // @formatter:off
+                        return new Attribute[] {
+                            new Attribute("Buchungsnummer", b, Integer.class, b.getBuchungsnummer(), null, true, false, false, true),
+                            new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), null, true, false, false, true),
+                            new Attribute("Verantwortlicher Gast", b, String.class, verantwortlicherGast.getName() + " (" + verantwortlicherGast.getKundennummer() + ")", null, true, false, false, true),
+                            new Attribute("Stellplatz", b, String.class, stellplatz.getStellplatz(), null, true, false, false, true),
+                            new Attribute("Bereich", b, String.class, bereich.map(Bereich::getKennzeichen).orElse('-'), null, true, false, false, true),
+                            new Attribute("Weitere Gäste", b, String.class, b.getZugehoerigeGaeste().stream().map(g -> g.getName()).collect(Collectors.joining(", ")), null, true, false, false, true),
+                            new Attribute("Stellplatzbilder", b, List.class, stellplatz.getFotos().stream().map(Foto::getImage).toList(), null, true, false, false, true),
+                            new Attribute("Chipkarten", b, String.class, b.getAusgehaendigteChipkarten().stream().map(c -> c.getNummer() + " (" + c.getStatus() + ")").collect(Collectors.joining(", ")), null, true, false, false, true),
+                            // @formatter:on
+                        };
+                    }
+
+                    @Override
+                    public String getElementID() {
+                        return b.getElementID();
+                    }
+                })
+                .toList();
     }
 
     public void setEntityManager(final EntityManager entityManager) {
@@ -133,10 +166,6 @@ public class GUIController implements IUpdateEventSender {
         );
     }
 
-    public void exitApplication() {
-        System.exit(0);
-    }
-
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
         for (final var eventListener : this.updateEventObervers) {
             if (eventListener instanceof IUpdateEventListener updateListener) {
@@ -150,66 +179,82 @@ public class GUIController implements IUpdateEventSender {
     }
 
     public void openGUIBuchung() {
-        if (this.guiBuchung != null) {
+        if (this.guiBuchung != null && this.guiBuchung.isDisplayable()) {
+            this.guiBuchung.grabFocus();
             return;
+        }
+
+        if (this.guiBuchung == null) {
+            this.guiBuchung = new GUIBuchung(this.app.getConfig(), this.getBuchungen(), this.getAppointments(), LocalDate.now());
         }
 
         final var observer = new GUIBuchungObserver();
-        this.guiBuchung = new GUIBuchung(this.app.getConfig(), this.getAppointments(), LocalDate.now());
         this.guiBuchung.addObserver(observer);
         this.addObserver(this.guiBuchung);
 
-        final var windowLocation = this.windowLocations.computeIfAbsent("Buchungen", k -> new WindowLocation(50, 50, 800, 600));
-        this.openInJFrame(this.guiBuchung, windowLocation, "Buchungen", event -> {
+        this.openInJFrame(this.guiBuchung, this.app.getConfig().getWindowLocation("Buchungen"), "Buchungen", event -> {
             final var window = event.getWindow();
-            this.windowLocations.put("Buchungen", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
-            this.guiObservers.remove(this.guiBuchung);
+            this.app.getConfig()
+                    .setWindowLocation("Buchungen",
+                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             this.guiBuchung.removeObserver(observer);
-            this.guiBuchung = null;
+            window.dispose();
         });
     }
 
-    public void openGUIConfiguration() {
+    public void openGUIConfiguration(final PropertyManager propertyManager) throws Exception {
         final var observer = new GUIConfigurationObserver();
-        this.guiObservers.add(observer);
-        this.guiConfiguration = new GUIConfiguration();
-        this.guiConfiguration.addObserver(observer);
-
-        final var windowLocation = this.windowLocations.computeIfAbsent("Configuration", k -> new WindowLocation(50, 50, 800, 600));
-        this.openInJFrame(new GUIConfiguration(), windowLocation, "Configuration", event -> {
-            this.guiObservers.remove(observer);
-            this.guiConfiguration = null;
+        final var guiConfiguration = new GUIConfiguration();
+        this.configurationBuilder = Configuration.builder().propertyManager(propertyManager);
+        guiConfiguration.addObserver(observer);
+        // Main GUI and Configuration GUI have the same window location
+        this.openInJFrame(new GUIConfiguration(), this.configurationBuilder.build().getWindowLocation("Main"), "Configuration", event -> {
+            final var window = event.getWindow();
+            guiConfiguration.removeObserver(observer);
+            this.app.setConfig(this.configurationBuilder.build());
+            this.app.getConfig()
+                    .setWindowLocation("Main",
+                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            window.dispose();
+            this.openGUIMain();
         });
-
     }
 
     public void openGUIEinrichtung() {
-        if (this.guiEinrichtung != null) {
+        if (this.guiEinrichtung != null && this.guiEinrichtung.isDisplayable()) {
+            this.guiEinrichtung.grabFocus();
             return;
         }
 
-        this.guiEinrichtung = new GUIEinrichtung(this.app.getConfig());
+        if (this.guiEinrichtung == null) {
+            this.guiEinrichtung = new GUIEinrichtung(this.app.getConfig());
+        }
 
-        final var windowLocation = this.windowLocations.computeIfAbsent("Einrichtung", k -> new WindowLocation(50, 50, 800, 600));
-        this.openInJFrame(this.guiEinrichtung, windowLocation, "Einrichtungen", event -> {
+        this.openInJFrame(this.guiEinrichtung, this.app.getConfig().getWindowLocation("Einrichtung"), "Einrichtungen", event -> {
             final var window = event.getWindow();
-            this.windowLocations.put("Einrichtung", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
-            this.guiEinrichtung = null;
+            this.app.getConfig()
+                    .setWindowLocation("Einrichtung",
+                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            window.dispose();
         });
     }
 
     public void openGUIGast() {
-        if (this.guiGast != null) {
+        if (this.guiGast != null && this.guiGast.isDisplayable()) {
+            this.guiGast.grabFocus();
             return;
         }
 
-        this.guiGast = new GUIGast(this.app.getConfig());
+        if (this.guiGast == null) {
+            this.guiGast = new GUIGast(this.app.getConfig());
+        }
 
-        final var windowLocation = this.windowLocations.computeIfAbsent("Gast", k -> new WindowLocation(50, 50, 800, 600));
-        this.openInJFrame(this.guiGast, windowLocation, "Gäste", event -> {
+        this.openInJFrame(this.guiGast, this.app.getConfig().getWindowLocation("Gast"), "Gäste", event -> {
             final var window = event.getWindow();
-            this.windowLocations.put("Gast", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
-            this.guiGast = null;
+            this.app.getConfig()
+                    .setWindowLocation("Gast",
+                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            window.dispose();
         });
     }
 
@@ -217,51 +262,57 @@ public class GUIController implements IUpdateEventSender {
         final var observer = new GUIMainObserver();
         final var guiMain = new GUIMain(this.app.getConfig());
         guiMain.addObserver(observer);
-
-        final var windowLocation = this.windowLocations.computeIfAbsent("Main", k -> new WindowLocation(100, 100, 800, 600));
-        this.openInJFrame(guiMain, windowLocation, "Campingplatzverwaltung", event -> this.exitApplication());
+        this.openInJFrame(guiMain, this.app.getConfig().getWindowLocation("Main"), "Campingplatzverwaltung", event -> this.app.exitApplication());
     }
 
     public void openGUIPersonal() {
-        if (this.guiPersonal != null) {
+        if (this.guiPersonal != null && this.guiPersonal.isDisplayable()) {
+            this.guiPersonal.grabFocus();
             return;
         }
 
-        this.guiPersonal = new GUIPersonal(this.app.getConfig());
+        if (this.guiPersonal == null) {
+            this.guiPersonal = new GUIPersonal(this.app.getConfig());
+        }
 
-        final var windowLocation = this.windowLocations.computeIfAbsent("Personal", k -> new WindowLocation(50, 50, 800, 600));
-        this.openInJFrame(this.guiPersonal, windowLocation, "Personal", event -> {
+        this.openInJFrame(this.guiPersonal, this.app.getConfig().getWindowLocation("Personal"), "Personal", event -> {
             final var window = event.getWindow();
-            this.windowLocations.put("Personal", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
-            this.guiPersonal = null;
+            this.app.getConfig()
+                    .setWindowLocation("Personal",
+                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            window.dispose();
         });
     }
 
     public void openGUIStellplatz() {
-        if (this.guiStellplatz != null) {
+        if (this.guiStellplatz != null && this.guiStellplatz.isDisplayable()) {
+            this.guiStellplatz.grabFocus();
             return;
         }
 
-        this.guiStellplatz = new GUIStellplatz(this.app.getConfig());
+        if (this.guiStellplatz == null) {
+            this.guiStellplatz = new GUIStellplatz(this.app.getConfig());
+        }
 
-        final var windowLocation = this.windowLocations.computeIfAbsent("Stellplatz", k -> new WindowLocation(50, 50, 800, 600));
-        this.openInJFrame(this.guiStellplatz, windowLocation, "Stellplätze", event -> {
+        this.openInJFrame(this.guiStellplatz, this.app.getConfig().getWindowLocation("Stellplatz"), "Stellplätze", event -> {
             final var window = event.getWindow();
-            this.windowLocations.put("Stellplatz", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
-            this.guiStellplatz = null;
+            this.app.getConfig()
+                    .setWindowLocation("Stellplatz",
+                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            window.dispose();
         });
     }
 
     private JFrame openInJFrame(final Container content,
-                                final WindowLocation windowLocation,
+                                final ReadonlyConfiguration.WindowLocation windowLocation,
                                 final String title,
                                 final Consumer<WindowEvent> onExit) {
         final JFrame frame = new JFrame(title == null ? content.getClass().getName() : title);
         frame.setBackground(Color.white);
         content.setBackground(Color.white);
-        frame.setSize(windowLocation.width > 0 ? windowLocation.width : 100,
-                windowLocation.height > 0 ? windowLocation.height : 100);
-        frame.setLocation(windowLocation.x > 0 ? windowLocation.x : 0, windowLocation.y > 0 ? windowLocation.y : 0);
+        frame.setSize(windowLocation.width() > 0 ? windowLocation.width() : 100,
+                windowLocation.height() > 0 ? windowLocation.height() : 100);
+        frame.setLocation(Math.max(windowLocation.x(), 0), Math.max(windowLocation.y(), 0));
         frame.add(content, "Center");
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -275,8 +326,5 @@ public class GUIController implements IUpdateEventSender {
         frame.setVisible(true);
         return frame;
 
-    }
-
-    private record WindowLocation(int x, int y, int width, int height) {
     }
 }

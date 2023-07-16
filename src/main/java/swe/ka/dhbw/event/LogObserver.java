@@ -1,8 +1,9 @@
 package swe.ka.dhbw.event;
 
 import de.dhbwka.swe.utils.event.GUIEvent;
+import de.dhbwka.swe.utils.event.IGUIEventListener;
 
-public class LogObserver extends GUIObserver {
+public class LogObserver implements IGUIEventListener {
     @Override
     public void processGUIEvent(final GUIEvent ge) {
         System.out.println("============================================ GUIEvent ============================================");

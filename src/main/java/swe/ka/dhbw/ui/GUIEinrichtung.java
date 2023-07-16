@@ -21,12 +21,13 @@ public class GUIEinrichtung extends GUIComponent {
 
     private void initUI() {
         this.setLayout(new BorderLayout());
-        this.setBackground(Color.WHITE);
-        this.setOpaque(true);
         final var label = new JLabel("Stellen Sie sich hier eine wunderbare Einrichtungsverwaltung vor!");
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(this.config.getHeaderFont());
+        label.setForeground(this.config.getTextColor());
+        label.setBackground(this.config.getBackgroundColor());
+        label.setOpaque(true);
         this.add(label, BorderLayout.CENTER);
     }
 }

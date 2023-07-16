@@ -1,6 +1,7 @@
 package swe.ka.dhbw.control;
 
 import de.dhbwka.swe.utils.util.AppLogger;
+import de.dhbwka.swe.utils.util.PropertyManager;
 import swe.ka.dhbw.database.CSVDatenbasis;
 import swe.ka.dhbw.database.EntityFactory;
 import swe.ka.dhbw.database.EntityManager;
@@ -13,7 +14,7 @@ import java.nio.file.Path;
 public final class Campingplatzverwaltung {
     public static final String VERSION = "1.0.0";
     private static Campingplatzverwaltung instance;
-    private ReadonlyConfiguration config;
+    private Configuration config;
 
     private Campingplatzverwaltung() {
     }
@@ -25,11 +26,15 @@ public final class Campingplatzverwaltung {
         return instance;
     }
 
-    public ReadonlyConfiguration getConfig() {
+    public Configuration getConfig() {
         return this.config;
     }
 
-    public static void main(final String[] args) throws IOException {
+    public void setConfig(final Configuration config) {
+        this.config = config;
+    }
+
+    public static void main(final String[] args) throws Exception {
         try {
             final var arguments = ArgumentParser.parse(args);
             final var campingplatz = Campingplatzverwaltung.getInstance();
@@ -41,14 +46,22 @@ public final class Campingplatzverwaltung {
         }
     }
 
-    public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) throws IOException {
+    public void exitApplication() {
+        try {
+            this.config.saveConfiguration();
+        } catch (IOException e) {
+            AppLogger.getInstance().error(e);
+        }
+        System.exit(0);
+    }
+
+    public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) throws Exception {
+        final var propManager = new PropertyManager(arguments.propertiesPath(), Configuration.class, "/configuration.properties");
         final var controller = GUIController.getInstance();
         final var entityManager = EntityManager.getInstance();
         final var entityFactory = EntityFactory.getInstance();
         final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
         final var database = new CSVDatenbasis(dbPath);
-
-        this.config = Configuration.builder().build();
 
         entityFactory.setDatabase(database);
         entityFactory.setEntityManager(entityManager);
@@ -56,26 +69,6 @@ public final class Campingplatzverwaltung {
         controller.setEntityManager(entityManager);
         controller.setApp(this);
 
-        // TODO: configuration
-
-        controller.openGUIMain();
-
-
-        /*
-        controller.showConfiguration();
-
-        var config = Configuration.builder().build();
-        System.out.println(config);
-        System.out.println(arguments);
-        var main = new GUIBuchung(config);
-        main.addObserver(new IGUIEventListener() {
-            @Override
-            public void processGUIEvent(GUIEvent ge) {
-                System.out.println(ge);
-            }
-        });
-        IOUtilities.openInJFrame(main, 400, 400, 0, 0,
-                "Buchung", Color.black, true
-        );*/
+        controller.openGUIConfiguration(propManager);
     }
 }

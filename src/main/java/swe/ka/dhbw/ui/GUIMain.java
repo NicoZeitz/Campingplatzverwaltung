@@ -48,23 +48,25 @@ public class GUIMain extends GUIComponent {
 
     private void initUI() {
         this.setLayout(new BorderLayout());
-        this.setBackground(Color.WHITE);
+        this.setBackground(this.config.getBackgroundColor());
 
         // Titel
         final var title = new JPanel();
         title.setLayout(new GridLayout(2, 1, 0, 10));
-        title.setBackground(Color.WHITE);
+        title.setBackground(this.config.getBackgroundColor());
         title.setOpaque(true);
 
         final var titleHeader = new JLabel("Campingplatzverwaltung");
         titleHeader.setHorizontalAlignment(SwingConstants.CENTER);
         titleHeader.setFont(this.config.getHeaderFont());
+        titleHeader.setForeground(this.config.getTextColor());
         titleHeader.setBorder(new EmptyBorder(10, 10, 10, 10));
         title.add(titleHeader);
 
         final var subtitle = new JLabel("Hauptanwendungen");
         subtitle.setHorizontalAlignment(SwingConstants.LEFT);
         subtitle.setFont(this.config.getLargeFont());
+        subtitle.setForeground(this.config.getTextColor());
         subtitle.setBorder(new EmptyBorder(10, 10, 10, 10));
         title.add(subtitle);
 
@@ -73,7 +75,7 @@ public class GUIMain extends GUIComponent {
         // Hauptanwendungen
         final var mainApps = new JPanel();
         mainApps.setLayout(new GridLayout(2, 3, 10, 10));
-        mainApps.setBackground(Color.WHITE);
+        mainApps.setBackground(this.config.getBackgroundColor());
         mainApps.setOpaque(true);
         mainApps.setBorder(new EmptyBorder(10, 10, 10, 10));
 
@@ -85,9 +87,11 @@ public class GUIMain extends GUIComponent {
 
         for (final var btn : new JButton[] {buchungen, stellplaetze, gaeste, einrichtungen, personal}) {
             btn.setFont(this.config.getLargeFont());
+            btn.setForeground(this.config.getTextColor());
             btn.setBackground(this.config.getAccentColor());
             btn.setVerticalAlignment(SwingConstants.CENTER);
             btn.setHorizontalAlignment(SwingConstants.CENTER);
+            btn.setBorder(BorderFactory.createEmptyBorder());
             mainApps.add(btn);
         }
 

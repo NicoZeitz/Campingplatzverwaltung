@@ -94,7 +94,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
     @Override
     public Attribute[] getAttributeArray() {
         final var superAttributes = super.getAttributeArray();
-        final var attributes = Arrays.copyOf(superAttributes, superAttributes.length + 2);
+        final var attributes = Arrays.copyOf(superAttributes, superAttributes.length + 1);
         attributes[Attributes.KUNDENNUMMER.ordinal()] = new Attribute(
                 Attributes.KUNDENNUMMER.name(),
                 this,

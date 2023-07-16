@@ -29,18 +29,11 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             this.payloadType = payloadType;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String getCmdText() {
             return this.cmdText;
         }
 
-
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public Class<?> getPayloadType() {
             return this.payloadType;
@@ -53,13 +46,15 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     private final String SAVE_BUTTON_ELEMENT_ID = this.getClass().getName() + ".saveButtonElementID";
 
     private BookingOverviewComponent bookingOverview;
+    private BookingListComponent bookingList;
 
     public GUIBuchung(final ReadonlyConfiguration config,
+                      final List<? extends IDepictable> bookings,
                       final Map<LocalDate, List<? extends IDepictable>> appointments,
                       final LocalDate currentWeek) {
         super();
 
-        this.initUI(config, appointments, currentWeek);
+        this.initUI(config, bookings, appointments, currentWeek);
         return;
 
         /*
@@ -135,23 +130,52 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     }
 
     private void initUI(final ReadonlyConfiguration config,
+                        final List<? extends IDepictable> bookings,
                         final Map<LocalDate, List<? extends IDepictable>> appointments,
                         final LocalDate currentWeek) {
         this.bookingOverview = new BookingOverviewComponent(appointments, currentWeek, config);
         this.bookingOverview.addObserver(this);
 
+        this.bookingList = new BookingListComponent(config, bookings);
+        this.bookingList.addObserver(this);
+
+        UIManager.put("TabbedPane.selected", config.getAccentColor());
+        UIManager.put("TabbedPane.borderColor", config.getAccentColor());
+        UIManager.put("TabbedPane.contentBorderInsets", new Insets(-1, -1, -1, -1));
+
+
+        //UIManager.put("TabbedPane.darkShadow", new Color(0, 0, 0, 0));
+//        UIManager.put("TabbedPane.light", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.highlight", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.focus", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.unselectedBackground", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.selectHighlight", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.tabAreaBackground", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.borderHightlightColor", ColorUIResource.RED);
+
         final var tabbedPane = new JTabbedPane();
+        tabbedPane.setBackground(config.getBackgroundColor());
+        tabbedPane.setForeground(config.getTextColor());
+        tabbedPane.setOpaque(true);
         tabbedPane.addTab("Terminübersicht",
                 null,
                 this.bookingOverview,
                 "Zeigt die Buchungen übersichtlich in einem Kalendar an");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
-        tabbedPane.addTab("Buchungsliste", null, new JPanel(), "Zeigt die Buchungen in einer Liste an");
+        tabbedPane.addTab("Buchungsliste", null, this.bookingList, "Zeigt die Buchungen in einer Liste an");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_2);
         tabbedPane.addTab("Buchung anlegen", null, new JPanel(), "Erstellt eine neue Buchung");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_3);
 
+        for (var i = 0; i < tabbedPane.getTabCount(); ++i) {
+            tabbedPane.setBackgroundAt(i, config.getBackgroundColor());
+            tabbedPane.setForegroundAt(i, config.getTextColor());
+        }
+
         this.setLayout(new GridLayout(1, 1));
+        this.setBackground(config.getBackgroundColor());
+        this.setForeground(config.getTextColor());
+        this.setOpaque(true);
         this.add(tabbedPane);
     }
 }
