@@ -9,6 +9,7 @@ import swe.ka.dhbw.util.Validator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepictable {
@@ -23,11 +24,13 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
         ANSCHRIFT_ID,
         ANSPRECHPERSON_ID,
         WARTUNG_IDS,
+        EINRICHTUNG_IDS,
         DUMMY_DATA
     }
 
     private final int fremdfirmaID;
     private final List<Wartung> wartungen = new ArrayList<>();
+    private final List<Einrichtung> einrichtungen = new ArrayList<>();
     private String name;
     private Adresse anschrift;
     private Person ansprechperson;
@@ -73,14 +76,8 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
         return this.wartungen;
     }
 
-    public void addWartung(final Wartung wartung) {
-        Validator.getInstance().validateNotNull(wartung);
-        this.wartungen.add(wartung);
-    }
-
-    public void removeWartung(final Wartung wartung) {
-        Validator.getInstance().validateNotNull(wartung);
-        this.wartungen.remove(wartung);
+    public List<Einrichtung> getEinrichtungen() {
+        return this.einrichtungen;
     }
 
     @Override
@@ -95,7 +92,7 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
 
     @Override
     public Attribute[] getAttributeArray() {
-        return new Attribute[]{
+        return new Attribute[] {
                 new Attribute(Attributes.FREMDFIRMA_ID.name(),
                         this,
                         Integer.class,
@@ -117,7 +114,12 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
         csvData[CSVPosition.ANSCHRIFT_ID.ordinal()] = Integer.toString(this.getAnschrift().getAdresseID());
         csvData[CSVPosition.ANSPRECHPERSON_ID.ordinal()] = this.getAnsprechperson().getPrimaryKey().toString();
         csvData[CSVPosition.WARTUNG_IDS.ordinal()] = this.getWartungen().stream()
-                .map(wartung -> wartung.getPrimaryKey().toString())
+                .map(Wartung::getPrimaryKey)
+                .map(Objects::toString)
+                .collect(Collectors.joining(","));
+        csvData[CSVPosition.EINRICHTUNG_IDS.ordinal()] = this.getEinrichtungen().stream()
+                .map(Einrichtung::getPrimaryKey)
+                .map(Objects::toString)
                 .collect(Collectors.joining(","));
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
@@ -125,12 +127,13 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
 
     @Override
     public String[] getCSVHeader() {
-        return new String[]{
+        return new String[] {
                 CSVPosition.FREMDFIRMA_ID.name(),
                 CSVPosition.NAME.name(),
                 CSVPosition.ANSCHRIFT_ID.name(),
                 CSVPosition.ANSPRECHPERSON_ID.name(),
                 CSVPosition.WARTUNG_IDS.name(),
+                CSVPosition.EINRICHTUNG_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
     }
@@ -178,5 +181,31 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
                 ", ansprechperson=" + this.getAnsprechperson() +
                 ", wartungen=[" + this.getWartungen().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
                 '}';
+    }
+
+    public void addEinrichtung(final Einrichtung einrichtung) {
+        Validator.getInstance().validateNotNull(einrichtung);
+        this.einrichtungen.add(einrichtung);
+        if (!einrichtung.getZustaendigeFirma().equals(this)) {
+            einrichtung.setZustaendigeFirma(Optional.of(this));
+        }
+    }
+
+    public void addWartung(final Wartung wartung) {
+        Validator.getInstance().validateNotNull(wartung);
+        this.wartungen.add(wartung);
+        if (!wartung.getZustaendigeFirma().equals(this)) {
+            wartung.setZustaendigeFirma(Optional.of(this));
+        }
+    }
+
+    public void removeEinrichtung(final Einrichtung einrichtung) {
+        Validator.getInstance().validateNotNull(einrichtung);
+        this.einrichtungen.remove(einrichtung);
+    }
+
+    public void removeWartung(final Wartung wartung) {
+        Validator.getInstance().validateNotNull(wartung);
+        this.wartungen.remove(wartung);
     }
 }

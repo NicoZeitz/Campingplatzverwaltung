@@ -5,22 +5,20 @@ import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class Anlage implements IDepictable, IPersistable {
     public enum Attributes {
         ANLAGE_ID,
         LAGE_LATITUDE,
-        LAGE_LONGITUDE,
+        LAGE_LONGITUDE
     }
 
     protected final int anlageId;
     protected GPSPosition lage;
-    protected Bereich bereich;
-    protected List<Foto> fotos = new ArrayList<>();
+    protected Optional<Bereich> bereich = Optional.empty();
+    protected Set<Foto> fotos = new LinkedHashSet<>();
 
     public Anlage(final int anlageId, final GPSPosition lage) {
         Validator.getInstance().validateGreaterThanEqual(anlageId, 0);
@@ -41,16 +39,23 @@ public abstract class Anlage implements IDepictable, IPersistable {
         this.lage = lage;
     }
 
-    public Bereich getBereich() {
+    public Optional<Bereich> getBereich() {
         return this.bereich;
     }
 
     public void setBereich(final Bereich bereich) {
-        Validator.getInstance().validateNotNull(bereich);
-        this.bereich = bereich;
+        this.setBereich(Optional.ofNullable(bereich));
     }
 
-    public List<Foto> getFotos() {
+    public void setBereich(final Optional<Bereich> bereich) {
+        Validator.getInstance().validateNotNull(bereich);
+        this.bereich = bereich;
+        if (bereich.isPresent() && !bereich.get().getAnlagen().contains(this)) {
+            bereich.get().addAnlage(this);
+        }
+    }
+
+    public Collection<Foto> getFotos() {
         return this.fotos;
     }
 
@@ -65,7 +70,7 @@ public abstract class Anlage implements IDepictable, IPersistable {
 
     @Override
     public Attribute[] getAttributeArray() {
-        return new Attribute[]{
+        return new Attribute[] {
                 new Attribute(Attributes.ANLAGE_ID.name(),
                         this,
                         Integer.class,

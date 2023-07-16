@@ -6,8 +6,11 @@ import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable {
     public enum Attributes {
@@ -29,10 +32,12 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
         KUNDENNUMMER,
         AUSWEISNUMMER,
         ANSCHRIFT,
+        BUCHUNG_IDS,
         DUMMY_DATA
     }
 
     private final int kundennummer;
+    private final List<Buchung> buchungen = new ArrayList<>();
     private String ausweisnummer;
     private Adresse anschrift;
 
@@ -71,6 +76,10 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
     public void setAnschrift(final Adresse anschrift) {
         Validator.getInstance().validateNotNull(anschrift);
         this.anschrift = anschrift;
+    }
+
+    public List<Buchung> getBuchungen() {
+        return this.buchungen;
     }
 
     @Override
@@ -118,6 +127,10 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
         csvData[CSVPosition.KUNDENNUMMER.ordinal()] = Integer.toString(this.getKundennummer());
         csvData[CSVPosition.AUSWEISNUMMER.ordinal()] = this.getAusweisnummer();
         csvData[CSVPosition.ANSCHRIFT.ordinal()] = this.getAnschrift().getPrimaryKey().toString();
+        csvData[CSVPosition.BUCHUNG_IDS.ordinal()] = this.getBuchungen().stream()
+                .map(Buchung::getPrimaryKey)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
@@ -133,6 +146,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
                 CSVPosition.KUNDENNUMMER.name(),
                 CSVPosition.AUSWEISNUMMER.name(),
                 CSVPosition.ANSCHRIFT.name(),
+                CSVPosition.BUCHUNG_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
     }
@@ -186,5 +200,18 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
                 ", email='" + this.getEmail() + '\'' +
                 ", telefonnummer='" + this.getTelefonnummer() + '\'' +
                 '}';
+    }
+
+    public void addBuchung(final Buchung buchung) {
+        Validator.getInstance().validateNotNull(buchung);
+        this.buchungen.add(buchung);
+        if (!buchung.getVerantwortlicherGast().equals(this)) {
+            buchung.setVerantwortlicherGast(this);
+        }
+    }
+
+    public void removeBuchung(final Buchung buchung) {
+        Validator.getInstance().validateNotNull(buchung);
+        this.buchungen.remove(buchung);
     }
 }

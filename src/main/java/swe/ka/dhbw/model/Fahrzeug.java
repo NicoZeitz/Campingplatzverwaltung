@@ -113,11 +113,11 @@ public final class Fahrzeug extends Ausruestung {
     @Override
     public String toString() {
         return "Fahrzeug{" +
-                "bezeichnung='" + this.getBezeichnung() +
+                "bezeichnung='" + this.getBezeichnung() + '\'' +
                 ", anzahl=" + this.getAnzahl() +
                 ", breite=" + this.getBreite() +
                 ", hoehe=" + this.getHoehe() +
-                ", kennzeichen='" + this.getKennzeichen() +
+                ", kennzeichen='" + this.getKennzeichen() + '\'' +
                 ", typ=" + this.getTyp() +
                 '}';
     }
