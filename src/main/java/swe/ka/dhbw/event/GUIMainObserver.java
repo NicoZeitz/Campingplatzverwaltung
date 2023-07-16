@@ -18,6 +18,8 @@ public final class GUIMainObserver implements IGUIEventListener {
             GUIController.getInstance().openGUIEinrichtung();
         } else if (ge.getCmd() == GUIMain.Commands.PERSONNEL_MANAGEMENT) {
             GUIController.getInstance().openGUIPersonal();
+        } else {
+            LogObserver.logGUIEvent(ge);
         }
     }
 }

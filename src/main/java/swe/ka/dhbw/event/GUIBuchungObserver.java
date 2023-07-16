@@ -24,8 +24,8 @@ public class GUIBuchungObserver implements IGUIEventListener {
         // BookingListComponent
         else if (ge.getCmd() == BookingListComponent.Commands.BUCHUNG_SELECTED) {
             // TODO: Buchung bearbeiten
+        } else {
+            LogObserver.logGUIEvent(ge);
         }
-
-        new LogObserver().processGUIEvent(ge);
     }
 }

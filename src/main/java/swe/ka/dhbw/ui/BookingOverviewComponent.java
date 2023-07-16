@@ -70,29 +70,15 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
     }
 
     public void setCurrentWeek(final LocalDate currentWeek) {
-        switch (currentWeek.getDayOfWeek()) {
-            case MONDAY:
-                this.currentWeek = currentWeek;
-                break;
-            case TUESDAY:
-                this.currentWeek = currentWeek.minusDays(1);
-                break;
-            case WEDNESDAY:
-                this.currentWeek = currentWeek.minusDays(2);
-                break;
-            case THURSDAY:
-                this.currentWeek = currentWeek.minusDays(3);
-                break;
-            case FRIDAY:
-                this.currentWeek = currentWeek.minusDays(4);
-                break;
-            case SATURDAY:
-                this.currentWeek = currentWeek.minusDays(5);
-                break;
-            case SUNDAY:
-                this.currentWeek = currentWeek.minusDays(6);
-                break;
-        }
+        this.currentWeek = switch (currentWeek.getDayOfWeek()) {
+            case MONDAY -> currentWeek;
+            case TUESDAY -> currentWeek.minusDays(1);
+            case WEDNESDAY -> currentWeek.minusDays(2);
+            case THURSDAY -> currentWeek.minusDays(3);
+            case FRIDAY -> currentWeek.minusDays(4);
+            case SATURDAY -> currentWeek.minusDays(5);
+            case SUNDAY -> currentWeek.minusDays(6);
+        };
     }
 
     public String getPreviousWeekLabel() {

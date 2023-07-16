@@ -34,11 +34,17 @@ public class GUIController implements IUpdateEventSender {
     private GUIGast guiGast;
     private GUIEinrichtung guiEinrichtung;
     private GUIStellplatz guiStellplatz;
+    private GUIConfiguration guiConfiguration;
+    private GUIConfigurationObserver guiConfigurationObserver;
     private EntityManager entityManager;
     private Campingplatzverwaltung app;
     private Configuration.Builder configurationBuilder;
 
     private GUIController() {
+    }
+
+    public ReadonlyConfiguration getConfig() {
+        return this.app.getConfig();
     }
 
     public static synchronized GUIController getInstance() {
@@ -166,16 +172,19 @@ public class GUIController implements IUpdateEventSender {
         );
     }
 
+    public void exitApplication() {
+        if (this.app.getConfig() == null) {
+            this.app.setConfig(this.configurationBuilder.build());
+        }
+        this.app.exitApplication();
+    }
+
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
         for (final var eventListener : this.updateEventObervers) {
             if (eventListener instanceof IUpdateEventListener updateListener) {
                 updateListener.processUpdateEvent(updateEvent);
             }
         }
-    }
-
-    public void gatherConfigurationAndOpenMainGUI() {
-        //this.guiConfiguration
     }
 
     public void openGUIBuchung() {
@@ -185,14 +194,14 @@ public class GUIController implements IUpdateEventSender {
         }
 
         if (this.guiBuchung == null) {
-            this.guiBuchung = new GUIBuchung(this.app.getConfig(), this.getBuchungen(), this.getAppointments(), LocalDate.now());
+            this.guiBuchung = new GUIBuchung(this.getConfig(), this.getBuchungen(), this.getAppointments(), LocalDate.now());
         }
 
         final var observer = new GUIBuchungObserver();
         this.guiBuchung.addObserver(observer);
         this.addObserver(this.guiBuchung);
 
-        this.openInJFrame(this.guiBuchung, this.app.getConfig().getWindowLocation("Buchungen"), "Buchungen", event -> {
+        this.openInJFrame(this.guiBuchung, this.getConfig().getWindowLocation("Buchungen"), "Buchungen", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Buchungen",
@@ -203,21 +212,15 @@ public class GUIController implements IUpdateEventSender {
     }
 
     public void openGUIConfiguration(final PropertyManager propertyManager) throws Exception {
-        final var observer = new GUIConfigurationObserver();
-        final var guiConfiguration = new GUIConfiguration();
         this.configurationBuilder = Configuration.builder().propertyManager(propertyManager);
-        guiConfiguration.addObserver(observer);
-        // Main GUI and Configuration GUI have the same window location
-        this.openInJFrame(new GUIConfiguration(), this.configurationBuilder.build().getWindowLocation("Main"), "Configuration", event -> {
-            final var window = event.getWindow();
-            guiConfiguration.removeObserver(observer);
-            this.app.setConfig(this.configurationBuilder.build());
-            this.app.getConfig()
-                    .setWindowLocation("Main",
-                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
-            window.dispose();
-            this.openGUIMain();
-        });
+        this.guiConfiguration = new GUIConfiguration();
+        this.guiConfigurationObserver = new GUIConfigurationObserver();
+        this.guiConfiguration.addObserver(this.guiConfigurationObserver);
+        this.openInJFrame(this.guiConfiguration,
+                // Main GUI and Configuration GUI have the same window location
+                this.configurationBuilder.build().getWindowLocation("Main"),
+                "Configuration",
+                event -> this.openGUIMain(Optional.of(event.getWindow())));
     }
 
     public void openGUIEinrichtung() {
@@ -227,10 +230,10 @@ public class GUIController implements IUpdateEventSender {
         }
 
         if (this.guiEinrichtung == null) {
-            this.guiEinrichtung = new GUIEinrichtung(this.app.getConfig());
+            this.guiEinrichtung = new GUIEinrichtung(this.getConfig());
         }
 
-        this.openInJFrame(this.guiEinrichtung, this.app.getConfig().getWindowLocation("Einrichtung"), "Einrichtungen", event -> {
+        this.openInJFrame(this.guiEinrichtung, this.getConfig().getWindowLocation("Einrichtung"), "Einrichtungen", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Einrichtung",
@@ -246,10 +249,10 @@ public class GUIController implements IUpdateEventSender {
         }
 
         if (this.guiGast == null) {
-            this.guiGast = new GUIGast(this.app.getConfig());
+            this.guiGast = new GUIGast(this.getConfig());
         }
 
-        this.openInJFrame(this.guiGast, this.app.getConfig().getWindowLocation("Gast"), "Gäste", event -> {
+        this.openInJFrame(this.guiGast, this.getConfig().getWindowLocation("Gast"), "Gäste", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Gast",
@@ -258,11 +261,22 @@ public class GUIController implements IUpdateEventSender {
         });
     }
 
-    public void openGUIMain() {
+    public void openGUIMain(final Optional<Window> configurationWindow) {
+        final var configWindow = configurationWindow.orElse(SwingUtilities.getWindowAncestor(this.guiConfiguration));
+        this.guiConfiguration.removeObserver(this.guiConfigurationObserver);
+        this.guiConfigurationObserver = null;
+        this.app.setConfig(this.configurationBuilder.build());
+        this.app.getConfig().setWindowLocation("Main", new ReadonlyConfiguration.WindowLocation(
+                configWindow.getX(),
+                configWindow.getY(),
+                configWindow.getWidth(),
+                configWindow.getHeight()));
+        configWindow.dispose();
+
         final var observer = new GUIMainObserver();
-        final var guiMain = new GUIMain(this.app.getConfig());
+        final var guiMain = new GUIMain(this.getConfig());
         guiMain.addObserver(observer);
-        this.openInJFrame(guiMain, this.app.getConfig().getWindowLocation("Main"), "Campingplatzverwaltung", event -> this.app.exitApplication());
+        this.openInJFrame(guiMain, this.getConfig().getWindowLocation("Main"), "Campingplatzverwaltung", event -> this.exitApplication());
     }
 
     public void openGUIPersonal() {
@@ -272,10 +286,10 @@ public class GUIController implements IUpdateEventSender {
         }
 
         if (this.guiPersonal == null) {
-            this.guiPersonal = new GUIPersonal(this.app.getConfig());
+            this.guiPersonal = new GUIPersonal(this.getConfig());
         }
 
-        this.openInJFrame(this.guiPersonal, this.app.getConfig().getWindowLocation("Personal"), "Personal", event -> {
+        this.openInJFrame(this.guiPersonal, this.getConfig().getWindowLocation("Personal"), "Personal", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Personal",
@@ -291,10 +305,10 @@ public class GUIController implements IUpdateEventSender {
         }
 
         if (this.guiStellplatz == null) {
-            this.guiStellplatz = new GUIStellplatz(this.app.getConfig());
+            this.guiStellplatz = new GUIStellplatz(this.getConfig());
         }
 
-        this.openInJFrame(this.guiStellplatz, this.app.getConfig().getWindowLocation("Stellplatz"), "Stellplätze", event -> {
+        this.openInJFrame(this.guiStellplatz, this.getConfig().getWindowLocation("Stellplatz"), "Stellplätze", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Stellplatz",

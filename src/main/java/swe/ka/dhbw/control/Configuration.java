@@ -10,19 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Configuration implements ReadonlyConfiguration {
-
-    private static final int DEFAULT_FONT_SIZE = 11;
-    private static final String DEFAULT_FONT_FAMILY = "Tahoma";
-    /* LIGHT THEME */
-    private static final Color DEFAULT_TEXT_COLOR = new Color(0, 0, 0);
-    private static final Color DEFAULT_BACKGROUND_COLOR = new Color(255, 255, 255);
-    private static final Color DEFAULT_SECONDARY_BACKGROUND_COLOR = new Color(238, 238, 238);
-    private static final Color DEFAULT_ACCENT_COLOR = new Color(117, 201, 252);
-    /* DARK THEME */
-    private static final Color DARK_DEFAULT_SECONDARY_BACKGROUND_COLOR = new Color(57, 57, 57);
-    private static final Color DARK_DEFAULT_BACKGROUND_COLOR = new Color(0, 0, 0);
-    private static final Color DARK_DEFAULT_TEXT_COLOR = new Color(255, 255, 255);
-    private static final Color DARK_DEFAULT_ACCENT_COLOR = new Color(117, 201, 252);
     private final IPropertyManager propertyManager;
     private int fontSize;
     private String fontFamily;
@@ -267,8 +254,7 @@ public class Configuration implements ReadonlyConfiguration {
             return this
                     .textColor(DARK_DEFAULT_TEXT_COLOR)
                     .secondaryBackgroundColor(DARK_DEFAULT_SECONDARY_BACKGROUND_COLOR)
-                    .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR)
-                    .accentColor(DARK_DEFAULT_ACCENT_COLOR);
+                    .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR);
         }
 
         public Builder fontFamily(final String family) {
@@ -288,8 +274,7 @@ public class Configuration implements ReadonlyConfiguration {
             return this
                     .textColor(DEFAULT_TEXT_COLOR)
                     .secondaryBackgroundColor(DEFAULT_SECONDARY_BACKGROUND_COLOR)
-                    .backgroundColor(DEFAULT_BACKGROUND_COLOR)
-                    .accentColor(DEFAULT_ACCENT_COLOR);
+                    .backgroundColor(DEFAULT_BACKGROUND_COLOR);
         }
 
         public Builder propertyManager(final PropertyManager propertyManager) {
