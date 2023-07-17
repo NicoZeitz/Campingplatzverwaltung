@@ -190,6 +190,28 @@ public class GUIController implements IUpdateEventSender {
         );
     }
 
+    public void configurationSetAccentColor(final Color color) {
+        this.configurationBuilder = this.configurationBuilder.accentColor(color);
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIConfiguration.Commands.REBUILD_UI,
+                this.configurationBuilder.build()
+        ));
+    }
+
+    public void configurationSetDarkMode(final boolean darkModeActive) {
+        if (darkModeActive) {
+            this.configurationBuilder = this.configurationBuilder.darkMode();
+        } else {
+            this.configurationBuilder = this.configurationBuilder.lightMode();
+        }
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIConfiguration.Commands.REBUILD_UI,
+                this.configurationBuilder.build()
+        ));
+    }
+
     public void exitApplication() {
         if (this.app.getConfig() == null) {
             this.app.setConfig(this.configurationBuilder.build());
@@ -231,9 +253,10 @@ public class GUIController implements IUpdateEventSender {
 
     public void openGUIConfiguration(final PropertyManager propertyManager) throws Exception {
         this.configurationBuilder = Configuration.builder().propertyManager(propertyManager);
-        this.guiConfiguration = new GUIConfiguration();
+        this.guiConfiguration = new GUIConfiguration(this.configurationBuilder.build());
         this.guiConfigurationObserver = new GUIConfigurationObserver();
         this.guiConfiguration.addObserver(this.guiConfigurationObserver);
+        this.addObserver(this.guiConfiguration);
         this.openInJFrame(this.guiConfiguration,
                 // Main GUI and Configuration GUI have the same window location
                 this.configurationBuilder.build().getWindowLocation("Main"),
@@ -282,6 +305,7 @@ public class GUIController implements IUpdateEventSender {
     public void openGUIMain(final Optional<Window> configurationWindow) {
         final var configWindow = configurationWindow.orElse(SwingUtilities.getWindowAncestor(this.guiConfiguration));
         this.guiConfiguration.removeObserver(this.guiConfigurationObserver);
+        this.removeObserver(this.guiConfiguration);
         this.guiConfigurationObserver = null;
         this.app.setConfig(this.configurationBuilder.build());
         this.app.getConfig().setWindowLocation("Main", new WindowLocation(
