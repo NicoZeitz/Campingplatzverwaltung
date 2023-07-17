@@ -43,7 +43,7 @@ public class EntityManager {
         return (Optional<Entity>) this.allElements
                 .stream()
                 .filter(entity -> this.isSubclass(entity, c))
-                .filter(entity -> entity.getPrimaryKey().equals(primaryKey))
+                .filter(entity -> entity.getPrimaryKey().toString().equals(primaryKey.toString()))
                 .findFirst();
     }
 

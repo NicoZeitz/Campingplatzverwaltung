@@ -1,28 +1,24 @@
-package swe.ka.dhbw.ui;
+package swe.ka.dhbw.ui.components;
 
-import de.dhbwka.swe.utils.event.UpdateEvent;
+import de.dhbwka.swe.utils.gui.ObservableComponent;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class GUIEinrichtung extends GUIComponent {
+public class BookingImportExportComponent extends ObservableComponent {
     private final ReadonlyConfiguration config;
 
-    public GUIEinrichtung(final ReadonlyConfiguration config) {
-        super("GUIEinrichtung");
+    public BookingImportExportComponent(final ReadonlyConfiguration config) {
+        super("BookingExportComponent");
         this.config = config;
         this.initUI();
     }
 
-    @Override
-    public void processUpdateEvent(final UpdateEvent updateEvent) {
-
-    }
-
     private void initUI() {
         this.setLayout(new BorderLayout());
-        final var label = new JLabel("Stellen Sie sich hier eine wunderbare Einrichtungsverwaltung vor!");
+        final var label = new JLabel(
+                "Stellen Sie sich hier verschiedene Optionen für das selektive Importieren und Exportieren von Buchungsdaten vor!");
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(this.config.getHeaderFont());

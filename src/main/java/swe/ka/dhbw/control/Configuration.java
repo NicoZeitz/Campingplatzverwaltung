@@ -2,6 +2,7 @@ package swe.ka.dhbw.control;
 
 import de.dhbwka.swe.utils.util.IPropertyManager;
 import de.dhbwka.swe.utils.util.PropertyManager;
+import swe.ka.dhbw.util.WindowLocation;
 
 import java.awt.*;
 import java.io.File;
@@ -127,6 +128,15 @@ public class Configuration implements ReadonlyConfiguration {
     @Override
     public Font getLargeFont() {
         return new Font(fontFamily, Font.PLAIN, Math.round(fontSize * 1.5f));
+    }
+
+    @Override
+    public Color getSecondaryAccentColor() {
+        final var hsbVals = new float[3];
+        Color.RGBtoHSB(this.accentColor.getRed(), this.accentColor.getGreen(), this.accentColor.getBlue(), hsbVals);
+        // hue rotate
+        hsbVals[0] = (hsbVals[0] + 0.5f) % 1.0f;
+        return new Color(Color.HSBtoRGB(hsbVals[0], hsbVals[1], hsbVals[2]));
     }
 
     @Override

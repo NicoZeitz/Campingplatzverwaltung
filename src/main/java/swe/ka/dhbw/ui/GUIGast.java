@@ -10,6 +10,7 @@ public class GUIGast extends GUIComponent {
     private final ReadonlyConfiguration config;
 
     public GUIGast(final ReadonlyConfiguration config) {
+        super("GUIGast");
         this.config = config;
         this.initUI();
     }

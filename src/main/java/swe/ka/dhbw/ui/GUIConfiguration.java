@@ -47,7 +47,7 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     private static final String ACCENT_COLOR_BUTTON_ELEMENT_ID = "GUIConfiguration::ACCENT_COLOR_BUTTON_ELEMENT_ID";
 
     public GUIConfiguration() {
-        super();
+        super("GUIConfiguration");
         this.initUI();
     }
 
