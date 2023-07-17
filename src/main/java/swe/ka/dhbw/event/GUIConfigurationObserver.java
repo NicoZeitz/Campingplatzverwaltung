@@ -20,6 +20,8 @@ public class GUIConfigurationObserver implements IGUIEventListener {
             GUIController.getInstance().configurationSetAccentColor((Color) ge.getData());
         } else if (ge.getCmd() == GUIConfiguration.Commands.CONFIGURATION_DARK_MODE) {
             GUIController.getInstance().configurationSetDarkMode((Boolean) ge.getData());
+        } else if (ge.getCmd() == GUIConfiguration.Commands.CONFIGURATION_TEXT_FONT) {
+            GUIController.getInstance().configurationSetTextFont((Font) ge.getData());
         } else {
             LogObserver.logGUIEvent(ge);
         }

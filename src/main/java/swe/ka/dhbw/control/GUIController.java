@@ -37,6 +37,7 @@ public class GUIController implements IUpdateEventSender {
     private GUIEinrichtung guiEinrichtung;
     private GUIStellplatz guiStellplatz;
     private GUIConfiguration guiConfiguration;
+    private GUIMain guiMain;
     private GUIConfigurationObserver guiConfigurationObserver;
     private EntityManager entityManager;
     private Campingplatzverwaltung app;
@@ -212,6 +213,15 @@ public class GUIController implements IUpdateEventSender {
         ));
     }
 
+    public void configurationSetTextFont(final Font font) {
+        this.configurationBuilder = this.configurationBuilder.font(font);
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIConfiguration.Commands.REBUILD_UI,
+                this.configurationBuilder.build()
+        ));
+    }
+
     public void exitApplication() {
         if (this.app.getConfig() == null) {
             this.app.setConfig(this.configurationBuilder.build());
@@ -248,6 +258,8 @@ public class GUIController implements IUpdateEventSender {
                             new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             this.guiBuchung.removeObserver(observer);
             window.dispose();
+            ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
+            this.guiMain.grabFocus();
         });
     }
 
@@ -277,9 +289,10 @@ public class GUIController implements IUpdateEventSender {
         this.openInJFrame(this.guiEinrichtung, this.getConfig().getWindowLocation("Einrichtung"), "Einrichtungen", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
-                    .setWindowLocation("Einrichtung",
-                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                    .setWindowLocation("Einrichtung", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
+            ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
+            this.guiMain.grabFocus();
         });
     }
 
@@ -295,10 +308,10 @@ public class GUIController implements IUpdateEventSender {
 
         this.openInJFrame(this.guiGast, this.getConfig().getWindowLocation("Gast"), "Gäste", event -> {
             final var window = event.getWindow();
-            this.app.getConfig()
-                    .setWindowLocation("Gast",
-                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            this.app.getConfig().setWindowLocation("Gast", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
+            ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
+            this.guiMain.grabFocus();
         });
     }
 
@@ -322,9 +335,9 @@ public class GUIController implements IUpdateEventSender {
 //                event -> this.exitApplication());
 
         final var observer = new GUIMainObserver();
-        final var guiMain = new GUIMain(this.getConfig());
-        guiMain.addObserver(observer);
-        this.openInJFrame(guiMain, this.getConfig().getWindowLocation("Main"), "Campingplatzverwaltung", event -> this.exitApplication());
+        this.guiMain = new GUIMain(this.getConfig());
+        this.guiMain.addObserver(observer);
+        this.openInJFrame(this.guiMain, this.getConfig().getWindowLocation("Main"), "Campingplatzverwaltung", event -> this.exitApplication());
     }
 
     public void openGUIPersonal() {
@@ -340,9 +353,10 @@ public class GUIController implements IUpdateEventSender {
         this.openInJFrame(this.guiPersonal, this.getConfig().getWindowLocation("Personal"), "Personal", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
-                    .setWindowLocation("Personal",
-                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                    .setWindowLocation("Personal", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
+            ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
+            this.guiMain.grabFocus();
         });
     }
 
@@ -359,9 +373,10 @@ public class GUIController implements IUpdateEventSender {
         this.openInJFrame(this.guiStellplatz, this.getConfig().getWindowLocation("Stellplatz"), "Stellplätze", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
-                    .setWindowLocation("Stellplatz",
-                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                    .setWindowLocation("Stellplatz", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
+            ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
+            this.guiMain.grabFocus();
         });
     }
 

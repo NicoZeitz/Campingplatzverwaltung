@@ -10,10 +10,13 @@ import de.dhbwka.swe.utils.gui.GUIConstants;
 import de.dhbwka.swe.utils.gui.ObservableComponent;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class GUIConfiguration extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
@@ -21,6 +24,7 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
         EXIT_APPLICATION("GUIConfiguration.exitApplication"),
         CONFIGURATION_ACCENT_COLOR("GUIConfiguration.configurationAccentColor", Color.class),
         CONFIGURATION_DARK_MODE("GUIConfiguration.configurationDarkMode", Boolean.class),
+        CONFIGURATION_TEXT_FONT("GUIConfiguration.configurationTextFont", Font.class),
         REBUILD_UI("GUIConfiguration.rebuildUI", ReadonlyConfiguration.class);
 
         public final Class<?> payloadType;
@@ -58,6 +62,8 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     private ButtonElement accentColorButton;
     private ButtonComponent buttonComponent;
     private List<JLabel> labels = new ArrayList<>();
+    private JComboBox<String> fontFamilyInput;
+    private JSpinner fontSizeInput;
 
     public GUIConfiguration(final ReadonlyConfiguration config) {
         super("GUIConfiguration");
@@ -136,16 +142,48 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     private void initUI() {
         // UNIMPLEMENTED:
         this.configPanel = new JPanel();
-        this.configPanel.setLayout(new GridBagLayout());
+        this.configPanel.setLayout(new GridLayout(1, 2));
         this.configPanel.setOpaque(true);
 
-        // FONT-FAMILY
-        // FONT-SIZE
+        final var leftSide = new JPanel();
+        leftSide.setLayout(new GridLayout(4, 2, 10, 10));
+        leftSide.setBackground(null);
+        leftSide.setOpaque(true);
+        this.configPanel.add(leftSide);
+
+        // Font Family
+        final var fontFamilyLabel = new JLabel("Schriftart");
+        this.labels.add(fontFamilyLabel);
+        leftSide.add(fontFamilyLabel);
+
+        this.fontFamilyInput = new JComboBox<>(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
+        this.fontFamilyInput.setFont(this.config.getLargeFont());
+        this.fontFamilyInput.setSelectedItem(this.config.getFontFamily());
+        this.fontFamilyInput.addActionListener(e -> {
+            final var selectedFontFamily = (String) this.fontFamilyInput.getSelectedItem();
+            final var selectedFont = new Font(selectedFontFamily, Font.PLAIN, this.config.getFontSize());
+            this.fireGUIEvent(new GUIEvent(this, Commands.CONFIGURATION_TEXT_FONT, selectedFont));
+        });
+        leftSide.add(this.fontFamilyInput);
+
+        // Font Size
+        final var fontSizeLabel = new JLabel("Schriftgröße");
+        this.labels.add(fontSizeLabel);
+        leftSide.add(fontSizeLabel);
+
+        this.fontSizeInput = new JSpinner(new SpinnerNumberModel(this.config.getFontSize(), 1, 100, 1));
+        this.fontSizeInput.setFont(this.config.getLargeFont());
+        this.fontSizeInput.addChangeListener(e -> {
+            final var selectedFontSize = (int) this.fontSizeInput.getValue();
+            final var selectedFont = new Font(this.config.getFontFamily(), Font.PLAIN, selectedFontSize);
+            this.fireGUIEvent(new GUIEvent(this, Commands.CONFIGURATION_TEXT_FONT, selectedFont));
+        });
+        leftSide.add(this.fontSizeInput);
 
         // Accent Color
         final var accentColorLabel = new JLabel("Akzentfarbe");
         this.labels.add(accentColorLabel);
-        this.configPanel.add(accentColorLabel);
+        leftSide.add(accentColorLabel);
 
         this.accentColorButton = ButtonElement.builder(ACCENT_COLOR_BUTTON_ELEMENT_ID)
                 .buttonText(" ")
@@ -154,21 +192,41 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
                 .build();
         this.accentColorButton.setBorder(BorderFactory.createEmptyBorder());
         this.accentColorButton.addObserver(this);
-        this.configPanel.add(this.accentColorButton);
+        leftSide.add(this.accentColorButton);
 
         // Dark / Light Mode
         final var darkModeLabel = new JLabel("Dunkler Modus");
         this.labels.add(darkModeLabel);
-        this.configPanel.add(darkModeLabel);
+        leftSide.add(darkModeLabel);
 
         final var checkBox = ButtonElement.builder(DARK_MODE_BUTTON_ELEMENT_ID)
                 .buttonText("Dunkler Modus")
-                .type(ButtonElement.Type.CHECKBOX)
+                .type(ButtonElement.Type.TOGGLE_BUTTON)
                 .toolTip("Zwischen hellem und dunklem Modus wechseln")
                 .build();
         checkBox.addObserver(this);
-        this.configPanel.add(checkBox);
-        
+        leftSide.add(checkBox);
+
+        final var rightSide = new JPanel();
+        rightSide.setLayout(new GridLayout(2, 1));
+        rightSide.setBackground(null);
+        rightSide.setOpaque(true);
+        this.configPanel.add(rightSide);
+
+        try {
+            final var logo = ImageIO.read(Objects.requireNonNull(this.getClass().getResourceAsStream("/Logo.jpg")));
+            final var logoLabel = new JLabel(new ImageIcon(logo));
+            rightSide.add(logoLabel);
+        } catch (IOException e) {
+            // ignore errors
+        }
+
+        final var welcomeLabel = new JLabel("Willkommen zur Campingplatzverwaltungssoftware von Wolf & Zeitz");
+        this.labels.add(welcomeLabel);
+        welcomeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        welcomeLabel.setVerticalAlignment(SwingConstants.CENTER);
+        rightSide.add(welcomeLabel);
+
         // Buttons zum Starten und Beenden der App
         this.appExitButton = ButtonElement.builder(EXIT_APP_BUTTON_ELEMENT_ID)
                 .buttonText("App verlassen")

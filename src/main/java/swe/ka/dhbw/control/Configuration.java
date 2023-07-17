@@ -199,7 +199,7 @@ public class Configuration implements ReadonlyConfiguration {
     public void saveConfiguration() throws IOException {
         this.propertyManager.addProperties(this.getProperties());
         this.propertyManager.saveConfiguration(this.propertyManager.getPropertiesFileName(),
-                Optional.of("Campingplatzverwaltung - Wolf & Zeit Solutions"));
+                Optional.of("Campingplatzverwaltung - Wolf & Zeitz Solutions"));
     }
 
     public void setWindowLocation(final String windowName, final WindowLocation windowLocation) {
@@ -265,6 +265,12 @@ public class Configuration implements ReadonlyConfiguration {
                     .textColor(DARK_DEFAULT_TEXT_COLOR)
                     .secondaryBackgroundColor(DARK_DEFAULT_SECONDARY_BACKGROUND_COLOR)
                     .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR);
+        }
+
+        public Builder font(final Font font) {
+            this.fontFamily = font.getFamily();
+            this.fontSize = font.getSize();
+            return this;
         }
 
         public Builder fontFamily(final String family) {
