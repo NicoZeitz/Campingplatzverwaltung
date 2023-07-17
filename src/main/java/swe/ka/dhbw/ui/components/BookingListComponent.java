@@ -1,4 +1,4 @@
-package swe.ka.dhbw.ui;
+package swe.ka.dhbw.ui.components;
 
 import de.dhbwka.swe.utils.event.EventCommand;
 import de.dhbwka.swe.utils.event.GUIEvent;
@@ -9,6 +9,7 @@ import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.ImageElement;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
+import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

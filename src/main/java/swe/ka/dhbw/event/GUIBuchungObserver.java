@@ -3,8 +3,8 @@ package swe.ka.dhbw.event;
 import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
 import swe.ka.dhbw.control.GUIController;
-import swe.ka.dhbw.ui.BookingListComponent;
-import swe.ka.dhbw.ui.BookingOverviewComponent;
+import swe.ka.dhbw.ui.components.BookingListComponent;
+import swe.ka.dhbw.ui.components.BookingOverviewComponent;
 
 import java.time.LocalDate;
 

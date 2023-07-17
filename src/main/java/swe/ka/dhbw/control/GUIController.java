@@ -14,6 +14,7 @@ import swe.ka.dhbw.model.Bereich;
 import swe.ka.dhbw.model.Buchung;
 import swe.ka.dhbw.model.Foto;
 import swe.ka.dhbw.ui.*;
+import swe.ka.dhbw.ui.components.BookingOverviewComponent;
 import swe.ka.dhbw.util.WindowLocation;
 
 import javax.swing.*;
@@ -274,7 +275,8 @@ public class GUIController implements IUpdateEventSender {
                 configWindow.getHeight()));
         configWindow.dispose();
 
-//        this.openInJFrame(new CalendarComponent(this.getConfig(), "irhg", Optional.empty()),
+        // TODO: Remove
+//        this.openInJFrame(new CalendarComponent(this.getConfig(), "CalendarComponent", Optional.empty()),
 //                this.getConfig().getWindowLocation("Main"),
 //                "Calendar",
 //                event -> this.exitApplication());

@@ -6,6 +6,9 @@ import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
+import swe.ka.dhbw.ui.components.BookingImportExportComponent;
+import swe.ka.dhbw.ui.components.BookingListComponent;
+import swe.ka.dhbw.ui.components.BookingOverviewComponent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -166,6 +169,8 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_2);
         tabbedPane.addTab("Buchung anlegen", null, new JPanel(), "Erstellt eine neue Buchung");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_3);
+        tabbedPane.addTab("Buchung Import/Export", null, new BookingImportExportComponent(config), "Importiert/Exportiert Buchungen");
+        tabbedPane.setMnemonicAt(0, KeyEvent.VK_4);
 
         for (var i = 0; i < tabbedPane.getTabCount(); ++i) {
             tabbedPane.setBackgroundAt(i, config.getBackgroundColor());

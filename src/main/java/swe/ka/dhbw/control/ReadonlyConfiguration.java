@@ -40,5 +40,4 @@ public interface ReadonlyConfiguration {
     Color getTextColor();
 
     WindowLocation getWindowLocation(final String windowName);
-
 }

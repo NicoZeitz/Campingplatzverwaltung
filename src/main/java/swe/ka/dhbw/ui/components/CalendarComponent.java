@@ -1,4 +1,4 @@
-package swe.ka.dhbw.ui;
+package swe.ka.dhbw.ui.components;
 
 import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
@@ -6,6 +6,7 @@ import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.BrowseSelector;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.event.LogObserver;
+import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,13 +23,13 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
     }
 
     @Override
-    public void processUpdateEvent(final UpdateEvent updateEvent) {
-        // nothing to react to
+    public void processGUIEvent(final GUIEvent guiEvent) {
+        LogObserver.logGUIEvent(guiEvent);
     }
 
     @Override
-    public void processGUIEvent(final GUIEvent guiEvent) {
-        LogObserver.logGUIEvent(guiEvent);
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
+        // nothing to react to
     }
 
     private void initUI(final String id, final Optional<LocalDate> date) {
