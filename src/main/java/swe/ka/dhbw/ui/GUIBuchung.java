@@ -52,7 +52,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
                       final List<? extends IDepictable> bookings,
                       final Map<LocalDate, List<? extends IDepictable>> appointments,
                       final LocalDate currentWeek) {
-        super();
+        super("GUIBuchung");
 
         this.initUI(config, bookings, appointments, currentWeek);
         return;

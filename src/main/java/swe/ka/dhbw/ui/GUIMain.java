@@ -37,6 +37,7 @@ public class GUIMain extends GUIComponent {
     private final ReadonlyConfiguration config;
 
     public GUIMain(final ReadonlyConfiguration config) {
+        super("GUIMain");
         this.config = config;
         this.initUI();
     }

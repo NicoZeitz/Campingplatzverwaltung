@@ -273,6 +273,11 @@ public class GUIController implements IUpdateEventSender {
                 configWindow.getHeight()));
         configWindow.dispose();
 
+//        this.openInJFrame(new CalendarComponent(this.getConfig(), "irhg", Optional.empty()),
+//                this.getConfig().getWindowLocation("Main"),
+//                "Calendar",
+//                event -> this.exitApplication());
+
         final var observer = new GUIMainObserver();
         final var guiMain = new GUIMain(this.getConfig());
         guiMain.addObserver(observer);

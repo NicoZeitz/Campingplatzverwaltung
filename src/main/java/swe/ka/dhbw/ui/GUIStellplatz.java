@@ -10,6 +10,7 @@ public class GUIStellplatz extends GUIComponent {
     private final ReadonlyConfiguration config;
 
     public GUIStellplatz(final ReadonlyConfiguration config) {
+        super("GUIStellplatz");
         this.config = config;
         this.initUI();
     }

@@ -46,7 +46,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
     private Map<ImageElement, ImageIcon> cachedImages = new HashMap<>();
 
     public BookingListComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> buchungen) {
-        super();
+        super("BookingListComponent");
         this.config = config;
         this.buchungen = buchungen;
         this.initUI();
@@ -67,7 +67,9 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
                                                    final boolean hasFocus,
                                                    final int row,
                                                    final int column) {
-        if (value instanceof Collection<?> collection && collection.size() > 0 && collection.stream().findFirst().get() instanceof ImageElement) {
+        if (value instanceof Collection<?> collection && collection.size() > 0 && collection.stream()
+                .findFirst()
+                .get() instanceof ImageElement) {
             final var cell = new JPanel();
             cell.setLayout(new FlowLayout());
             cell.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
@@ -76,7 +78,8 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
             cell.setOpaque(true);
             for (final var image : collection) {
                 final var img = this.cachedImages.computeIfAbsent((ImageElement) image,
-                        i -> new ImageIcon(i.getBaseImage().getScaledInstance(table.getRowHeight(), table.getRowHeight(), Image.SCALE_DEFAULT)));
+                        i -> new ImageIcon(i.getBaseImage()
+                                .getScaledInstance(table.getRowHeight(), table.getRowHeight(), Image.SCALE_DEFAULT)));
                 cell.add(new JLabel(img));
             }
             return cell;
