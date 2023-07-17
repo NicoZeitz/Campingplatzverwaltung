@@ -156,6 +156,22 @@ public class GUIController implements IUpdateEventSender {
         return this.updateEventObervers.remove(eventListener);
     }
 
+    public void bookingOpenEditTab(final String elementID) {
+        this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        GUIBuchung.Commands.OPEN_TAB,
+                        new GUIBuchung.TabPayload(
+                                // TODO: real data this.entityManager.findOne(Buchung.class, elementID),
+                                // TODO: close tab panes after done editing
+                                "Buchung " + elementID + " bearbeiten",
+                                this.guiPersonal,
+                                "Die Buchung mit der Buchungsnummer " + elementID + " bearbeiten"
+                        )
+                )
+        );
+
+    }
+
     public void bookingOverviewNextWeek(final LocalDate currentWeek) {
         this.fireUpdateEvent(new UpdateEvent(
                         this,
