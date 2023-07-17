@@ -2,6 +2,7 @@ package swe.ka.dhbw.control;
 
 import de.dhbwka.swe.utils.util.IPropertyManager;
 import de.dhbwka.swe.utils.util.PropertyManager;
+import swe.ka.dhbw.util.WindowLocation;
 
 import java.awt.*;
 import java.io.File;

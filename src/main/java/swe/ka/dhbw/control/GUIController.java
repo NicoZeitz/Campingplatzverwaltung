@@ -14,6 +14,7 @@ import swe.ka.dhbw.model.Bereich;
 import swe.ka.dhbw.model.Buchung;
 import swe.ka.dhbw.model.Foto;
 import swe.ka.dhbw.ui.*;
+import swe.ka.dhbw.util.WindowLocation;
 
 import javax.swing.*;
 import java.awt.*;
@@ -205,7 +206,7 @@ public class GUIController implements IUpdateEventSender {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Buchungen",
-                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             this.guiBuchung.removeObserver(observer);
             window.dispose();
         });
@@ -237,7 +238,7 @@ public class GUIController implements IUpdateEventSender {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Einrichtung",
-                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
         });
     }
@@ -256,7 +257,7 @@ public class GUIController implements IUpdateEventSender {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Gast",
-                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
         });
     }
@@ -266,7 +267,7 @@ public class GUIController implements IUpdateEventSender {
         this.guiConfiguration.removeObserver(this.guiConfigurationObserver);
         this.guiConfigurationObserver = null;
         this.app.setConfig(this.configurationBuilder.build());
-        this.app.getConfig().setWindowLocation("Main", new ReadonlyConfiguration.WindowLocation(
+        this.app.getConfig().setWindowLocation("Main", new WindowLocation(
                 configWindow.getX(),
                 configWindow.getY(),
                 configWindow.getWidth(),
@@ -298,7 +299,7 @@ public class GUIController implements IUpdateEventSender {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Personal",
-                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
         });
     }
@@ -317,13 +318,13 @@ public class GUIController implements IUpdateEventSender {
             final var window = event.getWindow();
             this.app.getConfig()
                     .setWindowLocation("Stellplatz",
-                            new ReadonlyConfiguration.WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
         });
     }
 
     private JFrame openInJFrame(final Container content,
-                                final ReadonlyConfiguration.WindowLocation windowLocation,
+                                final WindowLocation windowLocation,
                                 final String title,
                                 final Consumer<WindowEvent> onExit) {
         final JFrame frame = new JFrame(title == null ? content.getClass().getName() : title);
