@@ -31,6 +31,8 @@ public interface ReadonlyConfiguration {
 
     Color getAccentColor();
 
+    Color getSecondaryAccentColor();
+
     Color getBackgroundColor();
 
     Color getSecondaryBackgroundColor();

@@ -131,6 +131,15 @@ public class Configuration implements ReadonlyConfiguration {
     }
 
     @Override
+    public Color getSecondaryAccentColor() {
+        final var hsbVals = new float[3];
+        Color.RGBtoHSB(this.accentColor.getRed(), this.accentColor.getGreen(), this.accentColor.getBlue(), hsbVals);
+        // hue rotate
+        hsbVals[0] = (hsbVals[0] + 0.5f) % 1.0f;
+        return new Color(Color.HSBtoRGB(hsbVals[0], hsbVals[1], hsbVals[2]));
+    }
+
+    @Override
     public Color getSecondaryBackgroundColor() {
         return this.secondaryBackgroundColor;
     }

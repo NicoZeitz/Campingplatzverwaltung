@@ -2,8 +2,8 @@ package swe.ka.dhbw.util;
 
 import java.awt.*;
 
-public record WindowLocation(int x, int y, int width, int height, WindowState state) {
-    public enum WindowState {
+public record WindowLocation(int x, int y, int width, int height, State state) {
+    public enum State {
         WINDOWED,
         MAXIMIZED
     }
@@ -12,10 +12,10 @@ public record WindowLocation(int x, int y, int width, int height, WindowState st
     public static final int DEFAULT_WINDOW_HEIGHT = 600;
     public static final int DEFAULT_WINDOW_X = getDefaultWindowX();
     public static final int DEFAULT_WINDOW_Y = getDefaultWindowY();
-    public static final WindowState DEFAULT_WINDOW_STATE = WindowState.WINDOWED;
+    public static final State DEFAULT_WINDOW_STATE = State.WINDOWED;
 
     public WindowLocation(final int x, final int y, final int width, final int height) {
-        this(x, y, width, height, WindowState.WINDOWED);
+        this(x, y, width, height, State.WINDOWED);
     }
 
     private static int getDefaultWindowX() {
@@ -35,7 +35,7 @@ public record WindowLocation(int x, int y, int width, int height, WindowState st
         int y = DEFAULT_WINDOW_Y;
         int width = DEFAULT_WINDOW_WIDTH;
         int height = DEFAULT_WINDOW_HEIGHT;
-        WindowState state = DEFAULT_WINDOW_STATE;
+        State state = DEFAULT_WINDOW_STATE;
 
         final var entries = serialization.split(",");
         for (final var entry : entries) {
@@ -56,7 +56,7 @@ public record WindowLocation(int x, int y, int width, int height, WindowState st
             } else if (key.equals("h")) {
                 height = Integer.parseInt(value);
             } else if (key.equals("s")) {
-                state = WindowState.valueOf(value);
+                state = State.valueOf(value);
             }
         }
 
