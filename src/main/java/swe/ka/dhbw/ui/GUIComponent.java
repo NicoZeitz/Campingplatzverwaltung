@@ -13,6 +13,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 public abstract class GUIComponent extends ObservableComponent implements IUpdateEventListener {
+    public GUIComponent(final String id) {
+        super(id);
+    }
+
+    public GUIComponent() {
+        super();
+    }
+
     protected JComponent createSelector(
             ReadonlyConfiguration config,
             String plusButtonID,
@@ -32,7 +40,7 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
 
 
         var wrapperBuilder = ButtonComponent.builder(this.generateRandomID(Optional.of(ButtonComponent.class)))
-                .buttonElements(new ButtonElement[]{
+                .buttonElements(new ButtonElement[] {
                         buttonElementBuilder.build()
                 })
                 .position(ButtonComponent.Position.NORTH)

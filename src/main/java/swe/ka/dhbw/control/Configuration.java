@@ -1,169 +1,265 @@
 package swe.ka.dhbw.control;
 
+import de.dhbwka.swe.utils.util.IPropertyManager;
+import de.dhbwka.swe.utils.util.PropertyManager;
+
 import java.awt.*;
-import java.util.Objects;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Configuration implements ReadonlyConfiguration {
-
-    private static final int DEFAULT_FONT_SIZE = 11;
-    private static final String DEFAULT_FONT_FAMILY = "Tahoma";
-    private static final int DEFAULT_WINDOW_WIDTH = 800;
-    private static final int DEFAULT_WINDOW_HEIGHT = 600;
-    private static final int DEFAULT_WINDOW_X = 0;
-    private static final int DEFAULT_WINDOW_Y = 0;
-    private static final WindowState DEFAULT_WINDOW_STATE = WindowState.WINDOWED;
-    private static final Color DEFAULT_ACCENT_COLOR = Color.GREEN;
+    private final IPropertyManager propertyManager;
     private int fontSize;
     private String fontFamily;
-    private int windowX;
-    private int windowY;
-    private int windowWidth;
-    private int windowHeight;
-    private ReadonlyConfiguration.WindowState windowState;
+    private Map<String, WindowLocation> windowLocations;
+    private Color textColor;
+    private Color backgroundColor;
+    private Color secondaryBackgroundColor;
     private Color accentColor;
 
     private Configuration(
             final int fontSize,
             final String fontFamily,
-            final int windowX,
-            final int windowY,
-            final int windowWidth,
-            final int windowHeight,
-            final ReadonlyConfiguration.WindowState windowState,
-            final Color accentColor
+            final Map<String, WindowLocation> windowLocations,
+            final Color textColor,
+            final Color backgroundColor,
+            final Color secondaryBackgroundColor,
+            final Color accentColor,
+            final IPropertyManager propertyManager
     ) {
         this.fontSize = fontSize;
         this.fontFamily = fontFamily;
-        this.windowX = windowX;
-        this.windowY = windowY;
-        this.windowWidth = windowWidth;
-        this.windowHeight = windowHeight;
-        this.windowState = windowState;
+        this.windowLocations = windowLocations;
+        this.textColor = textColor;
+        this.backgroundColor = backgroundColor;
+        this.secondaryBackgroundColor = secondaryBackgroundColor;
         this.accentColor = accentColor;
+        this.propertyManager = propertyManager;
     }
 
-    public static Builder builder() {
+    public HashMap<String, String> getProperties() {
+        final var properties = new HashMap<String, String>();
+        final var serializedLocations = this.windowLocations.entrySet()
+                .stream()
+                .map(entry -> {
+                    final var windowName = entry.getKey();
+                    final var windowLocation = entry.getValue();
+                    final var sb = new StringBuilder();
+                    sb.append("%s:".formatted(windowName));
+                    sb.append("x=%d,".formatted(windowLocation.x()));
+                    sb.append("y=%d,".formatted(windowLocation.y()));
+                    sb.append("w=%d,".formatted(windowLocation.width()));
+                    sb.append("h=%d,".formatted(windowLocation.height()));
+                    sb.append("s=%s".formatted(windowLocation.state().toString()));
+                    return sb.toString();
+                }).collect(Collectors.joining(";"));
+        properties.put("windows", serializedLocations);
+        return properties;
+    }
+
+    public Map<String, WindowLocation> getWindowLocations() {
+        return this.windowLocations;
+    }
+
+    public static Builder builder() throws Exception {
         return new Builder();
-    }
-
-    public Font getFont() {
-        return new Font(fontFamily, Font.PLAIN, fontSize);
-    }
-
-    public int getFontSize() {
-        return fontSize;
-    }
-
-    public void setFontSize(int fontSize) {
-        this.fontSize = fontSize;
-    }
-
-    public String getFontFamily() {
-        return fontFamily;
-    }
-
-    public void setFontFamily(String fontFamily) {
-        this.fontFamily = fontFamily;
-    }
-
-    public int getWindowX() {
-        return windowX;
-    }
-
-    public void setWindowX(int windowX) {
-        this.windowX = windowX;
-    }
-
-    public int getWindowY() {
-        return windowY;
-    }
-
-    public void setWindowY(int windowY) {
-        this.windowY = windowY;
-    }
-
-    public int getWindowWidth() {
-        return windowWidth;
-    }
-
-    public void setWindowWidth(int windowWidth) {
-        this.windowWidth = windowWidth;
-    }
-
-    public int getWindowHeight() {
-        return windowHeight;
-    }
-
-    public void setWindowHeight(int windowHeight) {
-        this.windowHeight = windowHeight;
-    }
-
-    public ReadonlyConfiguration.WindowState getWindowState() {
-        return windowState;
-    }
-
-    public void setWindowState(ReadonlyConfiguration.WindowState windowState) {
-        this.windowState = windowState;
-    }
-
-    public Color getAccentColor() {
-        return accentColor;
-    }
-
-    public void setAccentColor(Color accentColor) {
-        this.accentColor = accentColor;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Configuration that)) return false;
-        return getFontSize() == that.getFontSize() && getWindowX() == that.getWindowX() && getWindowY() == that.getWindowY() && getWindowWidth() == that.getWindowWidth() && getWindowHeight() == that.getWindowHeight() && Objects.equals(getFontFamily(), that.getFontFamily()) && getWindowState() == that.getWindowState() && Objects.equals(getAccentColor(), that.getAccentColor());
+        return this.getFontSize() == that.getFontSize() &&
+                Objects.equals(this.getFontFamily(), that.getFontFamily()) &&
+                Objects.equals(this.getTextColor(), that.getTextColor()) &&
+                Objects.equals(this.getBackgroundColor(), that.getBackgroundColor()) &&
+                Objects.equals(this.getSecondaryBackgroundColor(), that.getSecondaryBackgroundColor()) &&
+                Objects.equals(this.getAccentColor(), that.getAccentColor());
+    }
+
+    public Color getAccentColor() {
+        return this.accentColor;
+    }
+
+    public void setAccentColor(final Color accentColor) {
+        this.accentColor = accentColor;
+    }
+
+    @Override
+    public Color getBackgroundColor() {
+        return this.backgroundColor;
+    }
+
+    public void setBackgroundColor(final Color backgroundColor) {
+        this.backgroundColor = backgroundColor;
+    }
+
+    @Override
+    public Font getFont() {
+        return new Font(fontFamily, Font.PLAIN, fontSize);
+    }
+
+    @Override
+    public String getFontFamily() {
+        return this.fontFamily;
+    }
+
+    public void setFontFamily(final String fontFamily) {
+        this.fontFamily = fontFamily;
+    }
+
+    @Override
+    public int getFontSize() {
+        return this.fontSize;
+    }
+
+    public void setFontSize(final int fontSize) {
+        this.fontSize = fontSize;
+    }
+
+    @Override
+    public Font getHeaderFont() {
+        return new Font(fontFamily, Font.BOLD, Math.round(fontSize * 1.75f));
+    }
+
+    @Override
+    public Font getLargeFont() {
+        return new Font(fontFamily, Font.PLAIN, Math.round(fontSize * 1.5f));
+    }
+
+    @Override
+    public Color getSecondaryBackgroundColor() {
+        return this.secondaryBackgroundColor;
+    }
+
+    public void setSecondaryBackgroundColor(final Color secondaryBackgroundColor) {
+        this.secondaryBackgroundColor = secondaryBackgroundColor;
+    }
+
+    @Override
+    public Font getSmallFont() {
+        return new Font(fontFamily, Font.PLAIN, Math.round(fontSize * 0.8f));
+    }
+
+    @Override
+    public Color getTextColor() {
+        return this.textColor;
+    }
+
+    public void setTextColor(final Color textColor) {
+        this.textColor = textColor;
+    }
+
+    @Override
+    public WindowLocation getWindowLocation(final String windowName) {
+        return this.windowLocations.computeIfAbsent(windowName, k -> new WindowLocation(
+                WindowLocation.DEFAULT_WINDOW_X,
+                WindowLocation.DEFAULT_WINDOW_Y,
+                WindowLocation.DEFAULT_WINDOW_WIDTH,
+                WindowLocation.DEFAULT_WINDOW_HEIGHT,
+                WindowLocation.DEFAULT_WINDOW_STATE
+        ));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getFontSize(), getFontFamily(), getWindowX(), getWindowY(), getWindowWidth(), getWindowHeight(), getWindowState(), getAccentColor());
+        return Objects.hash(this.getFontSize(),
+                this.getFontFamily(),
+                this.getTextColor(),
+                this.getBackgroundColor(),
+                this.getSecondaryBackgroundColor(),
+                this.getAccentColor());
     }
 
     @Override
     public String toString() {
         return "Configuration{" +
-                "fontSize=" + fontSize +
-                ", fontFamily='" + fontFamily + '\'' +
-                ", windowX=" + windowX +
-                ", windowY=" + windowY +
-                ", windowWidth=" + windowWidth +
-                ", windowHeight=" + windowHeight +
-                ", windowState=" + windowState +
-                ", accentColor=" + accentColor +
+                "fontSize=" + this.getFontSize() +
+                ", fontFamily='" + this.getFontFamily() + '\'' +
+                ", textColor=" + this.getTextColor() +
+                ", backgroundColor=" + this.getBackgroundColor() +
+                ", secondaryBackgroundColor=" + this.getSecondaryBackgroundColor() +
+                ", accentColor=" + this.getAccentColor() +
+                ", windowLocations=" + this.getWindowLocations() +
                 '}';
+    }
+
+    public void saveConfiguration() throws IOException {
+        this.propertyManager.addProperties(this.getProperties());
+        this.propertyManager.saveConfiguration(this.propertyManager.getPropertiesFileName(),
+                Optional.of("Campingplatzverwaltung - Wolf & Zeit Solutions"));
+    }
+
+    public void setWindowLocation(final String windowName, final WindowLocation windowLocation) {
+        this.windowLocations.put(windowName, windowLocation);
     }
 
     public static final class Builder {
         private int fontSize = DEFAULT_FONT_SIZE;
         private String fontFamily = DEFAULT_FONT_FAMILY;
-        private int windowWidth = DEFAULT_WINDOW_WIDTH;
-        private int windowHeight = DEFAULT_WINDOW_HEIGHT;
-        private int windowX = DEFAULT_WINDOW_X;
-        private int windowY = DEFAULT_WINDOW_Y;
-        private ReadonlyConfiguration.WindowState windowState = DEFAULT_WINDOW_STATE;
+        private Map<String, WindowLocation> windowLocations = new HashMap<>();
+        private Color textColor = DEFAULT_TEXT_COLOR;
+        private Color backgroundColor = DEFAULT_BACKGROUND_COLOR;
+        private Color secondaryBackgroundColor = DEFAULT_SECONDARY_BACKGROUND_COLOR;
         private Color accentColor = DEFAULT_ACCENT_COLOR;
+        private IPropertyManager propertyManager = new PropertyManager(System.getProperty("user.home") + File.separator + "configuration.properties",
+                Configuration.class,
+                "/configuration.properties");
 
-        private Builder() {
+        private Builder() throws Exception {
+        }
+
+        public Builder accentColor(final Color color) {
+            this.accentColor = color;
+            return this;
+        }
+
+        public Builder addProperties(Properties properties) {
+            if (properties.containsKey("windows")) {
+                final var serializedLocations = properties.getProperty("windows");
+                for (final var serializedLocation : serializedLocations.split(";")) {
+                    if (serializedLocation.isEmpty()) {
+                        continue;
+                    }
+
+                    final var windowName = serializedLocation.split(":")[0];
+                    final var windowLocation = WindowLocation.fromSerialized(serializedLocation.split(":")[1]);
+                    this.windowLocations.put(windowName, windowLocation);
+                }
+            }
+            return this;
+        }
+
+        public Builder backgroundColor(final Color color) {
+            this.backgroundColor = color;
+            return this;
         }
 
         public Configuration build() {
             return new Configuration(
                     this.fontSize,
                     this.fontFamily,
-                    this.windowX,
-                    this.windowY,
-                    this.windowWidth,
-                    this.windowHeight,
-                    this.windowState,
-                    this.accentColor
+                    this.windowLocations,
+                    this.textColor,
+                    this.backgroundColor,
+                    this.secondaryBackgroundColor,
+                    this.accentColor,
+                    this.propertyManager
             );
+        }
+
+        public Builder darkMode() {
+            return this
+                    .textColor(DARK_DEFAULT_TEXT_COLOR)
+                    .secondaryBackgroundColor(DARK_DEFAULT_SECONDARY_BACKGROUND_COLOR)
+                    .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR);
+        }
+
+        public Builder fontFamily(final String family) {
+            this.fontFamily = family;
+            return this;
         }
 
         public Builder fontSize(final int size) {
@@ -174,42 +270,44 @@ public class Configuration implements ReadonlyConfiguration {
             return this;
         }
 
-        public Builder fontFamily(final String family) {
-            this.fontFamily = family;
+        public Builder lightMode() {
+            return this
+                    .textColor(DEFAULT_TEXT_COLOR)
+                    .secondaryBackgroundColor(DEFAULT_SECONDARY_BACKGROUND_COLOR)
+                    .backgroundColor(DEFAULT_BACKGROUND_COLOR);
+        }
+
+        public Builder propertyManager(final PropertyManager propertyManager) {
+            this.propertyManager = propertyManager;
+            this.addProperties(propertyManager.getAllProperties());
             return this;
         }
 
-        public Builder windowPosition(final int x, final int y) {
-            if (x <= 0) {
-                throw new IllegalArgumentException("Configuration with a window x of '" + x + "' is not allowed as it is not greater than 0");
-            }
-            if (y <= 0) {
-                throw new IllegalArgumentException("Configuration with a window y of '" + y + "' is not allowed as it is not greater than 0");
-            }
-            this.windowX = x;
-            this.windowY = y;
+        public Builder secondaryBackgroundColor(final Color color) {
+            this.secondaryBackgroundColor = color;
             return this;
         }
 
-        public Builder windowSize(final int width, final int height) {
-            if (width <= 0) {
-                throw new IllegalArgumentException("Configuration with a window width of '" + width + "' is not allowed as it is not greater than 0");
-            }
-            if (height <= 0) {
-                throw new IllegalArgumentException("Configuration with a window height of '" + height + "' is not allowed as it is not greater than 0");
-            }
-            this.windowWidth = width;
-            this.windowHeight = height;
+        public Builder textColor(final Color color) {
+            this.textColor = color;
             return this;
         }
 
-        public Builder windowState(final ReadonlyConfiguration.WindowState state) {
-            this.windowState = state;
-            return this;
-        }
+        public Builder windowLocation(final String windowName, final WindowLocation windowLocation) {
+            if (windowLocation.x() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window x of '" + windowLocation.x() + "' is not allowed as it is not greater than 0");
+            }
+            if (windowLocation.y() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window y of '" + windowLocation.y() + "' is not allowed as it is not greater than 0");
+            }
+            if (windowLocation.width() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window width of '" + windowLocation.width() + "' is not allowed as it is not greater than 0");
+            }
+            if (windowLocation.height() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window height of '" + windowLocation.height() + "' is not allowed as it is not greater than 0");
+            }
 
-        public Builder accentColor(final Color color) {
-            this.accentColor = color;
+            this.windowLocations.put(windowName, windowLocation);
             return this;
         }
     }

@@ -4,23 +4,60 @@ import de.dhbwka.swe.utils.event.EventCommand;
 import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
-import de.dhbwka.swe.utils.gui.ButtonComponent;
-import de.dhbwka.swe.utils.gui.ButtonElement;
+import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class GUIBuchung extends GUIComponent implements IGUIEventListener {
+    public enum Commands implements EventCommand {
+        DISCARD("discard", String.class),
+        SAVE("save", String.class),
+        ;
+        public final Class<?> payloadType;
+        public final String cmdText;
+
+        Commands(final String cmdText, final Class<?> payloadType) {
+            this.cmdText = cmdText;
+            this.payloadType = payloadType;
+        }
+
+        @Override
+        public String getCmdText() {
+            return this.cmdText;
+        }
+
+        @Override
+        public Class<?> getPayloadType() {
+            return this.payloadType;
+        }
+    }
+
     private final String GAST_SELECTOR_BUTTON_ELEMENT_ID = this.getClass().getName() + ".gastSelectorButtonElementID";
     private final String EXIT_BUTTON_COMPONENT_ID = this.getClass().getName() + ".exitButtonComponentID";
     private final String DISCARD_BUTTON_ELEMENT_ID = this.getClass().getName() + ".discardButtonElementID";
     private final String SAVE_BUTTON_ELEMENT_ID = this.getClass().getName() + ".saveButtonElementID";
 
+    private BookingOverviewComponent bookingOverview;
+    private BookingListComponent bookingList;
 
-    public GUIBuchung(ReadonlyConfiguration config) {
+    public GUIBuchung(final ReadonlyConfiguration config,
+                      final List<? extends IDepictable> bookings,
+                      final Map<LocalDate, List<? extends IDepictable>> appointments,
+                      final LocalDate currentWeek) {
         super();
+
+        this.initUI(config, bookings, appointments, currentWeek);
+        return;
+
+        /*
         final var main = new JPanel();
         main.setLayout(new GridLayout(1, 2));
         final var leftSide = this.createLeftSide(config);
@@ -31,7 +68,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         final var buttonComponent = ButtonComponent.builder(EXIT_BUTTON_COMPONENT_ID)
                 .embeddedComponent(main)
                 .title("Buchung anlegen")
-                .buttonElements(new ButtonElement[]{
+                .buttonElements(new ButtonElement[] {
                         ButtonElement.builder(DISCARD_BUTTON_ELEMENT_ID)
                                 .buttonText("Abbrechen")
                                 .font(config.getFont())
@@ -51,14 +88,20 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
 
         this.setLayout(new GridLayout(1, 1));
         this.add(buttonComponent);
+
+         */
     }
 
-    private JComponent createLeftSide(ReadonlyConfiguration config) {
-        var panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 1));
-        panel.add(this.createGastSelector(config));
+    @Override
+    public void processGUIEvent(GUIEvent ge) {
+        fireGUIEvent(ge);
+    }
 
-        return panel;
+    @Override
+    public void processUpdateEvent(UpdateEvent updateEvent) {
+        if (Arrays.stream(BookingOverviewComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
+            this.bookingOverview.processUpdateEvent(updateEvent);
+        }
     }
 
     private JComponent createGastSelector(ReadonlyConfiguration config) {
@@ -71,6 +114,14 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         );
     }
 
+    private JComponent createLeftSide(ReadonlyConfiguration config) {
+        var panel = new JPanel();
+        panel.setLayout(new GridLayout(3, 1));
+        panel.add(this.createGastSelector(config));
+
+        return panel;
+    }
+
     private JComponent createRightSide(ReadonlyConfiguration config) {
         var panel = new JPanel();
         panel.setLayout(new GridLayout(3, 1));
@@ -78,43 +129,53 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         return panel;
     }
 
-    @Override
-    public void processUpdateEvent(UpdateEvent ue) {
-    }
+    private void initUI(final ReadonlyConfiguration config,
+                        final List<? extends IDepictable> bookings,
+                        final Map<LocalDate, List<? extends IDepictable>> appointments,
+                        final LocalDate currentWeek) {
+        this.bookingOverview = new BookingOverviewComponent(appointments, currentWeek, config);
+        this.bookingOverview.addObserver(this);
 
-    @Override
-    public void processGUIEvent(GUIEvent ge) {
-        // TODO: implement and fire own events
-        fireGUIEvent(ge);
-    }
+        this.bookingList = new BookingListComponent(config, bookings);
+        this.bookingList.addObserver(this);
 
-    public enum Commands implements EventCommand {
-        DISCARD("discard", String.class),
-        SAVE("save", String.class),
-        ;
-        public final Class<?> payloadType;
-        public final String cmdText;
+        UIManager.put("TabbedPane.selected", config.getAccentColor());
+        UIManager.put("TabbedPane.borderColor", config.getAccentColor());
+        UIManager.put("TabbedPane.contentBorderInsets", new Insets(-1, -1, -1, -1));
 
-        Commands(final String cmdText, final Class<?> payloadType) {
-            this.cmdText = cmdText;
-            this.payloadType = payloadType;
+
+        //UIManager.put("TabbedPane.darkShadow", new Color(0, 0, 0, 0));
+//        UIManager.put("TabbedPane.light", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.highlight", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.focus", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.unselectedBackground", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.selectHighlight", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.tabAreaBackground", ColorUIResource.RED);
+//        UIManager.put("TabbedPane.borderHightlightColor", ColorUIResource.RED);
+
+        final var tabbedPane = new JTabbedPane();
+        tabbedPane.setBackground(config.getBackgroundColor());
+        tabbedPane.setForeground(config.getTextColor());
+        tabbedPane.setOpaque(true);
+        tabbedPane.addTab("Terminübersicht",
+                null,
+                this.bookingOverview,
+                "Zeigt die Buchungen übersichtlich in einem Kalendar an");
+        tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
+        tabbedPane.addTab("Buchungsliste", null, this.bookingList, "Zeigt die Buchungen in einer Liste an");
+        tabbedPane.setMnemonicAt(0, KeyEvent.VK_2);
+        tabbedPane.addTab("Buchung anlegen", null, new JPanel(), "Erstellt eine neue Buchung");
+        tabbedPane.setMnemonicAt(0, KeyEvent.VK_3);
+
+        for (var i = 0; i < tabbedPane.getTabCount(); ++i) {
+            tabbedPane.setBackgroundAt(i, config.getBackgroundColor());
+            tabbedPane.setForegroundAt(i, config.getTextColor());
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getCmdText() {
-            return this.cmdText;
-        }
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Class<?> getPayloadType() {
-            return this.payloadType;
-        }
+        this.setLayout(new GridLayout(1, 1));
+        this.setBackground(config.getBackgroundColor());
+        this.setForeground(config.getTextColor());
+        this.setOpaque(true);
+        this.add(tabbedPane);
     }
 }

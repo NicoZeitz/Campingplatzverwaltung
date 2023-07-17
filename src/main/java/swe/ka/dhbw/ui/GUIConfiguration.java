@@ -1,23 +1,74 @@
 package swe.ka.dhbw.ui;
 
+import de.dhbwka.swe.utils.event.EventCommand;
 import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.ButtonComponent;
 import de.dhbwka.swe.utils.gui.ButtonElement;
-import swe.ka.dhbw.control.GUIController;
+import de.dhbwka.swe.utils.gui.ObservableComponent;
+import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class GUIConfiguration extends GUIComponent implements IGUIEventListener {
-    private static final String BUTTON_COMPONENT_ID = "BUTTON_COMPONENT_ID";
-    private static final String BUTTON_START_APP_ID = "BUTTON_START_APP_ID";
-    private static final String BUTTON_EXIT_APP_ID = "BUTTON_EXIT_APP_ID";
+    public enum Commands implements EventCommand {
+        OPEN_MAIN_GUI("GUIConfiguration.openMainGUI"),
+        EXIT_APPLICATION("GUIConfiguration.exitApplication"),
+        CONFIGURATION_ACCENT_COLOR("GUIConfiguration.configurationAccentColor", Color.class);
+
+        public final Class<?> payloadType;
+        public final String cmdText;
+
+        Commands(final String cmdText) {
+            this(cmdText, null);
+        }
+
+        Commands(final String cmdText, final Class<?> payloadType) {
+            this.cmdText = cmdText;
+            this.payloadType = payloadType;
+        }
+
+        @Override
+        public String getCmdText() {
+            return this.cmdText;
+        }
+
+        @Override
+        public Class<?> getPayloadType() {
+            return this.payloadType;
+        }
+    }
+
+    private static final String BUTTON_COMPONENT_ID = "GUIConfiguration::BUTTON_COMPONENT_ID";
+    private static final String BUTTON_START_APP_ID = "GUIConfiguration::BUTTON_START_APP_ID";
+    private static final String BUTTON_EXIT_APP_ID = "GUIConfiguration::BUTTON_EXIT_APP_ID";
+    private static final String ACCENT_COLOR_BUTTON_ELEMENT_ID = "GUIConfiguration::ACCENT_COLOR_BUTTON_ELEMENT_ID";
 
     public GUIConfiguration() {
         super();
         this.initUI();
+    }
+
+    @Override
+    public void processGUIEvent(GUIEvent ge) {
+        if (ge.getSource() instanceof ObservableComponent component) {
+            final var id = component.getID();
+            switch (id) {
+                case ACCENT_COLOR_BUTTON_ELEMENT_ID -> {
+                    final var button = (ButtonElement) component;
+                    final var currentColor = button.getBackgroundColor();
+                    final var nextColor = JColorChooser.showDialog(this, "Farbe auswählen", currentColor);
+                    if (nextColor != null) {
+                        button.setBackgroundColor(nextColor);
+                        this.fireGUIEvent(new GUIEvent(this, Commands.CONFIGURATION_ACCENT_COLOR, nextColor));
+                    }
+                }
+                case BUTTON_START_APP_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.OPEN_MAIN_GUI));
+                case BUTTON_EXIT_APP_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.EXIT_APPLICATION));
+            }
+        }
     }
 
     @Override
@@ -28,6 +79,13 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     private void initUI() {
         // UNIMPLEMENTED:
         var configPanel = new JPanel();
+
+        // FONT-FAMILY
+        // FONT-SIZE
+        // ACCENT-COLOR
+        // DARK / LIGHT THEME
+
+        //JColorChooser.showDialog(this, "Farbe auswählen", ReadonlyConfiguration.DEFAULT_ACCENT_COLOR);
 
         var buttonComponent = ButtonComponent.builder(BUTTON_COMPONENT_ID)
                 .embeddedComponent(configPanel)
@@ -42,6 +100,12 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
                                 .buttonText("App verlassen")
                                 .observer(this)
                                 .toolTip("Beendet die App")
+                                .build(),
+                        ButtonElement.builder(ACCENT_COLOR_BUTTON_ELEMENT_ID)
+                                .buttonText(" ")
+                                .backgroundColor(ReadonlyConfiguration.DEFAULT_ACCENT_COLOR)
+                                .toolTip("Akzentfarbe auswählen")
+                                .observer(this)
                                 .build()
                 })
                 .position(ButtonComponent.Position.SOUTH)
@@ -49,25 +113,5 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
                 .build();
         this.setLayout(new GridLayout(1, 1));
         this.add(buttonComponent);
-    }
-
-    @Override
-    public void processGUIEvent(GUIEvent ge) {
-        final var source = ge.getSource();
-        if (!(source instanceof ButtonElement)) {
-            return;
-        }
-
-        final var command = ((ButtonElement) source).getCommand();
-        if (command != ButtonElement.Commands.BUTTON_PRESSED) {
-            return;
-        }
-
-        final var id = ((ButtonElement) source).getID();
-        if (id.equals(BUTTON_START_APP_ID)) {
-            GUIController.getInstance().gatherConfigurationAndOpenMainGUI();
-        } else if (id.equals(BUTTON_EXIT_APP_ID)) {
-            GUIController.getInstance().exitApplication();
-        }
     }
 }

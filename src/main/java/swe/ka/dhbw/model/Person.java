@@ -108,6 +108,10 @@ public class Person implements IDepictable, IPersistable, ICSVPersistable {
         this.telefonnummer = telefonnummer;
     }
 
+    public String getName() {
+        return this.getVorname() + " " + this.getNachname();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
