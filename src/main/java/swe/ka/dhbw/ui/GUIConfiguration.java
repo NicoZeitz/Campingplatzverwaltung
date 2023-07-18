@@ -214,7 +214,7 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
         this.configPanel.add(rightSide);
 
         try {
-            final var logo = ImageIO.read(Objects.requireNonNull(this.getClass().getResourceAsStream("/Logo.jpg")));
+            final var logo = ImageIO.read(Objects.requireNonNull(this.getClass().getResourceAsStream("/WolfZeitzLogo.png")));
             final var logoLabel = new JLabel(new ImageIcon(logo));
             rightSide.add(logoLabel);
         } catch (IOException e) {

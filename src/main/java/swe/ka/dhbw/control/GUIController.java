@@ -17,10 +17,12 @@ import swe.ka.dhbw.ui.*;
 import swe.ka.dhbw.ui.components.BookingOverviewComponent;
 import swe.ka.dhbw.util.WindowLocation;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -273,7 +275,7 @@ public class GUIController implements IUpdateEventSender {
         this.openInJFrame(this.guiConfiguration,
                 // Main GUI and Configuration GUI have the same window location
                 this.configurationBuilder.build().getWindowLocation("Main"),
-                "Configuration",
+                "Konfiguration",
                 event -> this.openGUIMain(Optional.of(event.getWindow())));
     }
 
@@ -401,6 +403,11 @@ public class GUIController implements IUpdateEventSender {
                 frame.dispose();
             }
         });
+        try {
+            frame.setIconImage(ImageIO.read(Objects.requireNonNull(this.getClass().getResourceAsStream("/WolfZeitzLogo.png"))));
+        } catch (IOException e) {
+            //ignore this case
+        }
         frame.setVisible(true);
         return frame;
 
