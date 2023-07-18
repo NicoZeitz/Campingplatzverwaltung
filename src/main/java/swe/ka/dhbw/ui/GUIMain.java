@@ -15,7 +15,9 @@ public class GUIMain extends GUIComponent {
         PITCH_MANAGEMENT("Stellplätze verwalten"),
         GUEST_MANAGEMENT("Gästedaten verwalten"),
         FACILITY_MANAGEMENT("Einrichtungen verwalten"),
-        PERSONNEL_MANAGEMENT("Personal verwalten");
+        PERSONNEL_MANAGEMENT("Personal verwalten"),
+        CREATE_BOOKING("Buchung erstellen"),
+        CHECK_IN_CHECK_OUT("Check-In / Check-Out");
 
         public final String cmdText;
 
@@ -96,11 +98,35 @@ public class GUIMain extends GUIComponent {
             mainApps.add(btn);
         }
 
+        // Schnellfunktionen
+        final var quickApps = new JPanel();
+        quickApps.setLayout(new GridLayout(2, 1, 10, 10));
+        quickApps.setBackground(this.config.getBackgroundColor());
+        quickApps.setOpaque(true);
+        quickApps.setBorder(BorderFactory.createEmptyBorder());
+
+        final var buchungErstellen = new JButton("Buchung erstellen");
+        final var checkInCheckOut = new JButton("Check-In / Check-Out");
+
+        for(final var btn : new JButton[] {buchungErstellen, checkInCheckOut}) {
+            btn.setFont(this.config.getLargeFont());
+            btn.setForeground(this.config.getTextColor());
+            btn.setBackground(this.config.getSecondaryAccentColor());
+            btn.setVerticalAlignment(SwingConstants.CENTER);
+            btn.setHorizontalAlignment(SwingConstants.CENTER);
+            btn.setBorder(BorderFactory.createEmptyBorder());
+            quickApps.add(btn);
+        }
+
+        mainApps.add(quickApps);
+
         buchungen.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BOOKING_MANAGEMENT)));
         stellplaetze.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.PITCH_MANAGEMENT)));
         gaeste.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.GUEST_MANAGEMENT)));
         einrichtungen.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.FACILITY_MANAGEMENT)));
         personal.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.PERSONNEL_MANAGEMENT)));
+        buchungErstellen.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.CREATE_BOOKING)));
+        checkInCheckOut.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.CHECK_IN_CHECK_OUT)));
 
         this.add(mainApps, BorderLayout.CENTER);
     }

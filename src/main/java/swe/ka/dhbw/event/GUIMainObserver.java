@@ -18,6 +18,10 @@ public final class GUIMainObserver implements IGUIEventListener {
             GUIController.getInstance().openGUIEinrichtung();
         } else if (ge.getCmd() == GUIMain.Commands.PERSONNEL_MANAGEMENT) {
             GUIController.getInstance().openGUIPersonal();
+        } else if (ge.getCmd() == GUIMain.Commands.CREATE_BOOKING) {
+            GUIController.getInstance().openGUIBuchungErstellen();
+        } else if (ge.getCmd() == GUIMain.Commands.CHECK_IN_CHECK_OUT) {
+            GUIController.getInstance().openGUICheckInCheckOut();
         } else {
             LogObserver.logGUIEvent(ge);
         }
