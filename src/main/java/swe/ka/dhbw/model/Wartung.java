@@ -9,6 +9,7 @@ import swe.ka.dhbw.util.Validator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
     public enum Attributes {
@@ -38,7 +39,8 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
     private String auftragsnummer;
     private String rechnungsnummer;
     private BigDecimal kosten;
-    private Fremdfirma zustaendigeFirma;
+    private Optional<Fremdfirma> zustaendigeFirma = Optional.empty();
+    ;
     private Anlage anlage;
 
     public Wartung(final int wartungsnummer,
@@ -105,11 +107,15 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
         this.kosten = kosten;
     }
 
-    public Fremdfirma getZustaendigeFirma() {
+    public Optional<Fremdfirma> getZustaendigeFirma() {
         return this.zustaendigeFirma;
     }
 
     public void setZustaendigeFirma(final Fremdfirma zustaendigeFirma) {
+        this.setZustaendigeFirma(Optional.ofNullable(zustaendigeFirma));
+    }
+
+    public void setZustaendigeFirma(final Optional<Fremdfirma> zustaendigeFirma) {
         Validator.getInstance().validateNotNull(zustaendigeFirma);
         this.zustaendigeFirma = zustaendigeFirma;
     }
@@ -186,7 +192,10 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
         csvData[CSVPosition.AUFTRAGSNUMMER.ordinal()] = this.getAuftragsnummer();
         csvData[CSVPosition.RECHNUNGSNUMMER.ordinal()] = this.getRechnungsnummer();
         csvData[CSVPosition.KOSTEN.ordinal()] = this.getKosten().toString();
-        csvData[CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()] = this.getZustaendigeFirma().getPrimaryKey().toString();
+        csvData[CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()] = this.getZustaendigeFirma()
+                .map(Fremdfirma::getPrimaryKey)
+                .map(Objects::toString)
+                .orElse("");
         csvData[CSVPosition.ANLAGE_ID.ordinal()] = this.getAnlage().getPrimaryKey().toString();
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
@@ -259,14 +268,14 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
     @Override
     public String toString() {
         return "Wartung{" +
-                "wartungsnummer=" + wartungsnummer +
-                ", duerchfuehrungsdatum=" + duerchfuehrungsdatum +
-                ", rechnungsdatum=" + rechnungsdatum +
-                ", auftragsnummer='" + auftragsnummer +
-                ", rechnungsnummer='" + rechnungsnummer +
-                ", kosten=" + kosten +
-                ", zustaendigeFirma=" + zustaendigeFirma +
-                ", anlage=" + anlage +
+                "wartungsnummer=" + this.getWartungsnummer() +
+                ", duerchfuehrungsdatum=" + this.getDuerchfuehrungsdatum() +
+                ", rechnungsdatum=" + this.getRechnungsdatum() +
+                ", auftragsnummer='" + this.getAuftragsnummer() + '\'' +
+                ", rechnungsnummer='" + this.getRechnungsnummer() + '\'' +
+                ", kosten=" + this.getKosten() +
+                ", zustaendigeFirma=" + this.getZustaendigeFirma() +
+                ", anlage=" + this.getAnlage() +
                 '}';
     }
 }

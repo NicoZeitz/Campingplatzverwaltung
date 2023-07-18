@@ -10,7 +10,18 @@ import java.util.Objects;
 
 public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
     public enum Status {
-        VERFUEGBAR, IN_VERWENDUNG
+        VERFUEGBAR("Verfügbar"), IN_VERWENDUNG("In Verwendung");
+
+        private final String status;
+
+        Status(final String status) {
+            this.status = status;
+        }
+
+        @Override
+        public String toString() {
+            return status;
+        }
     }
 
     public enum Attributes {

@@ -27,7 +27,6 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
             this.write(c, List.of(data), Optional.empty());
             return;
         }
-        ;
 
         final var entities = this.read(c);
         entities.add(data);
@@ -39,7 +38,6 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         if (!this.isInitialized(c)) {
             return;
         }
-        ;
 
         final var entities = this.read(c);
 
@@ -57,7 +55,6 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         if (!this.isInitialized(c)) {
             return new ArrayList<>();
         }
-        ;
 
         final var reader = this.getReader(c);
 
@@ -87,7 +84,6 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         if (!this.isInitialized(c)) {
             return;
         }
-        ;
 
         final var entities = this.read(c);
         if (entities.size() == 0) {
@@ -101,6 +97,21 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
 
         entities.set(index, data);
         this.write(c, entities, Optional.empty());
+    }
+
+    @Override
+    public void upsert(final Class<?> c, final ICSVPersistable data) throws IOException {
+        if (!this.isInitialized(c)) {
+            this.write(c, List.of(data), Optional.empty());
+            return;
+        }
+
+        if (this.read(c).indexOf(data) == -1) {
+            this.create(c, data);
+            return;
+        }
+
+        this.update(c, data);
     }
 
     public void init() throws IOException {

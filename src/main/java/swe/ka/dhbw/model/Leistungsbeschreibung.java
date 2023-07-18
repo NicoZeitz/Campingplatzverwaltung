@@ -1,7 +1,6 @@
 package swe.ka.dhbw.model;
 
 import de.dhbwka.swe.utils.model.Attribute;
-import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
@@ -9,20 +8,12 @@ import swe.ka.dhbw.util.Validator;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-public class Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
+public abstract class Leistungsbeschreibung implements IPersistable, IDepictable {
     public enum Attributes {
         LEISTUNGSBESCHREIBUNG_ID,
         GEBUEHR,
         MAXIMAL_ANZAHL,
         BESCHREIBUNG
-    }
-
-    public enum CSVPosition {
-        LEISTUNGSBESCHREIBUNG_ID,
-        GEBUEHR,
-        MAXIMAL_ANZAHL,
-        BESCHREIBUNG,
-        DUMMY_DATA
     }
 
     protected final int leistungsbeschreibungId;
@@ -111,28 +102,6 @@ public class Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDe
     }
 
     @Override
-    public String[] getCSVData() {
-        final var csvData = new String[CSVPosition.values().length];
-        csvData[CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()] = Integer.toString(this.getLeistungsbeschreibungId());
-        csvData[CSVPosition.GEBUEHR.ordinal()] = this.getGebuehr().toString();
-        csvData[CSVPosition.MAXIMAL_ANZAHL.ordinal()] = Integer.toString(this.getMaximalAnzahl());
-        csvData[CSVPosition.BESCHREIBUNG.ordinal()] = this.getBeschreibung();
-        csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
-        return csvData;
-    }
-
-    @Override
-    public String[] getCSVHeader() {
-        return new String[] {
-                CSVPosition.LEISTUNGSBESCHREIBUNG_ID.name(),
-                CSVPosition.GEBUEHR.name(),
-                CSVPosition.MAXIMAL_ANZAHL.name(),
-                CSVPosition.BESCHREIBUNG.name(),
-                CSVPosition.DUMMY_DATA.name()
-        };
-    }
-
-    @Override
     public String getElementID() {
         return Integer.toString(this.getLeistungsbeschreibungId());
     }
@@ -175,7 +144,7 @@ public class Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDe
         return "Leistungsbeschreibung{" +
                 "gebuehr=" + gebuehr +
                 ", maximalAnzahl=" + maximalAnzahl +
-                ", beschreibung='" + beschreibung +
+                ", beschreibung='" + beschreibung + '\'' +
                 '}';
     }
 }

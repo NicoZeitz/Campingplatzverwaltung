@@ -39,6 +39,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
         ANZAHL_PKW,
         ANZAHL_ZELTE,
         VERFUEGBARE_FUNKTIONEN_IDS,
+        BEREICH_ID,
         FOTO_IDS,
         DUMMY_DATA,
     }
@@ -224,6 +225,10 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
                 .map(Stellplatzfunktion::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.BEREICH_ID.ordinal()] = this.getBereich()
+                .map(Bereich::getPrimaryKey)
+                .map(Object::toString)
+                .orElse("");
         csvData[CSVPosition.FOTO_IDS.ordinal()] = this.getFotos().stream()
                 .map(Foto::getPrimaryKey)
                 .map(Object::toString)
@@ -234,7 +239,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
 
     @Override
     public String[] getCSVHeader() {
-        return new String[]{
+        return new String[] {
                 CSVPosition.ANLAGE_ID.name(),
                 CSVPosition.LAGE_LATITUDE.name(),
                 CSVPosition.LAGE_LONGITUDE.name(),
@@ -244,6 +249,10 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
                 CSVPosition.BARRIEREFREI.name(),
                 CSVPosition.ANZAHL_WOHNWAGEN.name(),
                 CSVPosition.ANZAHL_PKW.name(),
+                CSVPosition.ANZAHL_ZELTE.name(),
+                CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.name(),
+                CSVPosition.BEREICH_ID.name(),
+                CSVPosition.FOTO_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
     }
@@ -294,11 +303,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
     @Override
     public String toString() {
         return "Stellplatz{" +
-                "verfuegbareFunktionen=[" + this.getVerfuegbareFunktionen()
-                .stream()
-                .map(Objects::toString)
-                .collect(Collectors.joining(", ")) + "]" +
-                ", stellplatz='" + this.getStellplatz() +
+                "stellplatz='" + this.getStellplatz() + '\'' +
                 ", gebuehr=" + this.getGroesse() +
                 ", groesse=" + this.getGroesse() +
                 ", barrierefrei=" + this.isBarrierefrei() +
@@ -307,6 +312,10 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
                 ", anzahlZelte=" + this.getAnzahlZelte() +
                 ", lage=" + this.getLage() +
                 ", bereich=" + this.getBereich() +
+                ", verfuegbareFunktionen=[" + this.getVerfuegbareFunktionen()
+                .stream()
+                .map(Objects::toString)
+                .collect(Collectors.joining(", ")) + "]" +
                 ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
                 '}';
     }

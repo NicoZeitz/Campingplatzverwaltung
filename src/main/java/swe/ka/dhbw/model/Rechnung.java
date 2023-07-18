@@ -143,7 +143,51 @@ public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
     @Override
     public Attribute[] getAttributeArray() {
         return new Attribute[] {
-
+                new Attribute(Attributes.RECHNUNGSNUMMER.name(),
+                        this,
+                        Integer.class,
+                        this.getRechnungsnummer(),
+                        this.getRechnungsnummer(),
+                        true,
+                        false,
+                        false,
+                        true),
+                new Attribute(Attributes.RECHNUNGSDATUM.name(),
+                        this,
+                        LocalDate.class,
+                        this.getRechnungsdatum(),
+                        this.getRechnungsdatum(),
+                        true),
+                new Attribute(Attributes.BETRAG_NETTO.name(),
+                        this,
+                        BigDecimal.class,
+                        this.getBetragNetto(),
+                        this.getBetragNetto(),
+                        true),
+                new Attribute(Attributes.ZAHLUNGSANWEISUNG.name(),
+                        this,
+                        String.class,
+                        this.getZahlungsanweisung(),
+                        this.getZahlungsanweisung(),
+                        true),
+                new Attribute(Attributes.BANKVERBINDUNG.name(),
+                        this,
+                        String.class,
+                        this.getBankverbindung(),
+                        this.getBankverbindung(),
+                        true),
+                new Attribute(Attributes.ZAHLUNGSZWECK.name(),
+                        this,
+                        String.class,
+                        this.getZahlungszweck(),
+                        this.getZahlungszweck(),
+                        true),
+                new Attribute(Attributes.ZAHLUNGSZIEL.name(),
+                        this,
+                        LocalDate.class,
+                        this.getZahlungsziel(),
+                        this.getZahlungsziel(),
+                        true),
         };
     }
 
@@ -234,9 +278,9 @@ public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
                 "rechnungsnummer=" + this.getRechnungsnummer() +
                 ", rechnungsdatum=" + this.getRechnungsdatum() +
                 ", betragNetto=" + this.getBetragNetto() +
-                ", zahlungsanweisung='" + this.getZahlungsanweisung() +
-                ", bankverbindung='" + this.getBankverbindung() +
-                ", zahlungszweck='" + this.getZahlungszweck() +
+                ", zahlungsanweisung='" + this.getZahlungsanweisung() + '\'' +
+                ", bankverbindung='" + this.getBankverbindung() + '\'' +
+                ", zahlungszweck='" + this.getZahlungszweck() + '\'' +
                 ", zahlungsziel=" + this.getZahlungsziel() +
                 ", adressat=" + this.getAdressat() +
                 '}';

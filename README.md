@@ -2,15 +2,6 @@
 
 Software für Campingplatzverwaltung für Softwareengineering
 
-# CSV TODO
-
-- Einrichtung
-- Fremdfirma
-- Gerätschaft
-- Personal
-- Stoerung
-- Wartung
-
 # TODO
 
 bei zweiseitigen Beziehungen die set/add/remvoe Methoden anpassen
@@ -25,6 +16,7 @@ DUMMY_DATA NULL
 
 # Änderungen
 
+Stoerung daten mit zeit
 Anlage zu abstrakter Klasse gemacht
 GUIObserver zu abstrakter Klasse gemacht
 Attribute in Person, ... protected gemacht

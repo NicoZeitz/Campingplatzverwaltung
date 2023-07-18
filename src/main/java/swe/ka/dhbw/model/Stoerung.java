@@ -7,9 +7,8 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
@@ -40,20 +39,21 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
     }
 
     private final int stoerungsnummer;
-    private final List<Foto> fotos = new ArrayList<>();
+    private final Set<Foto> fotos = new LinkedHashSet<>();
     private String titel;
     private String beschreibung;
-    private LocalDate erstellungsdatum;
-    private LocalDate behebungsdatum;
+    private LocalDateTime erstellungsdatum;
+    private LocalDateTime behebungsdatum;
     private Status status;
     private Personal verantwortlicher;
-    private Stellplatzfunktion stellplatzfunktion;
+    private Optional<Stellplatzfunktion> stellplatzfunktion = Optional.empty();
+    ;
 
     public Stoerung(final int stoerungsnummer,
                     final String titel,
                     final String beschreibung,
-                    final LocalDate erstellungsdatum,
-                    final LocalDate behebungsdatum,
+                    final LocalDateTime erstellungsdatum,
+                    final LocalDateTime behebungsdatum,
                     final Status status) {
         Validator.getInstance().validateGreaterThanEqual(stoerungsnummer, 0);
         this.stoerungsnummer = stoerungsnummer;
@@ -86,20 +86,20 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
         this.beschreibung = beschreibung;
     }
 
-    public LocalDate getErstellungsdatum() {
+    public LocalDateTime getErstellungsdatum() {
         return this.erstellungsdatum;
     }
 
-    public void setErstellungsdatum(final LocalDate erstellungsdatum) {
+    public void setErstellungsdatum(final LocalDateTime erstellungsdatum) {
         Validator.getInstance().validateNotNull(erstellungsdatum);
         this.erstellungsdatum = erstellungsdatum;
     }
 
-    public LocalDate getBehebungsdatum() {
+    public LocalDateTime getBehebungsdatum() {
         return this.behebungsdatum;
     }
 
-    public void setBehebungsdatum(final LocalDate behebungsdatum) {
+    public void setBehebungsdatum(final LocalDateTime behebungsdatum) {
         Validator.getInstance().validateNotNull(behebungsdatum);
         this.behebungsdatum = behebungsdatum;
     }
@@ -113,7 +113,7 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
         this.status = status;
     }
 
-    public List<Foto> getFotos() {
+    public Collection<Foto> getFotos() {
         return this.fotos;
     }
 
@@ -126,11 +126,15 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
         this.verantwortlicher = verantwortlicher;
     }
 
-    public Stellplatzfunktion getStellplatzfunktion() {
+    public Optional<Stellplatzfunktion> getStellplatzfunktion() {
         return this.stellplatzfunktion;
     }
 
     public void setStellplatzfunktion(final Stellplatzfunktion stellplatzfunktion) {
+        this.setStellplatzfunktion(Optional.ofNullable(stellplatzfunktion));
+    }
+
+    public void setStellplatzfunktion(final Optional<Stellplatzfunktion> stellplatzfunktion) {
         Validator.getInstance().validateNotNull(stellplatzfunktion);
         this.stellplatzfunktion = stellplatzfunktion;
     }
@@ -196,7 +200,10 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
         csvData[CSVPosition.VERANTWORTLICHER_ID.ordinal()] = this.getVerantwortlicher().getPrimaryKey().toString();
-        csvData[CSVPosition.STELLPLATZFUNKTION_ID.ordinal()] = this.getStellplatzfunktion().getPrimaryKey().toString();
+        csvData[CSVPosition.STELLPLATZFUNKTION_ID.ordinal()] = this.getStellplatzfunktion()
+                .map(Stellplatzfunktion::getPrimaryKey)
+                .map(Objects::toString)
+                .orElse("");
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
@@ -254,9 +261,9 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
             } else if (name.equals(Attributes.BESCHREIBUNG.name()) && !value.equals(this.getBeschreibung())) {
                 this.setBeschreibung((String) value);
             } else if (name.equals(Attributes.ERSTELLUNGSDATUM.name()) && !value.equals(this.getErstellungsdatum())) {
-                this.setErstellungsdatum((LocalDate) value);
+                this.setErstellungsdatum((LocalDateTime) value);
             } else if (name.equals(Attributes.BEHEBUNGSDATUM.name()) && !value.equals(this.getBehebungsdatum())) {
-                this.setBehebungsdatum((LocalDate) value);
+                this.setBehebungsdatum((LocalDateTime) value);
             } else if (name.equals(Attributes.STATUS.name()) && !value.equals(this.getStatus())) {
                 this.setStatus((Status) value);
             }
@@ -268,14 +275,14 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
     public String toString() {
         return "Stoerung{" +
                 "stoerungsnummer=" + this.getStoerungsnummer() +
-                ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
-                ", titel='" + this.getTitel() +
-                ", beschreibung='" + this.getBeschreibung() +
+                ", titel='" + this.getTitel() + '\'' +
+                ", beschreibung='" + this.getBeschreibung() + '\'' +
                 ", erstellungsdatum=" + this.getErstellungsdatum() +
                 ", behebungsdatum=" + this.getBehebungsdatum() +
                 ", status=" + this.getStatus() +
                 ", verantwortlicher=" + this.getVerantwortlicher() +
                 ", stellplatzfunktion=" + this.getStellplatzfunktion() +
+                ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
                 '}';
     }
 
