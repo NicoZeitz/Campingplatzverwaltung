@@ -23,7 +23,8 @@ import java.util.Optional;
 public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
         OPEN_TAB("openTab", TabPayload.class),
-        CLOSE_TAB("closeTab", ObservableComponent.class);
+        CLOSE_TAB("closeTab", ObservableComponent.class),
+        SWITCH_TAB("switchTab", String.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -90,6 +91,11 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             final var index = this.tabs.indexOfTabComponent((ObservableComponent) updateEvent.getData());
             if (index != -1) {
                 this.tabs.removeTabAt(index);
+            }
+        } else if(updateEvent.getCmd() == Commands.SWITCH_TAB){
+            final var index = this.tabs.indexOfTab((String) updateEvent.getData());
+            if (index != -1) {
+                this.tabs.setSelectedIndex(index);
             }
         }
     }

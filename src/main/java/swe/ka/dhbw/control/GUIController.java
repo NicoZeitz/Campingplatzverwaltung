@@ -42,6 +42,7 @@ public class GUIController implements IUpdateEventSender {
     private EntityManager entityManager;
     private Campingplatzverwaltung app;
     private Configuration.Builder configurationBuilder;
+    private GUICheckInCheckOut guiCheckInCheckOut;
 
     private GUIController() {
     }
@@ -403,5 +404,29 @@ public class GUIController implements IUpdateEventSender {
         frame.setVisible(true);
         return frame;
 
+    }
+
+    public void openGUICheckInCheckOut() {
+        if (this.guiCheckInCheckOut != null && this.guiCheckInCheckOut.isDisplayable()) {
+            this.guiCheckInCheckOut.grabFocus();
+            return;
+        }
+
+        if (this.guiCheckInCheckOut == null) {
+            this.guiCheckInCheckOut = new GUICheckInCheckOut(this.getConfig());
+        }
+
+        this.openInJFrame(this.guiCheckInCheckOut, this.getConfig().getWindowLocation("Check-In / Check-Out"), "Check-In / Check-Out", event -> {
+            final var window = event.getWindow();
+            this.app.getConfig().setWindowLocation("Check-In / Check-Out", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            window.dispose();
+            ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
+            this.guiMain.grabFocus();
+        });
+    }
+
+    public void openGUIBuchungErstellen() {
+        this.openGUIBuchung();
+        this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, "Buchung anlegen"));
     }
 }
