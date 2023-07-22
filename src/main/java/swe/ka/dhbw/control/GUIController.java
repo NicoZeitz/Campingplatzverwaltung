@@ -266,6 +266,35 @@ public class GUIController implements IUpdateEventSender {
         });
     }
 
+    public void openGUIBuchungErstellen() {
+        this.openGUIBuchung();
+        this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, "Buchung anlegen"));
+    }
+
+    public void openGUICheckInCheckOut() {
+        if (this.guiCheckInCheckOut != null && this.guiCheckInCheckOut.isDisplayable()) {
+            this.guiCheckInCheckOut.grabFocus();
+            return;
+        }
+
+        if (this.guiCheckInCheckOut == null) {
+            this.guiCheckInCheckOut = new GUICheckInCheckOut(this.getConfig());
+        }
+
+        this.openInJFrame(this.guiCheckInCheckOut,
+                this.getConfig().getWindowLocation("Check-In / Check-Out"),
+                "Check-In / Check-Out",
+                event -> {
+                    final var window = event.getWindow();
+                    this.app.getConfig()
+                            .setWindowLocation("Check-In / Check-Out",
+                                    new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                    window.dispose();
+                    ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
+                    this.guiMain.grabFocus();
+                });
+    }
+
     public void openGUIConfiguration(final PropertyManager propertyManager) throws Exception {
         this.configurationBuilder = Configuration.builder().propertyManager(propertyManager);
         this.guiConfiguration = new GUIConfiguration(this.configurationBuilder.build());
@@ -292,7 +321,8 @@ public class GUIController implements IUpdateEventSender {
         this.openInJFrame(this.guiEinrichtung, this.getConfig().getWindowLocation("Einrichtung"), "Einrichtungen", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
-                    .setWindowLocation("Einrichtung", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                    .setWindowLocation("Einrichtung",
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
             ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
             this.guiMain.grabFocus();
@@ -311,7 +341,9 @@ public class GUIController implements IUpdateEventSender {
 
         this.openInJFrame(this.guiGast, this.getConfig().getWindowLocation("Gast"), "Gäste", event -> {
             final var window = event.getWindow();
-            this.app.getConfig().setWindowLocation("Gast", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+            this.app.getConfig()
+                    .setWindowLocation("Gast",
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
             ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
             this.guiMain.grabFocus();
@@ -340,7 +372,10 @@ public class GUIController implements IUpdateEventSender {
         final var observer = new GUIMainObserver();
         this.guiMain = new GUIMain(this.getConfig());
         this.guiMain.addObserver(observer);
-        this.openInJFrame(this.guiMain, this.getConfig().getWindowLocation("Main"), "Campingplatzverwaltung", event -> this.exitApplication());
+        this.openInJFrame(this.guiMain,
+                this.getConfig().getWindowLocation("Main"),
+                "Campingplatzverwaltung",
+                event -> this.exitApplication());
     }
 
     public void openGUIPersonal() {
@@ -356,7 +391,8 @@ public class GUIController implements IUpdateEventSender {
         this.openInJFrame(this.guiPersonal, this.getConfig().getWindowLocation("Personal"), "Personal", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
-                    .setWindowLocation("Personal", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                    .setWindowLocation("Personal",
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
             ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
             this.guiMain.grabFocus();
@@ -376,7 +412,8 @@ public class GUIController implements IUpdateEventSender {
         this.openInJFrame(this.guiStellplatz, this.getConfig().getWindowLocation("Stellplatz"), "Stellplätze", event -> {
             final var window = event.getWindow();
             this.app.getConfig()
-                    .setWindowLocation("Stellplatz", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
+                    .setWindowLocation("Stellplatz",
+                            new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
             window.dispose();
             ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
             this.guiMain.grabFocus();
@@ -411,29 +448,5 @@ public class GUIController implements IUpdateEventSender {
         frame.setVisible(true);
         return frame;
 
-    }
-
-    public void openGUICheckInCheckOut() {
-        if (this.guiCheckInCheckOut != null && this.guiCheckInCheckOut.isDisplayable()) {
-            this.guiCheckInCheckOut.grabFocus();
-            return;
-        }
-
-        if (this.guiCheckInCheckOut == null) {
-            this.guiCheckInCheckOut = new GUICheckInCheckOut(this.getConfig());
-        }
-
-        this.openInJFrame(this.guiCheckInCheckOut, this.getConfig().getWindowLocation("Check-In / Check-Out"), "Check-In / Check-Out", event -> {
-            final var window = event.getWindow();
-            this.app.getConfig().setWindowLocation("Check-In / Check-Out", new WindowLocation(window.getX(), window.getY(), window.getWidth(), window.getHeight()));
-            window.dispose();
-            ((JFrame) SwingUtilities.getWindowAncestor(this.guiMain)).setState(Frame.NORMAL);
-            this.guiMain.grabFocus();
-        });
-    }
-
-    public void openGUIBuchungErstellen() {
-        this.openGUIBuchung();
-        this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, "Buchung anlegen"));
     }
 }

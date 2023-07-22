@@ -1,18 +1,22 @@
 package swe.ka.dhbw.ui.components;
 
-import de.dhbwka.swe.utils.gui.ObservableComponent;
+import de.dhbwka.swe.utils.event.UpdateEvent;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
+import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class BookingImportExportComponent extends ObservableComponent {
-    private final ReadonlyConfiguration config;
+public class BookingImportExportComponent extends GUIComponent {
 
     public BookingImportExportComponent(final ReadonlyConfiguration config) {
-        super("BookingExportComponent");
-        this.config = config;
+        super("BookingExportComponent", config);
         this.initUI();
+    }
+
+    @Override
+    public void processUpdateEvent(final UpdateEvent ue) {
+        // nothing to process here
     }
 
     private void initUI() {

@@ -7,6 +7,7 @@ import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.ObservableComponent;
 import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
+import swe.ka.dhbw.ui.components.BookingCreateComponent;
 import swe.ka.dhbw.ui.components.BookingImportExportComponent;
 import swe.ka.dhbw.ui.components.BookingListComponent;
 import swe.ka.dhbw.ui.components.BookingOverviewComponent;
@@ -45,17 +46,16 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         }
     }
 
-    private final ReadonlyConfiguration config;
     private BookingOverviewComponent bookingOverview;
     private BookingListComponent bookingList;
+    private BookingCreateComponent bookingCreate;
     private JTabbedPane tabs;
 
     public GUIBuchung(final ReadonlyConfiguration config,
                       final List<? extends IDepictable> bookings,
                       final Map<LocalDate, List<? extends IDepictable>> appointments,
                       final LocalDate currentWeek) {
-        super("GUIBuchung");
-        this.config = config;
+        super("GUIBuchung", config);
         this.initUI(bookings, appointments, currentWeek);
     }
 
@@ -68,6 +68,10 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     public void processUpdateEvent(UpdateEvent updateEvent) {
         if (Arrays.stream(BookingOverviewComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingOverview.processUpdateEvent(updateEvent);
+        } else if (Arrays.stream(BookingCreateComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
+            this.bookingCreate.processUpdateEvent(updateEvent);
+        } else if (Arrays.stream(BookingListComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
+            this.bookingList.processUpdateEvent(updateEvent);
         } else if (updateEvent.getCmd() == Commands.OPEN_TAB) {
             final var payload = (TabPayload) updateEvent.getData();
 
@@ -92,7 +96,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             if (index != -1) {
                 this.tabs.removeTabAt(index);
             }
-        } else if(updateEvent.getCmd() == Commands.SWITCH_TAB){
+        } else if (updateEvent.getCmd() == Commands.SWITCH_TAB) {
             final var index = this.tabs.indexOfTab((String) updateEvent.getData());
             if (index != -1) {
                 this.tabs.setSelectedIndex(index);
@@ -110,6 +114,14 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.bookingList = new BookingListComponent(this.config, bookings);
         this.bookingList.addObserver(this);
 
+        this.bookingCreate = new BookingCreateComponent(this.config, null);
+        this.bookingCreate.addObserver(this);
+
+        this.setLayout(new GridLayout(1, 1));
+        this.setBackground(this.config.getBackgroundColor());
+        this.setForeground(this.config.getTextColor());
+        this.setOpaque(true);
+
         UIManager.put("TabbedPane.selected", this.config.getAccentColor());
         UIManager.put("TabbedPane.borderColor", this.config.getAccentColor());
         UIManager.put("TabbedPane.contentBorderInsets", new Insets(-1, -1, -1, -1));
@@ -123,20 +135,18 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.tabs.setMnemonicAt(0, KeyEvent.VK_1);
         this.tabs.addTab("Buchungsliste", null, this.bookingList, "Zeigt die Buchungen in einer Liste an");
         this.tabs.setMnemonicAt(0, KeyEvent.VK_2);
-        this.tabs.addTab("Buchung anlegen", null, new JPanel(), "Erstellt eine neue Buchung");
+        this.tabs.addTab("Buchung anlegen", null, this.bookingCreate, "Erstellt eine neue Buchung");
         this.tabs.setMnemonicAt(0, KeyEvent.VK_3);
-        this.tabs.addTab("Buchung Import/Export", null, new BookingImportExportComponent(this.config), "Importiert/Exportiert Buchungen");
+        this.tabs.addTab("Buchung Import/Export",
+                null,
+                new BookingImportExportComponent(this.config),
+                "Importiert/Exportiert Buchungen");
         this.tabs.setMnemonicAt(0, KeyEvent.VK_4);
 
         for (var i = 0; i < this.tabs.getTabCount(); ++i) {
             this.tabs.setBackgroundAt(i, this.config.getBackgroundColor());
             this.tabs.setForegroundAt(i, this.config.getTextColor());
         }
-
-        this.setLayout(new GridLayout(1, 1));
-        this.setBackground(this.config.getBackgroundColor());
-        this.setForeground(this.config.getTextColor());
-        this.setOpaque(true);
         this.add(this.tabs);
     }
 

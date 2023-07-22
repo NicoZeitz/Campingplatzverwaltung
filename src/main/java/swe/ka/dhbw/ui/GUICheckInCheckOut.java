@@ -7,11 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GUICheckInCheckOut extends GUIComponent {
-    private final ReadonlyConfiguration config;
-
     public GUICheckInCheckOut(final ReadonlyConfiguration config) {
-        super("GUICheckInCheckOut");
-        this.config = config;
+        super("GUICheckInCheckOut", config);
         this.initUI();
     }
 

@@ -14,11 +14,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public class CalendarComponent extends GUIComponent implements IGUIEventListener {
-    private final ReadonlyConfiguration config;
-
     public CalendarComponent(final ReadonlyConfiguration config, final String id, final Optional<LocalDate> date) {
-        super("CalendarComponent");
-        this.config = config;
+        super("CalendarComponent", config);
         this.initUI(id, date);
     }
 

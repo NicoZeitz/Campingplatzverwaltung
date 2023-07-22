@@ -36,11 +36,8 @@ public class GUIMain extends GUIComponent {
         }
     }
 
-    private final ReadonlyConfiguration config;
-
     public GUIMain(final ReadonlyConfiguration config) {
-        super("GUIMain");
-        this.config = config;
+        super("GUIMain", config);
         this.initUI();
     }
 
@@ -108,7 +105,7 @@ public class GUIMain extends GUIComponent {
         final var buchungErstellen = new JButton("Buchung erstellen");
         final var checkInCheckOut = new JButton("Check-In / Check-Out");
 
-        for(final var btn : new JButton[] {buchungErstellen, checkInCheckOut}) {
+        for (final var btn : new JButton[] {buchungErstellen, checkInCheckOut}) {
             btn.setFont(this.config.getLargeFont());
             btn.setForeground(this.config.getTextColor());
             btn.setBackground(this.config.getSecondaryAccentColor());

@@ -48,7 +48,6 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
     private static final String PREVIOUS_WEEK_BUTTON_ELEMENT_ID = "BookingOverviewComponent::PREVIOUS_WEEK_BUTTON_ELEMENT_ID";
     private static final String NEXT_WEEK_BUTTON_ELEMENT_ID = "BookingOverviewComponent::NEXT_WEEK_BUTTON_ELEMENT_ID";
     private static final String BUCHUNG_ELEMENT_ID = "BookingOverviewComponent::BUCHUNG_ELEMENT_ID";
-    private final ReadonlyConfiguration config;
     private String previousWeekLabel = "<";
     private String nextWeekLabel = ">";
     private LocalDate currentWeek;
@@ -59,9 +58,8 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
     public BookingOverviewComponent(final Map<LocalDate, List<? extends IDepictable>> appointments,
                                     final LocalDate currentWeek,
                                     final ReadonlyConfiguration config) {
-        super("BookingOverviewComponent");
+        super("BookingOverviewComponent", config);
         this.appointments = appointments;
-        this.config = config;
         this.setCurrentWeek(currentWeek);
         this.initUI();
     }

@@ -7,11 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GUIGast extends GUIComponent {
-    private final ReadonlyConfiguration config;
-
     public GUIGast(final ReadonlyConfiguration config) {
-        super("GUIGast");
-        this.config = config;
+        super("GUIGast", config);
         this.initUI();
     }
 

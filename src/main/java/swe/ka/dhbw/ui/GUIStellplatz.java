@@ -7,11 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GUIStellplatz extends GUIComponent {
-    private final ReadonlyConfiguration config;
-
     public GUIStellplatz(final ReadonlyConfiguration config) {
-        super("GUIStellplatz");
-        this.config = config;
+        super("GUIStellplatz", config);
         this.initUI();
     }
 

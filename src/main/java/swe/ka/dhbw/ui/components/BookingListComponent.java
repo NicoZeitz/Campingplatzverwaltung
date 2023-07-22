@@ -42,13 +42,11 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
     }
 
     private static final String BUCHUNGS_SIMPLETABLE_COMPONENT_ID = "BookingListComponent::BUCHUNGS_SIMPLETABLE_COMPONENT_ID";
-    private final ReadonlyConfiguration config;
     private List<? extends IDepictable> buchungen;
     private Map<ImageElement, ImageIcon> cachedImages = new HashMap<>();
 
     public BookingListComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> buchungen) {
-        super("BookingListComponent");
-        this.config = config;
+        super("BookingListComponent", config);
         this.buchungen = buchungen;
         this.initUI();
     }

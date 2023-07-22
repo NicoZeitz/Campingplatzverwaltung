@@ -7,11 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GUIEinrichtung extends GUIComponent {
-    private final ReadonlyConfiguration config;
-
     public GUIEinrichtung(final ReadonlyConfiguration config) {
-        super("GUIEinrichtung");
-        this.config = config;
+        super("GUIEinrichtung", config);
         this.initUI();
     }
 

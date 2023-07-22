@@ -1,0 +1,15 @@
+#2023-07-22 14:21:12
+# ==========================================================================
+# Properties File:  ./data/properties
+# Application:      Campingplatzverwaltung - Wolf & Zeitz Solutions
+# ==========================================================================
+# This file contains important settings for the configuration of an application 
+# - any property is represented by a leading property name followed by an
+#   equal sign ("=") and the values of the entries
+# - button text is represented by a string without embracing quote signs
+# - color is represented by RGB-values, separated by commas (no Blanks!!)
+# - text color is represented by RGB-values, separated by commas (no Blanks!!)
+# - comment lines start with '#'.
+# - blank lines are allowed
+# ==========================================================================
+windows=Personal:x=423,y=224,w=800,h=600,s=WINDOWED;Stellplatz:x=423,y=224,w=800,h=600,s=WINDOWED;Gast:x=423,y=224,w=800,h=600,s=WINDOWED;Check-In / Check-Out:x=423,y=224,w=800,h=600,s=WINDOWED;Buchungen:x=93,y=86,w=1388,h=658,s=WINDOWED;Main:x=386,y=321,w=851,h=503,s=WINDOWED;Einrichtung:x=423,y=224,w=800,h=600,s=WINDOWED

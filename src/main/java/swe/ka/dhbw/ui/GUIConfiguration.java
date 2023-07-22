@@ -50,12 +50,10 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
         }
     }
 
-    private static final String BUTTON_COMPONENT_ID = "GUIConfiguration::BUTTON_COMPONENT_ID";
     private static final String START_APP_BUTTON_ELEMENT_ID = "GUIConfiguration::START_APP_BUTTON_ELEMENT_ID";
     private static final String EXIT_APP_BUTTON_ELEMENT_ID = "GUIConfiguration::EXIT_APP_BUTTON_ELEMENT_ID";
     private static final String ACCENT_COLOR_BUTTON_ELEMENT_ID = "GUIConfiguration::ACCENT_COLOR_BUTTON_ELEMENT_ID";
     private static final String DARK_MODE_BUTTON_ELEMENT_ID = "GUIConfiguration::DARK_MODE_BUTTON_ELEMENT_ID";
-    private ReadonlyConfiguration config;
     private JPanel configPanel;
     private ButtonElement appExitButton;
     private ButtonElement appStartButton;
@@ -66,8 +64,7 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     private JSpinner fontSizeInput;
 
     public GUIConfiguration(final ReadonlyConfiguration config) {
-        super("GUIConfiguration");
-        this.config = config;
+        super("GUIConfiguration", config);
         this.initUI();
     }
 
@@ -87,8 +84,9 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
                 }
                 case START_APP_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.OPEN_MAIN_GUI));
                 case EXIT_APP_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.EXIT_APPLICATION));
-                case DARK_MODE_BUTTON_ELEMENT_ID ->
-                        this.fireGUIEvent(new GUIEvent(this, Commands.CONFIGURATION_DARK_MODE, ((ButtonElement) component).isSelected()));
+                case DARK_MODE_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this,
+                        Commands.CONFIGURATION_DARK_MODE,
+                        ((ButtonElement) component).isSelected()));
             }
         }
     }
@@ -218,7 +216,7 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
             final var logoLabel = new JLabel(new ImageIcon(logo));
             rightSide.add(logoLabel);
         } catch (IOException e) {
-            // ignore errors
+            // Fehler ignorieren
         }
 
         final var welcomeLabel = new JLabel("Willkommen zur Campingplatzverwaltungssoftware von Wolf & Zeitz");
@@ -243,7 +241,7 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
         this.appStartButton.setBorder(BorderFactory.createEmptyBorder());
         this.appStartButton.addObserver(this);
 
-        this.buttonComponent = ButtonComponent.builder(BUTTON_COMPONENT_ID)
+        this.buttonComponent = ButtonComponent.builder(super.generateRandomID())
                 .embeddedComponent(configPanel)
                 .buttonElements(new ButtonElement[] {this.appExitButton, this.appStartButton})
                 .position(ButtonComponent.Position.SOUTH)
