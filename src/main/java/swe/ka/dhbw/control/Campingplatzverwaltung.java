@@ -1,6 +1,7 @@
 package swe.ka.dhbw.control;
 
 import de.dhbwka.swe.utils.util.AppLogger;
+import de.dhbwka.swe.utils.util.IAppLogger;
 import de.dhbwka.swe.utils.util.PropertyManager;
 import swe.ka.dhbw.database.CSVDatenbasis;
 import swe.ka.dhbw.database.EntityFactory;
@@ -62,6 +63,8 @@ public final class Campingplatzverwaltung {
         final var entityFactory = EntityFactory.getInstance();
         final var dbPath = Path.of(arguments.dataPath()).toAbsolutePath().normalize();
         final var database = new CSVDatenbasis(dbPath);
+
+        AppLogger.getInstance().setSeverity(IAppLogger.Severity.INFO);
 
         entityFactory.setDatabase(database);
         entityFactory.setEntityManager(entityManager);

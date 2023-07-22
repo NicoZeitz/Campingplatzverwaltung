@@ -23,9 +23,9 @@ import java.util.Optional;
 
 public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
-        OPEN_TAB("openTab", TabPayload.class),
-        CLOSE_TAB("closeTab", ObservableComponent.class),
-        SWITCH_TAB("switchTab", String.class);
+        OPEN_TAB("GUIBuchung.openTab", TabPayload.class),
+        CLOSE_TAB("GUIBuchung.closeTab", ObservableComponent.class),
+        SWITCH_TAB("GUIBuchung.switchTab", String.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -45,18 +45,29 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             return this.payloadType;
         }
     }
-
     private BookingOverviewComponent bookingOverview;
     private BookingListComponent bookingList;
     private BookingCreateComponent bookingCreate;
     private JTabbedPane tabs;
-
     public GUIBuchung(final ReadonlyConfiguration config,
                       final List<? extends IDepictable> bookings,
                       final Map<LocalDate, List<? extends IDepictable>> appointments,
-                      final LocalDate currentWeek) {
+                      final LocalDate currentWeek,
+                      final List<? extends IDepictable> chipkarten) {
         super("GUIBuchung", config);
-        this.initUI(bookings, appointments, currentWeek);
+        this.initUI(bookings, appointments, currentWeek, chipkarten);
+    }
+
+    public BookingOverviewComponent getBookingOverview() {
+        return bookingOverview;
+    }
+
+    public BookingListComponent getBookingList() {
+        return bookingList;
+    }
+
+    public BookingCreateComponent getBookingCreate() {
+        return bookingCreate;
     }
 
     @Override
@@ -101,20 +112,26 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             if (index != -1) {
                 this.tabs.setSelectedIndex(index);
             }
+        } else {
+            // send unknown commands to all tabs
+            this.bookingOverview.processUpdateEvent(updateEvent);
+            this.bookingCreate.processUpdateEvent(updateEvent);
+            this.bookingList.processUpdateEvent(updateEvent);
         }
     }
 
     private void initUI(
             final List<? extends IDepictable> bookings,
             final Map<LocalDate, List<? extends IDepictable>> appointments,
-            final LocalDate currentWeek) {
+            final LocalDate currentWeek,
+            final List<? extends IDepictable> chipkarten) {
         this.bookingOverview = new BookingOverviewComponent(appointments, currentWeek, this.config);
         this.bookingOverview.addObserver(this);
 
         this.bookingList = new BookingListComponent(this.config, bookings);
         this.bookingList.addObserver(this);
 
-        this.bookingCreate = new BookingCreateComponent(this.config, null);
+        this.bookingCreate = new BookingCreateComponent(this.config, chipkarten);
         this.bookingCreate.addObserver(this);
 
         this.setLayout(new GridLayout(1, 1));

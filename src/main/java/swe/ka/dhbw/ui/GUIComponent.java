@@ -1,10 +1,7 @@
 package swe.ka.dhbw.ui;
 
 import de.dhbwka.swe.utils.event.IUpdateEventListener;
-import de.dhbwka.swe.utils.gui.ButtonComponent;
-import de.dhbwka.swe.utils.gui.ButtonElement;
-import de.dhbwka.swe.utils.gui.GUIConstants;
-import de.dhbwka.swe.utils.gui.ObservableComponent;
+import de.dhbwka.swe.utils.gui.*;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
@@ -22,6 +19,34 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
     public GUIComponent(final ReadonlyConfiguration config) {
         super();
         this.config = config;
+    }
+
+    protected void colorizeTable(final SimpleTableComponent table) {
+        table.setBackground(this.config.getBackgroundColor());
+        table.setForeground(this.config.getTextColor());
+        table.setFont(this.config.getFont());
+
+        final var scrollPane = (JScrollPane) table.getComponent(0);
+        scrollPane.setBackground(this.config.getBackgroundColor());
+        scrollPane.setForeground(this.config.getTextColor());
+        scrollPane.setFont(this.config.getFont());
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        final var viewport = scrollPane.getViewport();
+        viewport.setBackground(this.config.getBackgroundColor());
+        viewport.setForeground(this.config.getTextColor());
+        viewport.setFont(this.config.getFont());
+        final var tableComponent = (JTable) viewport.getComponent(0);
+        tableComponent.setRowHeight(75);
+        tableComponent.setBackground(this.config.getBackgroundColor());
+        tableComponent.setForeground(this.config.getTextColor());
+        tableComponent.setFont(this.config.getFont());
+        tableComponent.setSelectionBackground(this.config.getAccentColor());
+        tableComponent.setBorder(BorderFactory.createEmptyBorder());
+        final var tableHeader = tableComponent.getTableHeader();
+        tableHeader.setBackground(this.config.getSecondaryBackgroundColor());
+        tableHeader.setForeground(this.config.getTextColor());
+        tableHeader.setFont(this.config.getFont());
+        tableHeader.setBorder(BorderFactory.createEmptyBorder());
     }
 
     protected ButtonElement createAddButton(final String id, final String tooltip) {
@@ -58,8 +83,8 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         border.setTitleFont(this.config.getLargeFont());
         wrapper.setForeground(this.config.getTextColor());
         wrapper.setBackground(this.config.getBackgroundColor());
-        wrapper.getComponents()[1].setBackground(this.config.getBackgroundColor());
-        wrapper.getComponents()[1].setForeground(this.config.getTextColor());
+        wrapper.getComponent(1).setBackground(this.config.getBackgroundColor());
+        wrapper.getComponent(1).setForeground(this.config.getTextColor());
         wrapper.setBorder(border);
         return wrapper;
     }
@@ -83,6 +108,8 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         wrapper.setBorder(border);
         wrapper.setBackground(this.config.getBackgroundColor());
         wrapper.setForeground(this.config.getTextColor());
+        wrapper.setLayout(new BorderLayout());
+        wrapper.add(embeddedComponent, BorderLayout.CENTER);
         return wrapper;
     }
 

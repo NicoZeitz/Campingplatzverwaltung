@@ -119,8 +119,8 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
 
         this.buttonComponent.setForeground(this.config.getTextColor());
         this.buttonComponent.setBackground(this.config.getBackgroundColor());
-        this.buttonComponent.getComponents()[1].setBackground(this.config.getBackgroundColor());
-        this.buttonComponent.getComponents()[1].setForeground(this.config.getTextColor());
+        this.buttonComponent.getComponent(1).setBackground(this.config.getBackgroundColor());
+        this.buttonComponent.getComponent(1).setForeground(this.config.getTextColor());
 
         final var border = BorderFactory.createTitledBorder("Campingplatzverwaltung - Konfiguration");
         border.setTitleColor(this.config.getTextColor());

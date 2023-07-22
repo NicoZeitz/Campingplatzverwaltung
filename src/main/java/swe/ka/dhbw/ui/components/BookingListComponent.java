@@ -123,33 +123,9 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
                 .cellRenderer(this, List.class)
                 .data((List<IDepictable>) this.buchungen)
                 .build();
-
-        table.setBackground(this.config.getBackgroundColor());
-        table.setForeground(this.config.getTextColor());
-        table.setFont(this.config.getFont());
+        super.colorizeTable(table);
         table.addObserver(this);
 
-        final var scrollPane = (JScrollPane) table.getComponent(0);
-        scrollPane.setBackground(this.config.getBackgroundColor());
-        scrollPane.setForeground(this.config.getTextColor());
-        scrollPane.setFont(this.config.getFont());
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        final var viewport = scrollPane.getViewport();
-        viewport.setBackground(this.config.getBackgroundColor());
-        viewport.setForeground(this.config.getTextColor());
-        viewport.setFont(this.config.getFont());
-        final var tableComponent = (JTable) viewport.getComponent(0);
-        tableComponent.setRowHeight(75);
-        tableComponent.setBackground(this.config.getBackgroundColor());
-        tableComponent.setForeground(this.config.getTextColor());
-        tableComponent.setFont(this.config.getFont());
-        tableComponent.setSelectionBackground(this.config.getAccentColor());
-        tableComponent.setBorder(BorderFactory.createEmptyBorder());
-        final var tableHeader = tableComponent.getTableHeader();
-        tableHeader.setBackground(this.config.getSecondaryBackgroundColor());
-        tableHeader.setForeground(this.config.getTextColor());
-        tableHeader.setFont(this.config.getFont());
-        tableHeader.setBorder(BorderFactory.createEmptyBorder());
         this.add(table, BorderLayout.CENTER);
     }
 }

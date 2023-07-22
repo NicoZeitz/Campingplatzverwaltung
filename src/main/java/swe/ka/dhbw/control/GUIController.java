@@ -1,8 +1,6 @@
 package swe.ka.dhbw.control;
 
-import de.dhbwka.swe.utils.event.IUpdateEventListener;
-import de.dhbwka.swe.utils.event.IUpdateEventSender;
-import de.dhbwka.swe.utils.event.UpdateEvent;
+import de.dhbwka.swe.utils.event.*;
 import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.util.PropertyManager;
@@ -12,9 +10,12 @@ import swe.ka.dhbw.event.GUIConfigurationObserver;
 import swe.ka.dhbw.event.GUIMainObserver;
 import swe.ka.dhbw.model.Bereich;
 import swe.ka.dhbw.model.Buchung;
+import swe.ka.dhbw.model.Chipkarte;
 import swe.ka.dhbw.model.Foto;
 import swe.ka.dhbw.ui.*;
+import swe.ka.dhbw.ui.components.BookingCreateComponent;
 import swe.ka.dhbw.ui.components.BookingOverviewComponent;
+import swe.ka.dhbw.ui.components.CalendarComponent;
 import swe.ka.dhbw.util.WindowLocation;
 
 import javax.imageio.ImageIO;
@@ -29,8 +30,31 @@ import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GUIController implements IUpdateEventSender {
+    public enum Commands implements EventCommand {
+        DATE_SELECTED("GUIController.dateSelected", Optional.class);
+
+        public final Class<?> payloadType;
+        public final String cmdText;
+
+        Commands(final String cmdText, final Class<?> payloadType) {
+            this.cmdText = cmdText;
+            this.payloadType = payloadType;
+        }
+
+        @Override
+        public String getCmdText() {
+            return this.cmdText;
+        }
+
+        @Override
+        public Class<?> getPayloadType() {
+            return this.payloadType;
+        }
+    }
+
     private static GUIController instance;
     private final Set<EventListener> updateEventObervers = new HashSet<>();
     private GUIBuchung guiBuchung;
@@ -160,6 +184,40 @@ public class GUIController implements IUpdateEventSender {
         return this.updateEventObervers.remove(eventListener);
     }
 
+    public void bookingCreateCancel() {
+        final var decision = JOptionPane.showConfirmDialog(null,
+                "Wollen Sie die Erstellung der Buchung wirklich abbrechen?",
+                "Buchung abbrechen",
+                JOptionPane.YES_NO_OPTION);
+
+        if (decision == JOptionPane.YES_OPTION) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    BookingCreateComponent.Commands.RESET
+            ));
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SWITCH_TAB,
+                    "Buchungsliste"
+            ));
+        }
+    }
+
+    public void bookingCreateSelectChipkarte(final List<Chipkarte> availableChipkarten,
+                                             final List<Chipkarte> selectedChipkarten,
+                                             final Chipkarte newlySelectedChipkarte) {
+        selectedChipkarten.add(newlySelectedChipkarte);
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.SELECT_CHIPKARTE,
+                new BookingCreateComponent.SelectChipkartePayload(
+                        availableChipkarten.stream().filter(c -> !c.equals(newlySelectedChipkarte)).sorted().toList(),
+                        selectedChipkarten,
+                        ""
+                )
+        ));
+    }
+
     public void bookingOpenEditTab(final String elementID) {
         this.fireUpdateEvent(new UpdateEvent(
                         this,
@@ -192,6 +250,21 @@ public class GUIController implements IUpdateEventSender {
                         currentWeek.minusWeeks(1)
                 )
         );
+    }
+
+    public void bookingRemoveChipkarte(final List<Chipkarte> availableChipkarten,
+                                       final List<Chipkarte> selectedChipkarten,
+                                       final Chipkarte deletedChipkarte) {
+        selectedChipkarten.remove(deletedChipkarte);
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.SELECT_CHIPKARTE,
+                new BookingCreateComponent.SelectChipkartePayload(
+                        Stream.concat(Stream.of(deletedChipkarte), availableChipkarten.stream()).sorted().toList(),
+                        selectedChipkarten,
+                        ""
+                )
+        ));
     }
 
     public void configurationSetAccentColor(final Color color) {
@@ -240,6 +313,7 @@ public class GUIController implements IUpdateEventSender {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void openGUIBuchung() {
         if (this.guiBuchung != null && this.guiBuchung.isDisplayable()) {
             this.guiBuchung.grabFocus();
@@ -247,7 +321,13 @@ public class GUIController implements IUpdateEventSender {
         }
 
         if (this.guiBuchung == null) {
-            this.guiBuchung = new GUIBuchung(this.getConfig(), this.getBuchungen(), this.getAppointments(), LocalDate.now());
+            this.guiBuchung = new GUIBuchung(
+                    this.getConfig(),
+                    this.getBuchungen(),
+                    this.getAppointments(),
+                    LocalDate.now(),
+                    this.entityManager.find(Chipkarte.class).stream().filter(c -> c.getStatus() == Chipkarte.Status.VERFUEGBAR).toList()
+            );
         }
 
         final var observer = new GUIBuchungObserver();
@@ -363,12 +443,6 @@ public class GUIController implements IUpdateEventSender {
                 configWindow.getHeight()));
         configWindow.dispose();
 
-        // TODO: Remove
-//        this.openInJFrame(new CalendarComponent(this.getConfig(), "CalendarComponent", Optional.empty()),
-//                this.getConfig().getWindowLocation("Main"),
-//                "Calendar",
-//                event -> this.exitApplication());
-
         final var observer = new GUIMainObserver();
         this.guiMain = new GUIMain(this.getConfig());
         this.guiMain.addObserver(observer);
@@ -420,6 +494,52 @@ public class GUIController implements IUpdateEventSender {
         });
     }
 
+    public void showDatePicker(final Optional<LocalDate> date, final GUIComponent source, final String cmdText) {
+        final var windowLocation = this.getConfig().getWindowLocation("CalendarComponent");
+        final var dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(source));
+        final var calendarComponent = new CalendarComponent(this.getConfig(), date);
+        calendarComponent.addObserver((IGUIEventListener) guiEvent -> {
+            if (guiEvent.getCmd() != CalendarComponent.Commands.DATE_SELECTED) {
+                return;
+            }
+            dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+            GUIController.this.fireUpdateEvent(new UpdateEvent(
+                    GUIController.this,
+                    new EventCommand() {
+                        @Override
+                        public String getCmdText() {
+                            return cmdText;
+                        }
+
+                        @Override
+                        public Class<?> getPayloadType() {
+                            return LocalDate.class;
+                        }
+                    },
+                    guiEvent.getData()
+            ));
+        });
+
+        dialog.setTitle("Datum auswählen");
+        dialog.add(calendarComponent);
+        dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setLocation(Math.max(windowLocation.x(), 0), Math.max(windowLocation.y(), 0));
+        dialog.setSize(300, 300);
+        dialog.setResizable(false);
+        dialog.setBackground(this.getConfig().getBackgroundColor());
+        dialog.setForeground(this.getConfig().getTextColor());
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(final WindowEvent event) {
+                final var windowLocation = new WindowLocation(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight());
+                GUIController.this.app.getConfig().setWindowLocation("CalendarComponent", windowLocation);
+                dialog.dispose();
+            }
+        });
+        dialog.setVisible(true);
+    }
+
     private JFrame openInJFrame(final Container content,
                                 final WindowLocation windowLocation,
                                 final String title,
@@ -447,6 +567,5 @@ public class GUIController implements IUpdateEventSender {
         }
         frame.setVisible(true);
         return frame;
-
     }
 }

@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
-public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
+public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable, Comparable<Chipkarte> {
     public enum Status {
         VERFUEGBAR("Verfügbar"), IN_VERWENDUNG("In Verwendung");
 
@@ -59,6 +59,11 @@ public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
     public void setStatus(final Status status) {
         Validator.getInstance().validateNotNull(status);
         this.status = status;
+    }
+
+    @Override
+    public int compareTo(final Chipkarte o) {
+        return Integer.compare(this.getNummer(), o.getNummer());
     }
 
     @Override
@@ -138,9 +143,6 @@ public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable {
 
     @Override
     public String toString() {
-        return "Chipkarte{" +
-                "nummer=" + nummer +
-                ", status=" + status +
-                '}';
+        return "Chipkarte " + this.getNummer() + " - " + this.getStatus().toString();
     }
 }

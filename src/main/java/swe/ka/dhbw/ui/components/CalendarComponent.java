@@ -1,27 +1,55 @@
 package swe.ka.dhbw.ui.components;
 
+import de.dhbwka.swe.utils.event.EventCommand;
 import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.BrowseSelector;
+import de.dhbwka.swe.utils.util.PropertyManager;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
-import swe.ka.dhbw.event.LogObserver;
 import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class CalendarComponent extends GUIComponent implements IGUIEventListener {
-    public CalendarComponent(final ReadonlyConfiguration config, final String id, final Optional<LocalDate> date) {
+    public enum Commands implements EventCommand {
+        DATE_SELECTED("CalendarComponent.dateSelected", LocalDate.class);
+
+        public final Class<?> payloadType;
+        public final String cmdText;
+
+        Commands(final String cmdText, final Class<?> payloadType) {
+            this.cmdText = cmdText;
+            this.payloadType = payloadType;
+        }
+
+        @Override
+        public String getCmdText() {
+            return this.cmdText;
+        }
+
+        @Override
+        public Class<?> getPayloadType() {
+            return this.payloadType;
+        }
+    }
+
+    public CalendarComponent(final ReadonlyConfiguration config, final Optional<LocalDate> date) {
         super("CalendarComponent", config);
-        this.initUI(id, date);
+        this.initUI(date);
     }
 
     @Override
     public void processGUIEvent(final GUIEvent guiEvent) {
-        LogObserver.logGUIEvent(guiEvent);
+        if (guiEvent.getCmd() == de.dhbwka.swe.utils.gui.CalendarComponent.Commands.DATE_SELECTED) {
+            final var date = (LocalDate) guiEvent.getData();
+            this.fireGUIEvent(new GUIEvent(this, Commands.DATE_SELECTED, date));
+        }
     }
 
     @Override
@@ -29,12 +57,27 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         // nothing to react to
     }
 
-    private void initUI(final String id, final Optional<LocalDate> date) {
+    private void initUI(final Optional<LocalDate> date) {
         this.setLayout(new BorderLayout());
+        this.setBackground(this.config.getBackgroundColor());
+        this.setForeground(this.config.getTextColor());
+        this.setOpaque(true);
+        this.setFont(this.config.getFont());
 
-        final var calendar = de.dhbwka.swe.utils.gui.CalendarComponent.builder(id)
+        // The calendar component will throw NullPointerExceptions when no property manager is provided
+        // This is why we provide a useless property manager
+        // Furthermore all other builder properties will get overridden by the property manager (even when no value is provided for a property)
+        // Which is why we need to set the selected button color manually
+        final var calendar = de.dhbwka.swe.utils.gui.CalendarComponent.builder(super.generateRandomID())
                 .date(date.orElse(LocalDate.now()))
-                .selectedButtonColor(this.config.getAccentColor())
+                .selectedButtonColor(this.config.getAccentColor()) // this is useless as a property manager overrides all values provided by the builder
+                .propertymanager(new PropertyManager(new HashMap<>(Map.of(
+                        de.dhbwka.swe.utils.gui.CalendarComponent.Properties.BTN_SELECTED_COLOR.getPropertyName(),
+                        "%d,%d,%d".formatted(
+                                this.config.getAccentColor().getRed(),
+                                this.config.getAccentColor().getGreen(),
+                                this.config.getAccentColor().getBlue()
+                        )))))
                 .build();
         calendar.setBackground(this.config.getBackgroundColor());
         calendar.setForeground(this.config.getTextColor());
@@ -83,15 +126,6 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
                 jComponent.setOpaque(true);
             }
         }
-
-        /*
-        JPanel
-          JPanel
-            List<JButton>
-          JPanel
-            List<JLabel>
-        */
-
         this.add(calendar, BorderLayout.CENTER);
     }
 }
