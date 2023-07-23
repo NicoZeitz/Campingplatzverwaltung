@@ -95,6 +95,14 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         return bookingCreate;
     }
 
+    private GUIComponent getSelectedTab() {
+        final var selectedTab = (JComponent) this.tabs.getSelectedComponent();
+        if (selectedTab instanceof GUIComponent component) {
+            return component;
+        }
+        return (GUIComponent) selectedTab.getComponent(0);
+    }
+
     @Override
     public void processGUIEvent(GUIEvent ge) {
         fireGUIEvent(ge);
@@ -142,7 +150,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         }
         // send unknown commands to current active tab
         else {
-            ((GUIComponent) this.tabs.getSelectedComponent()).processUpdateEvent(updateEvent);
+            this.getSelectedTab().processUpdateEvent(updateEvent);
         }
     }
 
