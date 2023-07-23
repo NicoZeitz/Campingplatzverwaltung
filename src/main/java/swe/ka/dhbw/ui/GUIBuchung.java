@@ -160,6 +160,8 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.bookingCreate = new BookingCreateComponent(this.config, chipkarten);
         this.bookingCreate.addObserver(this);
 
+        final var bookingImportExport = new BookingImportExportComponent(this.config);
+
         this.setLayout(new GridLayout(1, 1));
         this.setBackground(this.config.getBackgroundColor());
         this.setForeground(this.config.getTextColor());
@@ -181,11 +183,11 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.tabs.setMnemonicAt(0, KeyEvent.VK_1);
         this.tabs.addTab(Tabs.BOOKING_LIST.getName(), null, this.bookingList, Tabs.BOOKING_LIST.getTooltip());
         this.tabs.setMnemonicAt(0, KeyEvent.VK_2);
-        this.tabs.addTab(Tabs.BOOKING_CREATE.getName(), null, this.bookingCreate, Tabs.BOOKING_CREATE.getTooltip());
+        this.tabs.addTab(Tabs.BOOKING_CREATE.getName(), null, this.wrapInWrapper(this.bookingCreate), Tabs.BOOKING_CREATE.getTooltip());
         this.tabs.setMnemonicAt(0, KeyEvent.VK_3);
         this.tabs.addTab(Tabs.BOOKING_IMPORT_EXPORT.getName(),
                 null,
-                new BookingImportExportComponent(this.config),
+                this.wrapInWrapper(bookingImportExport),
                 Tabs.BOOKING_IMPORT_EXPORT.getTooltip());
         this.tabs.setMnemonicAt(0, KeyEvent.VK_4);
 
@@ -194,6 +196,34 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             this.tabs.setForegroundAt(i, this.config.getTextColor());
         }
         this.add(this.tabs);
+    }
+
+    private JPanel wrapInWrapper(final ObservableComponent component) {
+        final var wrapper = new JPanel();
+        wrapper.setLayout(new GridBagLayout());
+        wrapper.add(component,
+                new GridBagConstraints(1,
+                        1,
+                        1,
+                        1,
+                        1d,
+                        1d,
+                        GridBagConstraints.CENTER,
+                        GridBagConstraints.BOTH,
+                        new Insets(0, 0, 0, 0),
+                        0,
+                        0));
+        final var panel = new JPanel();
+        panel.setMaximumSize(new Dimension(0, 0));
+        panel.setSize(new Dimension(0, 0));
+        panel.setBackground(null);
+        panel.setOpaque(true);
+        wrapper.add(panel,
+                new GridBagConstraints(1, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+        wrapper.setBackground(this.config.getBackgroundColor());
+        wrapper.setForeground(this.config.getTextColor());
+        wrapper.setOpaque(true);
+        return wrapper;
     }
 
     public record TabPayload(String tabName, ObservableComponent component, String tooltip, Optional<Integer> index) {

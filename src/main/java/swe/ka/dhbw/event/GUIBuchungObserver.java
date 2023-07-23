@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class GUIBuchungObserver implements IGUIEventListener {
 
@@ -35,11 +36,12 @@ public class GUIBuchungObserver implements IGUIEventListener {
 
         // BookingCreateComponent
         else if (ge.getCmd() == BookingCreateComponent.Commands.ADD_GUEST) {
-            // TODO:
+            // TODO: real set parameter
+            GUIController.getInstance().openDialogGuestSelector(ge, Set.of());
         } else if (ge.getCmd() == BookingCreateComponent.Commands.ADD_SERVICE) {
-            // TODO:
+            GUIController.getInstance().openDialogServiceSelector(ge);
         } else if (ge.getCmd() == BookingCreateComponent.Commands.ADD_EQUIPMENT) {
-            // TODO:
+            GUIController.getInstance().openDialogEquipmentSelector(ge);
         } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_START_DATE ||
                 ge.getCmd() == BookingCreateComponent.Commands.SELECT_END_DATE) {
             final var date = ((Optional<LocalDateTime>) ge.getData())

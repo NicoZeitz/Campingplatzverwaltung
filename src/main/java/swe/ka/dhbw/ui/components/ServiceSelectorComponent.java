@@ -29,7 +29,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
         public final String cmdText;
 
         Commands(final String cmdText) {
-            this(cmdText, null);
+            this(cmdText, Void.class);
         }
 
         Commands(final String cmdText, final Class<?> payloadType) {

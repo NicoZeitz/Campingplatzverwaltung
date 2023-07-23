@@ -326,7 +326,8 @@ public class GUIController implements IUpdateEventSender {
         final var source = (GUIComponent) callbackToEvent.getSource();
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::CalendarComponent").withWidth(300).withHeight(300);
         final var calendarComponent = new CalendarComponent(this.getConfig(), optionalDate);
-        final var parentWindow = (Frame) SwingUtilities.getWindowAncestor(source);
+        final var parentWindow = this.getNearestWindow(source);
+
         calendarComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() != CalendarComponent.Commands.DATE_SELECTED) {
                 return;
@@ -349,6 +350,7 @@ public class GUIController implements IUpdateEventSender {
                     guiEvent.getData()
             ));
         });
+
         this.openInDialog(calendarComponent, parentWindow, "Datum auswählen", windowLocation, (e) -> {
             final var window = e.getWindow();
             this.app.getConfig().setWindowLocation("Dialog::CalendarComponent", WindowLocation.from(window));
@@ -361,8 +363,7 @@ public class GUIController implements IUpdateEventSender {
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(440);
         final var vehicleTypes = Arrays.stream(Fahrzeug.Typ.values()).toList();
         final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig(), vehicleTypes);
-        final var parentWindow = (JFrame) SwingUtilities.getWindowAncestor(source);
-        this.addObserver(equipmentSelectorComponent);
+        final var parentWindow = this.getNearestWindow(source);
 
         equipmentSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.CANCEL) {
@@ -443,37 +444,73 @@ public class GUIController implements IUpdateEventSender {
         });
     }
 
+    public void openDialogGuestCreate(final PayloadEvent callbackToEvent) {
+        final var source = (GUIComponent) callbackToEvent.getSource();
+        final var parentWindow = this.getNearestWindow((GUIComponent) callbackToEvent.getSource());
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestCreate").withWidth(350).withHeight(350);
+        this.openInDialog(new GuestCreateComponent(this.getConfig()), parentWindow, "Gast anlegen", windowLocation, (event) -> {
+            final var window = event.getWindow();
+            this.app.getConfig().setWindowLocation("Dialog::GuestCreate", WindowLocation.from(window));
+            window.dispose();
+        });
+    }
+
     public void openDialogGuestSelector(final PayloadEvent callbackToEvent, final Set<Gast> withoutGuests) {
+        final var source = (GUIComponent) callbackToEvent.getSource();
         final var guests = this.entityManager.find(Gast.class).stream().filter(g -> !withoutGuests.contains(g)).toList();
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestSelector").withWidth(300).withHeight(300);
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestSelector").withWidth(400).withHeight(320);
         final var guestSelectorComponent = new GuestSelectorComponent(this.getConfig(), guests);
-        final var parentWindow = (JFrame) SwingUtilities.getWindowAncestor((GUIComponent) callbackToEvent.getSource());
+        final var parentWindow = this.getNearestWindow((GUIComponent) callbackToEvent.getSource());
+        this.addObserver(guestSelectorComponent);
+
         guestSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
-//            if (guiEvent.getCmd() != GuestSelectorComponent.Commands.GUEST_SELECTED) {
-//                return;
-//            }
-//            dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-//            GUIController.this.fireUpdateEvent(new UpdateEvent(
-//                    GUIController.this,
-//                    new EventCommand() {
-//                        @Override
-//                        public String getCmdText() {
-//                            return cmdText;
-//                        }
-//
-//                        @Override
-//                        public Class<?> getPayloadType() {
-//                            return Gast.class;
-//                        }
-//                    },
-//                    guiEvent.getData()
-//            ));
+            if (guiEvent.getCmd() == GuestSelectorComponent.Commands.SEARCH_INPUT_CHANGED) {
+                final var payload = (GuestSelectorComponent.SearchInputChangedPayload) guiEvent.getData();
+                final var filteredGuests = guests.stream()
+                        .filter(g -> g.getName().toLowerCase().contains(payload.text().toLowerCase()))
+                        .toList();
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        GuestSelectorComponent.Commands.UPDATE_GUESTS,
+                        filteredGuests
+                ));
+            } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.GUEST_SELECTED) {
+                final var guest = (Gast) guiEvent.getData();
+                final var dialog = SwingUtilities.getWindowAncestor(guestSelectorComponent);
+                dialog.dispose();
+                source.processUpdateEvent(new UpdateEvent(
+                        GUIController.this,
+                        new EventCommand() {
+                            @Override
+                            public String getCmdText() {
+                                return callbackToEvent.getCmdText();
+                            }
+
+                            @Override
+                            public Class<?> getPayloadType() {
+                                return IDepictable.class;
+                            }
+                        },
+                        guest
+                ));
+            } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.ADD_GUEST_BUTTON_PRESSED) {
+                this.openDialogGuestCreate(guiEvent);
+            }
         });
 
         this.openInDialog(guestSelectorComponent, parentWindow, "Gast auswählen", windowLocation, (event) -> {
-            final var window = event.getWindow();
-            this.app.getConfig().setWindowLocation("Dialog::GuestSelector", WindowLocation.from(window));
-            window.dispose();
+            final var decision = JOptionPane.showConfirmDialog(
+                    null,
+                    "Wollen Sie die Auswahl von einem neuen Gast wirklich abbrechen?",
+                    "Gastauswahl abbrechen",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (decision == JOptionPane.YES_OPTION) {
+                final var window = event.getWindow();
+                this.app.getConfig().setWindowLocation("Dialog::GuestSelector", WindowLocation.from(window));
+                window.dispose();
+            }
         });
     }
 
@@ -483,8 +520,7 @@ public class GUIController implements IUpdateEventSender {
         final var services = this.entityManager.find(Leistungsbeschreibung.class);
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::ServiceSelector").withWidth(440).withHeight(240);
         final var serviceSelectorComponent = new ServiceSelectorComponent(this.getConfig(), services);
-        final var parentWindow = (JFrame) SwingUtilities.getWindowAncestor(source);
-        this.addObserver(serviceSelectorComponent);
+        final var parentWindow = this.getNearestWindow(source);
 
         serviceSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.DATE_PICKER_START_DATE ||
@@ -670,19 +706,6 @@ public class GUIController implements IUpdateEventSender {
         this.openInWindow(this.windowMain, "Campingplatzverwaltung", "Window::Main", event -> {
             this.exitApplication();
         });
-
-        // TODO: remove
-        this.openDialogGuestSelector(new GUIEvent(this.windowMain, new EventCommand() {
-            @Override
-            public String getCmdText() {
-                return "Test";
-            }
-
-            @Override
-            public Class<?> getPayloadType() {
-                return null;
-            }
-        }), Set.of());
     }
 
     public void openWindowPitch() {
@@ -718,6 +741,15 @@ public class GUIController implements IUpdateEventSender {
     }
 
     // Utility Methods
+
+    private JFrame getNearestWindow(final Container content) {
+        final var maybeFrame = SwingUtilities.getWindowAncestor(content);
+        if (maybeFrame instanceof JFrame frame) {
+            return frame;
+        }
+
+        return (JFrame) SwingUtilities.getWindowAncestor(maybeFrame);
+    }
 
     private JDialog openInDialog(final Container content,
                                  final Frame parentWindow,
@@ -756,21 +788,6 @@ public class GUIController implements IUpdateEventSender {
 
     private JFrame openInWindow(final Container content,
                                 final String title,
-                                final String windowLocationKey,
-                                final Consumer<WindowEvent> onExit) {
-        final var windowLocation = Optional.ofNullable(this.getConfig())
-                .orElse(this.configurationBuilder.build())
-                .getWindowLocation(windowLocationKey);
-        return this.openInWindow(content, title, windowLocation, (event) -> {
-            onExit.accept(event);
-            final var window = event.getWindow();
-            this.app.getConfig().setWindowLocation(windowLocationKey, WindowLocation.from(window));
-            window.dispose();
-        });
-    }
-
-    private JFrame openInWindow(final Container content,
-                                final String title,
                                 final WindowLocation windowLocation,
                                 final Consumer<WindowEvent> onExit) {
         final var config = Optional.ofNullable(this.getConfig())
@@ -797,5 +814,20 @@ public class GUIController implements IUpdateEventSender {
             }
         });
         return frame;
+    }
+
+    private JFrame openInWindow(final Container content,
+                                final String title,
+                                final String windowLocationKey,
+                                final Consumer<WindowEvent> onExit) {
+        final var windowLocation = Optional.ofNullable(this.getConfig())
+                .orElse(this.configurationBuilder.build())
+                .getWindowLocation(windowLocationKey);
+        return this.openInWindow(content, title, windowLocation, (event) -> {
+            onExit.accept(event);
+            final var window = event.getWindow();
+            this.app.getConfig().setWindowLocation(windowLocationKey, WindowLocation.from(window));
+            window.dispose();
+        });
     }
 }

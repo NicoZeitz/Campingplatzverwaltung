@@ -38,7 +38,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         public final String cmdText;
 
         Commands(final String cmdText) {
-            this(cmdText, null);
+            this(cmdText, Void.class);
         }
 
         Commands(final String cmdText, final Class<?> payloadType) {

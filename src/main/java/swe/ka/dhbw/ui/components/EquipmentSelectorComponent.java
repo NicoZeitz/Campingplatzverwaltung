@@ -22,7 +22,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
         public final String cmdText;
 
         Commands(final String cmdText) {
-            this(cmdText, null);
+            this(cmdText, Void.class);
         }
 
         Commands(final String cmdText, final Class<?> payloadType) {
