@@ -5,6 +5,7 @@ import de.dhbwka.swe.utils.gui.*;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.util.UUID;
 
@@ -19,6 +20,23 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
     public GUIComponent(final ReadonlyConfiguration config) {
         super();
         this.config = config;
+    }
+
+    public JTable createTable(String[] columnNames) {
+        // we need to create our own table as the SimpleTableComponent does not allow us to listen to events that happen inside the table
+        // and we want to grow the table dynamically instead of using a scrollpane
+        final var table = new JTable(new Object[0][0], columnNames);
+        table.setFont(this.config.getFont());
+        table.setForeground(this.config.getTextColor());
+        table.setBackground(this.config.getBackgroundColor());
+        table.setRowSelectionAllowed(false);
+        final var tableHeader = new JTableHeader();
+        tableHeader.setColumnModel(table.getColumnModel());
+        tableHeader.setFont(this.config.getFont());
+        tableHeader.setForeground(this.config.getTextColor());
+        tableHeader.setBackground(this.config.getSecondaryBackgroundColor());
+        table.setTableHeader(tableHeader);
+        return table;
     }
 
     protected void colorizeTable(final SimpleTableComponent table) {

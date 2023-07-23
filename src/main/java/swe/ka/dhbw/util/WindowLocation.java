@@ -62,4 +62,38 @@ public record WindowLocation(int x, int y, int width, int height, State state) {
 
         return new WindowLocation(x, y, width, height, state);
     }
+
+    public static WindowLocation from(final Window window) {
+        return new WindowLocation(
+                window.getX(),
+                window.getY(),
+                window.getWidth(),
+                window.getHeight(),
+                State.WINDOWED
+        );
+    }
+
+    public WindowLocation clone() {
+        return new WindowLocation(this.x, this.y, this.width, this.height, this.state);
+    }
+
+    public WindowLocation withHeight(final int height) {
+        return new WindowLocation(this.x, this.y, this.width, height, this.state);
+    }
+
+    public WindowLocation withState(final State state) {
+        return new WindowLocation(this.x, this.y, this.width, this.height, state);
+    }
+
+    public WindowLocation withWidth(final int width) {
+        return new WindowLocation(this.x, this.y, width, this.height, this.state);
+    }
+
+    public WindowLocation withX(final int x) {
+        return new WindowLocation(x, this.y, this.width, this.height, this.state);
+    }
+
+    public WindowLocation withY(final int y) {
+        return new WindowLocation(this.x, y, this.width, this.height, this.state);
+    }
 }

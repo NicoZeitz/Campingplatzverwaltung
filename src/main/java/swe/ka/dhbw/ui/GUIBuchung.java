@@ -25,7 +25,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
         OPEN_TAB("GUIBuchung.openTab", TabPayload.class),
         CLOSE_TAB("GUIBuchung.closeTab", ObservableComponent.class),
-        SWITCH_TAB("GUIBuchung.switchTab", String.class);
+        SWITCH_TAB("GUIBuchung.switchTab", Tabs.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -45,10 +45,29 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             return this.payloadType;
         }
     }
+
+    public enum Tabs {
+        APPOINTMENT_OVERVIEW("Terminübersicht"),
+        BOOKING_LIST("Buchungsliste"),
+        BOOKING_CREATE("Buchung anlegen"),
+        BOOKING_IMPORT_EXPORT("Buchung Import/Export");
+
+        private final String name;
+
+        Tabs(final String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+    }
+
     private BookingOverviewComponent bookingOverview;
     private BookingListComponent bookingList;
     private BookingCreateComponent bookingCreate;
     private JTabbedPane tabs;
+
     public GUIBuchung(final ReadonlyConfiguration config,
                       final List<? extends IDepictable> bookings,
                       final Map<LocalDate, List<? extends IDepictable>> appointments,
@@ -108,7 +127,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
                 this.tabs.removeTabAt(index);
             }
         } else if (updateEvent.getCmd() == Commands.SWITCH_TAB) {
-            final var index = this.tabs.indexOfTab((String) updateEvent.getData());
+            final var index = this.tabs.indexOfTab(((Tabs) updateEvent.getData()).getName());
             if (index != -1) {
                 this.tabs.setSelectedIndex(index);
             }
@@ -148,13 +167,16 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.tabs.setForeground(this.config.getTextColor());
         this.tabs.setOpaque(true);
 
-        this.tabs.addTab("Terminübersicht", null, this.bookingOverview, "Zeigt die Buchungen übersichtlich in einem Kalendar an");
+        this.tabs.addTab(Tabs.APPOINTMENT_OVERVIEW.getName(),
+                null,
+                this.bookingOverview,
+                "Zeigt die Buchungen übersichtlich in einem Kalendar an");
         this.tabs.setMnemonicAt(0, KeyEvent.VK_1);
-        this.tabs.addTab("Buchungsliste", null, this.bookingList, "Zeigt die Buchungen in einer Liste an");
+        this.tabs.addTab(Tabs.BOOKING_LIST.getName(), null, this.bookingList, "Zeigt die Buchungen in einer Liste an");
         this.tabs.setMnemonicAt(0, KeyEvent.VK_2);
-        this.tabs.addTab("Buchung anlegen", null, this.bookingCreate, "Erstellt eine neue Buchung");
+        this.tabs.addTab(Tabs.BOOKING_CREATE.getName(), null, this.bookingCreate, "Erstellt eine neue Buchung");
         this.tabs.setMnemonicAt(0, KeyEvent.VK_3);
-        this.tabs.addTab("Buchung Import/Export",
+        this.tabs.addTab(Tabs.BOOKING_IMPORT_EXPORT.getName(),
                 null,
                 new BookingImportExportComponent(this.config),
                 "Importiert/Exportiert Buchungen");

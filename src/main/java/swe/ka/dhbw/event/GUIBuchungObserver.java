@@ -21,16 +21,16 @@ public class GUIBuchungObserver implements IGUIEventListener {
     public void processGUIEvent(final GUIEvent ge) {
         // BookingOverviewComponent
         if (ge.getCmd() == BookingOverviewComponent.Commands.PREVIOUS_WEEK) {
-            GUIController.getInstance().bookingOverviewPreviousWeek((LocalDate) ge.getData());
+            GUIController.getInstance().handleWindowBookingAppointmentOverviewPreviousWeek((LocalDate) ge.getData());
         } else if (ge.getCmd() == BookingOverviewComponent.Commands.NEXT_WEEK) {
-            GUIController.getInstance().bookingOverviewNextWeek((LocalDate) ge.getData());
+            GUIController.getInstance().handleWindowBookingAppointmentOverviewNextWeek((LocalDate) ge.getData());
         } else if (ge.getCmd() == BookingOverviewComponent.Commands.BUCHUNG_SELECTED) {
-            GUIController.getInstance().bookingOpenEditTab(((IDepictable) ge.getData()).getElementID());
+            GUIController.getInstance().handleWindowBookingBookingSelected(((IDepictable) ge.getData()).getElementID());
         }
 
         // BookingListComponent
         else if (ge.getCmd() == BookingListComponent.Commands.BUCHUNG_SELECTED) {
-            GUIController.getInstance().bookingOpenEditTab(((IDepictable) ge.getData()).getElementID());
+            GUIController.getInstance().handleWindowBookingBookingSelected(((IDepictable) ge.getData()).getElementID());
         }
 
         // BookingCreateComponent
@@ -45,13 +45,13 @@ public class GUIBuchungObserver implements IGUIEventListener {
                     .map(LocalDateTime::toLocalDate);
 
             GUIController.getInstance()
-                    .showDatePicker(date, (BookingCreateComponent) ge.getSource(), BookingCreateComponent.Commands.SELECT_START_DATE.cmdText);
+                    .openDialogDatePicker(date, (BookingCreateComponent) ge.getSource(), BookingCreateComponent.Commands.SELECT_START_DATE.cmdText);
         } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_END_DATE) {
             final var date = ((Optional<LocalDateTime>) ge.getData())
                     .map(LocalDateTime::toLocalDate);
 
             GUIController.getInstance()
-                    .showDatePicker(date, (BookingCreateComponent) ge.getSource(), BookingCreateComponent.Commands.SELECT_END_DATE.cmdText);
+                    .openDialogDatePicker(date, (BookingCreateComponent) ge.getSource(), BookingCreateComponent.Commands.SELECT_END_DATE.cmdText);
         } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_CHIPKARTE) {
             final var payload = (BookingCreateComponent.SelectChipkartePayload) ge.getData();
             GUIController.getInstance().bookingCreateSelectChipkarte((List<Chipkarte>) payload.availableChipkarten(),
@@ -61,7 +61,7 @@ public class GUIBuchungObserver implements IGUIEventListener {
             GUIController.getInstance().bookingRemoveChipkarte((List<Chipkarte>) payload.availableChipkarten(),
                     (List<Chipkarte>) payload.selectedChipkarten(), (Chipkarte) payload.deletedChipkarte());
         } else if (ge.getCmd() == BookingCreateComponent.Commands.RESET) {
-            GUIController.getInstance().bookingCreateCancel();
+            GUIController.getInstance().handleWindowBookingCreateBookingCancel();
         } else if (ge.getCmd() == BookingCreateComponent.Commands.CREATE_BOOKING) {
             // TODO:
         }

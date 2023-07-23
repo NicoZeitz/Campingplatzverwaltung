@@ -316,6 +316,12 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         panel.add(this.chipkartenTable,
                 new GridBagConstraints(0, 1, 1, 1, 1d, 1d, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
 
+        final var table = super.createTable(new String[] {"Nummer", "Status", ""});
+        table.setPreferredScrollableViewportSize(table.getPreferredSize());
+        final var scrollPane = new JScrollPane(table);
+        panel.add(scrollPane,
+                new GridBagConstraints(0, 1, 1, 1, 1d, 1d, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
+
         this.resetInput();
         return panel;
     }

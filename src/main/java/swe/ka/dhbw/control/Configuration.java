@@ -54,7 +54,7 @@ public class Configuration implements ReadonlyConfiguration {
                     final var windowName = entry.getKey();
                     final var windowLocation = entry.getValue();
                     final var sb = new StringBuilder();
-                    sb.append("%s:".formatted(windowName));
+                    sb.append("%s.".formatted(windowName));
                     sb.append("x=%d,".formatted(windowLocation.x()));
                     sb.append("y=%d,".formatted(windowLocation.y()));
                     sb.append("w=%d,".formatted(windowLocation.width()));
@@ -268,8 +268,8 @@ public class Configuration implements ReadonlyConfiguration {
                         continue;
                     }
 
-                    final var windowName = serializedLocation.split(":")[0];
-                    final var windowLocation = WindowLocation.fromSerialized(serializedLocation.split(":")[1]);
+                    final var windowName = serializedLocation.split("\\.")[0];
+                    final var windowLocation = WindowLocation.fromSerialized(serializedLocation.split("\\.")[1]);
                     this.windowLocations.put(windowName, windowLocation);
                 }
             }
