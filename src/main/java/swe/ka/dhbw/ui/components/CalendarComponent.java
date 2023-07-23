@@ -39,6 +39,7 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         }
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public CalendarComponent(final ReadonlyConfiguration config, final Optional<LocalDate> date) {
         super("CalendarComponent", config);
         this.initUI(date);
@@ -57,6 +58,57 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         // nothing to react to
     }
 
+    private void colorizeCalendar(de.dhbwka.swe.utils.gui.CalendarComponent calendarComponent) {
+        calendarComponent.setBackground(this.config.getBackgroundColor());
+        calendarComponent.setForeground(this.config.getTextColor());
+        calendarComponent.setOpaque(true);
+        calendarComponent.setFont(this.config.getFont());
+        calendarComponent.setBorder(BorderFactory.createEmptyBorder());
+        calendarComponent.addObserver(this);
+
+        final var topPanel = (JPanel) calendarComponent.getComponent(0);
+        topPanel.setBackground(this.config.getBackgroundColor());
+        topPanel.setForeground(this.config.getTextColor());
+        topPanel.setOpaque(true);
+        topPanel.setBorder(BorderFactory.createEmptyBorder());
+        final var browseSelectors = topPanel.getComponents();
+        for (final var browseSelector : browseSelectors) {
+            for (final var component : ((BrowseSelector) browseSelector).getComponents()) {
+                final var button = (JComponent) component;
+
+                button.setBackground(this.config.getBackgroundColor());
+                button.setForeground(this.config.getTextColor());
+                button.setOpaque(true);
+
+                if (button instanceof JButton) {
+                    button.setBackground(this.config.getAccentColor());
+                } else {
+                    button.setBorder(BorderFactory.createEmptyBorder());
+                }
+            }
+        }
+        final var bottomPanel = (JPanel) calendarComponent.getComponent(1);
+        bottomPanel.setBackground(this.config.getBackgroundColor());
+        bottomPanel.setForeground(this.config.getTextColor());
+        bottomPanel.setOpaque(true);
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder());
+        final var children = bottomPanel.getComponents();
+        for (final var child : children) {
+            final var panel = (JPanel) child;
+            panel.setBackground(this.config.getBackgroundColor());
+            panel.setForeground(this.config.getTextColor());
+            panel.setOpaque(true);
+            panel.setBorder(BorderFactory.createEmptyBorder());
+            for (final var element : panel.getComponents()) {
+                final var jComponent = (JComponent) element;
+                jComponent.setBackground(this.config.getBackgroundColor());
+                jComponent.setForeground(this.config.getTextColor());
+                jComponent.setOpaque(true);
+            }
+        }
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private void initUI(final Optional<LocalDate> date) {
         this.setLayout(new BorderLayout());
         this.setBackground(this.config.getBackgroundColor());
@@ -79,53 +131,7 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
                                 this.config.getAccentColor().getBlue()
                         )))))
                 .build();
-        calendar.setBackground(this.config.getBackgroundColor());
-        calendar.setForeground(this.config.getTextColor());
-        calendar.setOpaque(true);
-        calendar.setFont(this.config.getFont());
-        calendar.setBorder(BorderFactory.createEmptyBorder());
-        calendar.addObserver(this);
-
-        final var topPanel = (JPanel) calendar.getComponent(0);
-        topPanel.setBackground(this.config.getBackgroundColor());
-        topPanel.setForeground(this.config.getTextColor());
-        topPanel.setOpaque(true);
-        topPanel.setBorder(BorderFactory.createEmptyBorder());
-        final var browseSelectors = topPanel.getComponents();
-        for (final var browseSelector : browseSelectors) {
-            for (final var component : ((BrowseSelector) browseSelector).getComponents()) {
-                final var button = (JComponent) component;
-
-                button.setBackground(this.config.getBackgroundColor());
-                button.setForeground(this.config.getTextColor());
-                button.setOpaque(true);
-
-                if (button instanceof JButton) {
-                    button.setBackground(this.config.getAccentColor());
-                } else {
-                    button.setBorder(BorderFactory.createEmptyBorder());
-                }
-            }
-        }
-        final var bottomPanel = (JPanel) calendar.getComponent(1);
-        bottomPanel.setBackground(this.config.getBackgroundColor());
-        bottomPanel.setForeground(this.config.getTextColor());
-        bottomPanel.setOpaque(true);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder());
-        final var children = bottomPanel.getComponents();
-        for (final var child : children) {
-            final var panel = (JPanel) child;
-            panel.setBackground(this.config.getBackgroundColor());
-            panel.setForeground(this.config.getTextColor());
-            panel.setOpaque(true);
-            panel.setBorder(BorderFactory.createEmptyBorder());
-            for (final var element : panel.getComponents()) {
-                final var jComponent = (JComponent) element;
-                jComponent.setBackground(this.config.getBackgroundColor());
-                jComponent.setForeground(this.config.getTextColor());
-                jComponent.setOpaque(true);
-            }
-        }
+        this.colorizeCalendar(calendar);
         this.add(calendar, BorderLayout.CENTER);
     }
 }

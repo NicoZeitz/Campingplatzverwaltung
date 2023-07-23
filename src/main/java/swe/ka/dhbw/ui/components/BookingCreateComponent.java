@@ -17,7 +17,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.*;
@@ -61,25 +60,24 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     private static final String BUTTON_COMPONENT_ID = "BookingCreateComponent::BUTTON_COMPONENT_ID";
     private static final String CREATE_BOOKING_BUTTON_ELEMENT_ID = "BookingCreateComponent::CREATE_BOOKING_BUTTON_ELEMENT_ID";
     private static final String CANCEL_CREATE_BOOKING_BUTTON_ELEMENT_ID = "BookingCreateComponent::CANCEL_CREATE_BOOKING_BUTTON_ELEMENT_ID";
-    private static final String ADD_GAST_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_GAST_BUTTON_ELEMENT_ID";
-    private static final String ADD_LEISTUNG_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_LEISTUNG_BUTTON_ELEMENT_ID";
-    private static final String ADD_AUSRUESTUNG_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_AUSRUESTUNG_BUTTON_ELEMENT_ID";
-    private static final String BUCHUNGSZEITRAUM_VON_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::BUCHUNGSZEITRAUM_VON_ATTRIBUTE_ELEMENT_ID";
-    private static final String BUCHUNGSZEITRAUM_BIS_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::BUCHUNGSZEITRAUM_BIS_ATTRIBUTE_ELEMENT_ID";
-    private static final String CHIPKARTE_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::CHIPKARTE_ATTRIBUTE_ELEMENT_ID";
-    private static final String CHIPKARTE_SIMPLE_TABLE_COMPONENT_ID = "BookingCreateComponent::CHIPKARTE_SIMPLE_TABLE_COMPONENT_ID";
-    private final DateTimeFormatter dateTimeFormatter;
-    private AttributeElement anreisedatum;
-    private AttributeElement abreisedatum;
-    private AttributeElement chipkartenSelector;
-    private SimpleTableComponent chipkartenTable;
-    private List<? extends IDepictable> availableChipkarten;
-    private List<? extends IDepictable> selectedChipkarten = new ArrayList<>();
+    private static final String ADD_GUEST_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_GUEST_BUTTON_ELEMENT_ID";
+    private static final String ADD_SERVICE_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_SERVICE_BUTTON_ELEMENT_ID";
+    private static final String ADD_EQUIPMENT_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_EQUIPMENT_BUTTON_ELEMENT_ID";
+    private static final String BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID";
+    private static final String BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID";
+    private static final String CHIPCARD_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::CHIPCARD_ATTRIBUTE_ELEMENT_ID";
+    private static final String CHIPCARD_SIMPLE_TABLE_COMPONENT_ID = "BookingCreateComponent::CHIPCARD_SIMPLE_TABLE_COMPONENT_ID";
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMANY);
+    private AttributeElement arrivalDate;
+    private AttributeElement departureDate;
+    private AttributeElement chipCardSelector;
+    private SimpleTableComponent chipCardTable;
+    private List<? extends IDepictable> availableChipCards;
+    private List<? extends IDepictable> selectedChipCards = new ArrayList<>();
 
-    public BookingCreateComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> availableChipkarten) {
+    public BookingCreateComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> availableChipCards) {
         super("BookingCreateComponent", config);
-        this.dateTimeFormatter = new DateTimeFormatterBuilder().appendPattern("dd.MM.yyyy HH:mm").toFormatter(Locale.GERMANY);
-        this.availableChipkarten = availableChipkarten;
+        this.availableChipCards = availableChipCards;
         this.initUI();
     }
 
@@ -88,54 +86,56 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         if (ge.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
-                case ADD_GAST_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_GUEST));
-                case ADD_LEISTUNG_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_SERVICE));
-                case ADD_AUSRUESTUNG_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_EQUIPMENT));
-                case BUCHUNGSZEITRAUM_VON_ATTRIBUTE_ELEMENT_ID -> {
+                case ADD_GUEST_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_GUEST));
+                case ADD_SERVICE_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_SERVICE));
+                case ADD_EQUIPMENT_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_EQUIPMENT));
+                case BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID -> {
+                    if (ge.getCmd() != AttributeElement.Commands.BUTTON_PRESSED) {
+                        return;
+                    }
                     Optional<LocalDateTime> value = Optional.empty();
                     try {
                         value = Optional.of(LocalDateTime.parse(((AttributeElement) ge.getData()).getValueAsString(), dateTimeFormatter));
-                    } catch (DateTimeParseException e) {
-                        // Fehler ignorieren
-                    }
+                    } catch (DateTimeParseException e) { /* Ignore Errors */ }
                     this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_START_DATE, value));
 
                 }
-                case BUCHUNGSZEITRAUM_BIS_ATTRIBUTE_ELEMENT_ID -> {
+                case BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID -> {
+                    if (ge.getCmd() != AttributeElement.Commands.BUTTON_PRESSED) {
+                        return;
+                    }
                     Optional<LocalDateTime> value = Optional.empty();
                     try {
                         value = Optional.of(LocalDateTime.parse(((AttributeElement) ge.getData()).getValueAsString(), dateTimeFormatter));
-                    } catch (DateTimeParseException e) {
-                        // Fehler ignorieren
-                    }
+                    } catch (DateTimeParseException e) { /* Ignore Errors */ }
                     this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_END_DATE, value));
                 }
-                case CHIPKARTE_ATTRIBUTE_ELEMENT_ID -> {
+                case CHIPCARD_ATTRIBUTE_ELEMENT_ID -> {
                     final var value = ((AttributeElement) ge.getData()).getValue();
                     if (value instanceof String str && str.isEmpty()) {
                         return;
                     }
 
                     this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_CHIPCARD, new SelectChipkartePayload(
-                            this.availableChipkarten,
-                            this.selectedChipkarten,
+                            this.availableChipCards,
+                            this.selectedChipCards,
                             value
                     )));
                 }
-                case CHIPKARTE_SIMPLE_TABLE_COMPONENT_ID -> {
-                    final var scrollPane = (JScrollPane) this.chipkartenTable.getComponent(0);
+                case CHIPCARD_SIMPLE_TABLE_COMPONENT_ID -> {
+                    final var scrollPane = (JScrollPane) this.chipCardTable.getComponent(0);
                     final var viewport = scrollPane.getViewport();
                     final var tableComponent = (JTable) viewport.getComponent(0);
                     if (tableComponent.getSelectedColumn() != 2 || ge.getCmd() != SimpleTableComponent.Commands.ROW_SELECTED) {
                         return;
                     }
-                    final var chipkarte = this.selectedChipkarten.stream()
+                    final var chipkarte = this.selectedChipCards.stream()
                             .filter(c -> c.getElementID().equals(((IDepictable) ge.getData()).getElementID()))
                             .findFirst();
                     if (chipkarte.isPresent()) {
                         this.fireGUIEvent(new GUIEvent(this, Commands.DELETE_CHIPCARD, new DeleteChipkartePayload(
-                                this.availableChipkarten,
-                                this.selectedChipkarten,
+                                this.availableChipCards,
+                                this.selectedChipCards,
                                 chipkarte.get()
                         )));
                     }
@@ -154,30 +154,30 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     public void processUpdateEvent(final UpdateEvent ue) {
         if (ue.getCmdText().equals(Commands.SELECT_START_DATE.getCmdText())) {
             final var date = LocalDateTime.of((LocalDate) ue.getData(), LocalTime.of(0, 0));
-            this.anreisedatum.setValue(date.format(this.dateTimeFormatter));
+            this.arrivalDate.setValue(date.format(this.dateTimeFormatter));
         } else if (ue.getCmdText().equals(Commands.SELECT_END_DATE.getCmdText())) {
             final var date = LocalDateTime.of((LocalDate) ue.getData(), LocalTime.of(23, 59));
-            this.abreisedatum.setValue(date.format(this.dateTimeFormatter));
+            this.departureDate.setValue(date.format(this.dateTimeFormatter));
         } else if (ue.getCmd() == Commands.RESET) {
             this.resetInput();
         } else if (ue.getCmd() == Commands.SELECT_CHIPCARD) {
             final var payload = (SelectChipkartePayload) ue.getData();
-            this.availableChipkarten = payload.availableChipkarten();
-            this.selectedChipkarten = payload.selectedChipkarten();
+            this.availableChipCards = payload.availableChipkarten();
+            this.selectedChipCards = payload.selectedChipkarten();
 
-            this.chipkartenSelector.setData(Stream.concat(Stream.of(""), this.availableChipkarten.stream()).toArray(Object[]::new));
-            this.chipkartenSelector.setValue(payload.selectedChipkarte());
-            if (this.availableChipkarten.size() == 0) this.chipkartenSelector.setEnabled(false);
+            this.chipCardSelector.setData(Stream.concat(Stream.of(""), this.availableChipCards.stream()).toArray(Object[]::new));
+            this.chipCardSelector.setValue(payload.selectedChipkarte());
+            if (this.availableChipCards.size() == 0) this.chipCardSelector.setEnabled(false);
             this.reloadChipkarten();
         }
     }
 
     @SuppressWarnings("unchecked")
     public void resetInput() {
-        this.anreisedatum.setValue("");
-        this.abreisedatum.setValue("");
-        this.availableChipkarten = Stream.concat(this.availableChipkarten.stream(), this.selectedChipkarten.stream()).sorted().toList();
-        this.selectedChipkarten.clear();
+        this.arrivalDate.setValue("");
+        this.departureDate.setValue("");
+        this.availableChipCards = Stream.concat(this.availableChipCards.stream(), this.selectedChipCards.stream()).sorted().toList();
+        this.selectedChipCards.clear();
         this.reloadChipkarten();
         this.repaint();
     }
@@ -187,8 +187,8 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     }
 
     private JComponent createBuchungszeitraum() {
-        this.anreisedatum = AttributeElement
-                .builder(BUCHUNGSZEITRAUM_VON_ATTRIBUTE_ELEMENT_ID)
+        this.arrivalDate = AttributeElement
+                .builder(BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Anreisedatum")
                 .toolTip("Angabe des Anreisedatums der Buchung (Format: dd.MM.yyyy HH:mm)")
                 // label
@@ -210,10 +210,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .actionElementBackgroundColor(this.config.getBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
-        this.anreisedatum.addObserver(this);
+        this.arrivalDate.addObserver(this);
 
-        this.abreisedatum = AttributeElement
-                .builder(BUCHUNGSZEITRAUM_BIS_ATTRIBUTE_ELEMENT_ID)
+        this.departureDate = AttributeElement
+                .builder(BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Abreisedatum")
                 .toolTip("Angabe des Abreisedatums der Buchung (Format: dd.MM.yyyy HH:mm)")
                 // label
@@ -235,10 +235,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .actionElementBackgroundColor(this.config.getBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
-        this.abreisedatum.addObserver(this);
+        this.departureDate.addObserver(this);
 
         final var panel = AttributeComponent.builder(super.generateRandomID())
-                .attributeElements(new AttributeElement[] {this.anreisedatum, this.abreisedatum})
+                .attributeElements(new AttributeElement[] {this.arrivalDate, this.departureDate})
                 .build();
         panel.setBackground(this.config.getBackgroundColor());
         panel.setForeground(this.config.getTextColor());
@@ -257,7 +257,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         panel.setBackground(this.config.getBackgroundColor());
         panel.setForeground(this.config.getTextColor());
 
-        this.chipkartenSelector = AttributeElement.builder(CHIPKARTE_ATTRIBUTE_ELEMENT_ID)
+        this.chipCardSelector = AttributeElement.builder(CHIPCARD_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Neue Karte")
                 .toolTip("Auswahl der Chipkarten")
                 // label
@@ -278,10 +278,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .actionElementBackgroundColor(this.config.getBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
-        this.chipkartenSelector.addObserver(this);
+        this.chipCardSelector.addObserver(this);
 
         final var selectorComponent = AttributeComponent.builder(super.generateRandomID())
-                .attributeElements(new AttributeElement[] {this.chipkartenSelector})
+                .attributeElements(new AttributeElement[] {this.chipCardSelector})
                 .build();
 
         selectorComponent.setFont(this.config.getFont());
@@ -294,7 +294,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 new GridBagConstraints(0, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
 
 
-        this.chipkartenTable = SimpleTableComponent.builder(CHIPKARTE_SIMPLE_TABLE_COMPONENT_ID)
+        this.chipCardTable = SimpleTableComponent.builder(CHIPCARD_SIMPLE_TABLE_COMPONENT_ID)
                 .columnNames(new String[] {"Nummer", "Status", ""})
                 .preferredScrollableViewportSize(new Dimension(500, 100))
                 .cellRenderer((table, value, isSelected, hasFocus, row, column) -> {
@@ -311,9 +311,9 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     return new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 }, Object.class)
                 .build();
-        this.chipkartenTable.addObserver(this);
-        super.colorizeTable(this.chipkartenTable);
-        panel.add(this.chipkartenTable,
+        this.chipCardTable.addObserver(this);
+        super.colorizeTable(this.chipCardTable);
+        panel.add(this.chipCardTable,
                 new GridBagConstraints(0, 1, 1, 1, 1d, 1d, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
 
         final var table = super.createTable(new String[] {"Nummer", "Status", ""});
@@ -366,21 +366,21 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         leftPanel.add(super.createAddableWrapper(
                 "Gäste auswählen",
                 super.generateRandomID(),
-                ADD_GAST_BUTTON_ELEMENT_ID,
+                ADD_GUEST_BUTTON_ELEMENT_ID,
                 "Fügt einen neuen Gast hinzu",
                 this.createGastTable()
         ), new GridBagConstraints(1, 1, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         leftPanel.add(super.createAddableWrapper(
                 "Leistungen auswählen",
                 super.generateRandomID(),
-                ADD_LEISTUNG_BUTTON_ELEMENT_ID,
+                ADD_SERVICE_BUTTON_ELEMENT_ID,
                 "Fügt eine neue gebuchte Leistung hinzu",
                 this.createLeistungTable()
         ), new GridBagConstraints(1, 2, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         leftPanel.add(super.createAddableWrapper(
                 "Mitgebrachte Ausrüstung auswählen",
                 super.generateRandomID(),
-                ADD_AUSRUESTUNG_BUTTON_ELEMENT_ID,
+                ADD_EQUIPMENT_BUTTON_ELEMENT_ID,
                 "Fügt eine neue mitgebrachte Ausrüstung hinzu",
                 this.createAusruestungTable()
         ), new GridBagConstraints(1, 3, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
@@ -435,13 +435,13 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     }
 
     private void reloadChipkarten() {
-        this.chipkartenSelector.setData(Stream.concat(
+        this.chipCardSelector.setData(Stream.concat(
                 Stream.of(""),
-                this.availableChipkarten.stream()
+                this.availableChipCards.stream()
         ).toArray(Object[]::new));
-        this.chipkartenSelector.setValue("");
-        this.chipkartenTable.setMinimumSize(new Dimension(0, 100));
-        this.chipkartenTable.setData(this.selectedChipkarten.stream().map(c ->
+        this.chipCardSelector.setValue("");
+        this.chipCardTable.setMinimumSize(new Dimension(0, 100));
+        this.chipCardTable.setData(this.selectedChipCards.stream().map(c ->
                 new IDepictable() {
                     @Override
                     public Attribute[] getAttributeArray() {
@@ -484,19 +484,19 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         public static BookingCreatePayload create(final BookingCreateComponent component) {
             Optional<LocalDateTime> anreisedatum = Optional.empty();
             try {
-                anreisedatum = Optional.of(LocalDateTime.parse(component.anreisedatum.getValueAsString(), component.dateTimeFormatter));
+                anreisedatum = Optional.of(LocalDateTime.parse(component.arrivalDate.getValueAsString(), component.dateTimeFormatter));
             } catch (DateTimeParseException e) {
                 // Fehler ignorieren
             }
 
             Optional<LocalDateTime> abreisedatum = Optional.empty();
             try {
-                abreisedatum = Optional.of(LocalDateTime.parse(component.abreisedatum.getValueAsString(), component.dateTimeFormatter));
+                abreisedatum = Optional.of(LocalDateTime.parse(component.departureDate.getValueAsString(), component.dateTimeFormatter));
             } catch (DateTimeParseException e) {
                 // Fehler ignorieren
             }
 
-            return new BookingCreatePayload(anreisedatum, abreisedatum, component.selectedChipkarten);
+            return new BookingCreatePayload(anreisedatum, abreisedatum, component.selectedChipCards);
         }
     }
 }

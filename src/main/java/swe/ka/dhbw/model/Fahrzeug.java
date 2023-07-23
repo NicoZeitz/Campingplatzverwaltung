@@ -12,7 +12,20 @@ public final class Fahrzeug extends Ausruestung {
     }
 
     public enum Typ {
-        KFZ, WOHNMOBIL, WOHNWAGEN
+        KFZ("Auto / KFZ"),
+        WOHNMOBIL("Wohnmobil"),
+        WOHNWAGEN("Wohnwagen");
+
+        private final String name;
+
+        Typ(final String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
     }
 
     private String kennzeichen;

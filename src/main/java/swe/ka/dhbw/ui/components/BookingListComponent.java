@@ -41,22 +41,14 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         }
     }
 
-    private static final String BUCHUNGS_SIMPLETABLE_COMPONENT_ID = "BookingListComponent::BUCHUNGS_SIMPLETABLE_COMPONENT_ID";
-    private List<? extends IDepictable> buchungen;
+    private static final String BOOKING_SIMPLE_TABLE_COMPONENT_ID = "BookingListComponent::BOOKING_SIMPLE_TABLE_COMPONENT_ID";
+    private List<? extends IDepictable> bookings;
     private Map<ImageElement, ImageIcon> cachedImages = new HashMap<>();
 
-    public BookingListComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> buchungen) {
+    public BookingListComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> bookings) {
         super("BookingListComponent", config);
-        this.buchungen = buchungen;
+        this.bookings = bookings;
         this.initUI();
-    }
-
-    public List<? extends IDepictable> getBuchungen() {
-        return this.buchungen;
-    }
-
-    public void setBuchungen(final List<? extends IDepictable> buchungen) {
-        this.buchungen = buchungen;
     }
 
     @Override
@@ -107,21 +99,21 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         this.setLayout(new GridLayout(1, 1));
         this.setBackground(this.config.getBackgroundColor());
         this.setOpaque(true);
-        this.initUIBuchungen();
+        this.initUIBookings();
     }
 
     @SuppressWarnings("unchecked")
-    private void initUIBuchungen() {
-        final var columnNames = Arrays.stream(this.buchungen.get(0).getAttributeArray())
+    private void initUIBookings() {
+        final var columnNames = Arrays.stream(this.bookings.get(0).getAttributeArray())
                 .map(Attribute::getName)
                 .toList()
                 .toArray(new String[0]);
 
         final var table = SimpleTableComponent
-                .builder(BUCHUNGS_SIMPLETABLE_COMPONENT_ID)
+                .builder(BOOKING_SIMPLE_TABLE_COMPONENT_ID)
                 .columnNames(columnNames)
                 .cellRenderer(this, List.class)
-                .data((List<IDepictable>) this.buchungen)
+                .data((List<IDepictable>) this.bookings)
                 .build();
         super.colorizeTable(table);
         table.addObserver(this);

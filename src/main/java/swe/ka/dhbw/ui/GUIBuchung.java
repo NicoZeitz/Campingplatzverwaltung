@@ -102,13 +102,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
 
     @Override
     public void processUpdateEvent(UpdateEvent updateEvent) {
-        if (Arrays.stream(BookingOverviewComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
-            this.bookingOverview.processUpdateEvent(updateEvent);
-        } else if (Arrays.stream(BookingCreateComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
-            this.bookingCreate.processUpdateEvent(updateEvent);
-        } else if (Arrays.stream(BookingListComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
-            this.bookingList.processUpdateEvent(updateEvent);
-        } else if (updateEvent.getCmd() == Commands.OPEN_TAB) {
+        if (updateEvent.getCmd() == Commands.OPEN_TAB) {
             final var payload = (TabPayload) updateEvent.getData();
 
             // Tab existiert bereits, erneut öffnen
@@ -137,11 +131,18 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
             if (index != -1) {
                 this.tabs.setSelectedIndex(index);
             }
-        } else {
-            // send unknown commands to all tabs
+        }
+        // send commands to specific tab
+        else if (Arrays.stream(BookingOverviewComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingOverview.processUpdateEvent(updateEvent);
+        } else if (Arrays.stream(BookingCreateComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingCreate.processUpdateEvent(updateEvent);
+        } else if (Arrays.stream(BookingListComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingList.processUpdateEvent(updateEvent);
+        }
+        // send unknown commands to current active tab
+        else {
+            ((GUIComponent) this.tabs.getSelectedComponent()).processUpdateEvent(updateEvent);
         }
     }
 

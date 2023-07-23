@@ -40,18 +40,12 @@ public class GUIBuchungObserver implements IGUIEventListener {
             // TODO:
         } else if (ge.getCmd() == BookingCreateComponent.Commands.ADD_EQUIPMENT) {
             // TODO:
-        } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_START_DATE) {
+        } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_START_DATE ||
+                ge.getCmd() == BookingCreateComponent.Commands.SELECT_END_DATE) {
             final var date = ((Optional<LocalDateTime>) ge.getData())
                     .map(LocalDateTime::toLocalDate);
 
-            GUIController.getInstance()
-                    .openDialogDatePicker(date, (BookingCreateComponent) ge.getSource(), BookingCreateComponent.Commands.SELECT_START_DATE.cmdText);
-        } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_END_DATE) {
-            final var date = ((Optional<LocalDateTime>) ge.getData())
-                    .map(LocalDateTime::toLocalDate);
-
-            GUIController.getInstance()
-                    .openDialogDatePicker(date, (BookingCreateComponent) ge.getSource(), BookingCreateComponent.Commands.SELECT_END_DATE.cmdText);
+            GUIController.getInstance().openDialogDatePicker(date, ge);
         } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_CHIPCARD) {
             final var payload = (BookingCreateComponent.SelectChipkartePayload) ge.getData();
             GUIController.getInstance().bookingCreateSelectChipkarte((List<Chipkarte>) payload.availableChipkarten(),
