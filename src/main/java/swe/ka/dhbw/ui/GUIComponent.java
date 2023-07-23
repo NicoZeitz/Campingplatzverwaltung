@@ -6,6 +6,8 @@ import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.util.UUID;
 
@@ -105,6 +107,29 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         wrapper.getComponent(1).setForeground(this.config.getTextColor());
         wrapper.setBorder(border);
         return wrapper;
+    }
+
+    protected void createEmptyMessage(final String message) {
+        this.setLayout(new GridBagLayout());
+        final var text = new JTextPane();
+        text.setBackground(this.config.getBackgroundColor());
+        text.setForeground(this.config.getTextColor());
+        text.setEditable(false);
+        text.setOpaque(true);
+        text.setText(message);
+        var doc = text.getStyledDocument();
+        var styles = new SimpleAttributeSet();
+        StyleConstants.setAlignment(styles, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setFontFamily(styles, this.config.getFontFamily());
+        StyleConstants.setFontSize(styles, this.config.getHeaderFont().getSize());
+        StyleConstants.setBold(styles, true);
+        StyleConstants.setBackground(styles, this.config.getBackgroundColor());
+        StyleConstants.setForeground(styles, this.config.getTextColor());
+        doc.setParagraphAttributes(0, doc.getLength(), styles, false);
+        this.setBackground(this.config.getBackgroundColor());
+        this.setForeground(this.config.getTextColor());
+        this.setOpaque(true);
+        this.add(text);
     }
 
     protected JComponent createFillComponent() {

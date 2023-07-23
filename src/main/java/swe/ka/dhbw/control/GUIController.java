@@ -475,7 +475,7 @@ public class GUIController implements IUpdateEventSender {
             this.windowMain.grabFocus();
         });
     }
-    
+
     public void openWindowMain() {
         final var configWindow = (SwingUtilities.getWindowAncestor(this.windowConfiguration));
         this.windowConfiguration.removeObserver(this.windowConfigurationObserver);
@@ -532,7 +532,12 @@ public class GUIController implements IUpdateEventSender {
                                  final String title,
                                  final WindowLocation windowLocation,
                                  final Consumer<WindowEvent> onExit) {
+        final var config = Optional.ofNullable(this.getConfig())
+                .orElse(this.configurationBuilder.build());
         final var dialog = new JDialog(parentWindow);
+        dialog.setForeground(config.getTextColor());
+        dialog.setBackground(config.getBackgroundColor());
+        dialog.setFont(config.getFont());
         dialog.setTitle(title);
         dialog.add(content);
         dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
@@ -577,9 +582,12 @@ public class GUIController implements IUpdateEventSender {
                                 final String title,
                                 final WindowLocation windowLocation,
                                 final Consumer<WindowEvent> onExit) {
+        final var config = Optional.ofNullable(this.getConfig())
+                .orElse(this.configurationBuilder.build());
         final JFrame frame = new JFrame(title);
-        frame.setBackground(Color.white);
-        content.setBackground(Color.white);
+        frame.setForeground(config.getTextColor());
+        frame.setBackground(config.getBackgroundColor());
+        frame.setFont(config.getFont());
         frame.setSize(windowLocation.width() > 0 ? windowLocation.width() : 100,
                 windowLocation.height() > 0 ? windowLocation.height() : 100);
         frame.setLocation(Math.max(windowLocation.x(), 0), Math.max(windowLocation.y(), 0));

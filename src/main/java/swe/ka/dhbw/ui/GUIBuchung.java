@@ -47,19 +47,25 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     }
 
     public enum Tabs {
-        APPOINTMENT_OVERVIEW("Terminübersicht"),
-        BOOKING_LIST("Buchungsliste"),
-        BOOKING_CREATE("Buchung anlegen"),
-        BOOKING_IMPORT_EXPORT("Buchung Import/Export");
+        APPOINTMENT_OVERVIEW("Terminübersicht", "Zeigt die Buchungen übersichtlich in einem Kalendar an"),
+        BOOKING_LIST("Buchungsliste", "Zeigt die Buchungen in einer Liste an"),
+        BOOKING_CREATE("Buchung anlegen", "Erstellt eine neue Buchung"),
+        BOOKING_IMPORT_EXPORT("Buchung Import/Export", "Importiert/Exportiert Buchungen");
 
         private final String name;
+        private final String tooltip;
 
-        Tabs(final String name) {
+        Tabs(final String name, final String tooltip) {
             this.name = name;
+            this.tooltip = tooltip;
         }
 
         public String getName() {
             return this.name;
+        }
+
+        public String getTooltip() {
+            return this.tooltip;
         }
     }
 
@@ -170,16 +176,16 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.tabs.addTab(Tabs.APPOINTMENT_OVERVIEW.getName(),
                 null,
                 this.bookingOverview,
-                "Zeigt die Buchungen übersichtlich in einem Kalendar an");
+                Tabs.APPOINTMENT_OVERVIEW.getTooltip());
         this.tabs.setMnemonicAt(0, KeyEvent.VK_1);
-        this.tabs.addTab(Tabs.BOOKING_LIST.getName(), null, this.bookingList, "Zeigt die Buchungen in einer Liste an");
+        this.tabs.addTab(Tabs.BOOKING_LIST.getName(), null, this.bookingList, Tabs.BOOKING_LIST.getTooltip());
         this.tabs.setMnemonicAt(0, KeyEvent.VK_2);
-        this.tabs.addTab(Tabs.BOOKING_CREATE.getName(), null, this.bookingCreate, "Erstellt eine neue Buchung");
+        this.tabs.addTab(Tabs.BOOKING_CREATE.getName(), null, this.bookingCreate, Tabs.BOOKING_CREATE.getTooltip());
         this.tabs.setMnemonicAt(0, KeyEvent.VK_3);
         this.tabs.addTab(Tabs.BOOKING_IMPORT_EXPORT.getName(),
                 null,
                 new BookingImportExportComponent(this.config),
-                "Importiert/Exportiert Buchungen");
+                Tabs.BOOKING_IMPORT_EXPORT.getTooltip());
         this.tabs.setMnemonicAt(0, KeyEvent.VK_4);
 
         for (var i = 0; i < this.tabs.getTabCount(); ++i) {
