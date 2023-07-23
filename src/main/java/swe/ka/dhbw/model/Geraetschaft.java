@@ -7,7 +7,10 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -145,12 +148,10 @@ public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistab
 
     @Override
     public String toString() {
-        return "Geraetschaft{" +
-                "anschaffungsdatum=" + this.getAnschaffungsdatum() +
-                ", zustand='" + this.getZustand() + '\'' +
-                ", gebuehr=" + this.getGebuehr() +
-                ", maximalAnzahl=" + this.getMaximalAnzahl() +
-                ", beschreibung='" + this.getBeschreibung() + '\'' +
-                '}';
+        final var df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+        final var price = df.format(this.getGebuehr().setScale(2, RoundingMode.HALF_EVEN)) + "€";
+        final var purchaseDate = this.getAnschaffungsdatum().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        return this.getBeschreibung() + " - " + price + " (" + this.getZustand() + ", angeschafft am " + purchaseDate + ")";
     }
 }

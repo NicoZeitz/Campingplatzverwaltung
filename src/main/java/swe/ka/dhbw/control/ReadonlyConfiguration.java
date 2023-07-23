@@ -8,6 +8,8 @@ public interface ReadonlyConfiguration {
     int DEFAULT_FONT_SIZE = 11;
     String DEFAULT_FONT_FAMILY = "Tahoma";
     Color DEFAULT_ACCENT_COLOR = new Color(117, 201, 252);
+    Color DEFAULT_SUCCESS_COLOR = new Color(172, 208, 146);
+    Color DEFAULT_FAILURE_COLOR = new Color(195, 88, 87);
     /* LIGHT THEME */
     Color DEFAULT_TEXT_COLOR = new Color(0, 0, 0);
     Color DEFAULT_BACKGROUND_COLOR = new Color(255, 255, 255);
@@ -38,6 +40,10 @@ public interface ReadonlyConfiguration {
     Color getSecondaryBackgroundColor();
 
     Color getTextColor();
+
+    Color getSuccessColor();
+
+    Color getFailureColor();
 
     WindowLocation getWindowLocation(final String windowName);
 }

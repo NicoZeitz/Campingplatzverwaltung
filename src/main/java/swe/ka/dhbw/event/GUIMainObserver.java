@@ -9,19 +9,19 @@ public final class GUIMainObserver implements IGUIEventListener {
     @Override
     public void processGUIEvent(final GUIEvent ge) {
         if (ge.getCmd() == GUIMain.Commands.BOOKING_MANAGEMENT) {
-            GUIController.getInstance().openGUIBuchung();
+            GUIController.getInstance().openWindowBooking();
         } else if (ge.getCmd() == GUIMain.Commands.PITCH_MANAGEMENT) {
-            GUIController.getInstance().openGUIStellplatz();
+            GUIController.getInstance().openWindowPitch();
         } else if (ge.getCmd() == GUIMain.Commands.GUEST_MANAGEMENT) {
-            GUIController.getInstance().openGUIGast();
+            GUIController.getInstance().openWindowGuest();
         } else if (ge.getCmd() == GUIMain.Commands.FACILITY_MANAGEMENT) {
-            GUIController.getInstance().openGUIEinrichtung();
+            GUIController.getInstance().openWindowFacility();
         } else if (ge.getCmd() == GUIMain.Commands.PERSONNEL_MANAGEMENT) {
-            GUIController.getInstance().openGUIPersonal();
+            GUIController.getInstance().openWindowStaff();
         } else if (ge.getCmd() == GUIMain.Commands.CREATE_BOOKING) {
-            GUIController.getInstance().openGUIBuchungErstellen();
+            GUIController.getInstance().handleWindowMainCreateBooking();
         } else if (ge.getCmd() == GUIMain.Commands.CHECK_IN_CHECK_OUT) {
-            GUIController.getInstance().openGUICheckInCheckOut();
+            GUIController.getInstance().openWindowCheckInCheckOut();
         } else {
             LogObserver.logGUIEvent(ge);
         }

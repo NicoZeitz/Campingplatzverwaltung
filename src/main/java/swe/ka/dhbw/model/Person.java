@@ -10,9 +10,24 @@ import java.util.Objects;
 
 public class Person implements IDepictable, IPersistable, ICSVPersistable {
     public enum Geschlecht {
-        MAENNLICH,
-        WEIBLICH,
-        DIVERS,
+        MAENNLICH("männlich"),
+        WEIBLICH("weiblich"),
+        DIVERS("divers");
+
+        private final String name;
+
+        Geschlecht(final String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
     }
 
     public enum Attributes {

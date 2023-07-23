@@ -162,6 +162,11 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
     }
 
     @Override
+    public String getVisibleText() {
+        return this.getName() + " (" + this.getGeschlecht() + ") - Kundennummer: " + this.getKundennummer();
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(this.getKundennummer(), this.getAusweisnummer(), this.getAnschrift());
     }

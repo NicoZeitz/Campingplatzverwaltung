@@ -20,7 +20,7 @@ import java.util.*;
 
 public class BookingListComponent extends GUIComponent implements IGUIEventListener, TableCellRenderer {
     public enum Commands implements EventCommand {
-        BUCHUNG_SELECTED("BookingListComponent.buchungSelected", IDepictable.class);
+        BOOKING_SELECTED("BookingListComponent::BOOKING_SELECTED", IDepictable.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -41,24 +41,14 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         }
     }
 
-    private static final String BUCHUNGS_SIMPLETABLE_COMPONENT_ID = "BookingListComponent::BUCHUNGS_SIMPLETABLE_COMPONENT_ID";
-    private final ReadonlyConfiguration config;
-    private List<? extends IDepictable> buchungen;
+    private static final String BOOKING_SIMPLE_TABLE_COMPONENT_ID = "BookingListComponent::BOOKING_SIMPLE_TABLE_COMPONENT_ID";
+    private List<? extends IDepictable> bookings;
     private Map<ImageElement, ImageIcon> cachedImages = new HashMap<>();
 
-    public BookingListComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> buchungen) {
-        super("BookingListComponent");
-        this.config = config;
-        this.buchungen = buchungen;
+    public BookingListComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> bookings) {
+        super("BookingListComponent", config);
+        this.bookings = bookings;
         this.initUI();
-    }
-
-    public List<? extends IDepictable> getBuchungen() {
-        return this.buchungen;
-    }
-
-    public void setBuchungen(final List<? extends IDepictable> buchungen) {
-        this.buchungen = buchungen;
     }
 
     @Override
@@ -94,7 +84,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         if (ge.getCmd() == SimpleTableComponent.Commands.ROW_SELECTED) {
             this.fireGUIEvent(new GUIEvent(
                     this,
-                    Commands.BUCHUNG_SELECTED,
+                    Commands.BOOKING_SELECTED,
                     ge.getData()
             ));
         }
@@ -109,49 +99,25 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         this.setLayout(new GridLayout(1, 1));
         this.setBackground(this.config.getBackgroundColor());
         this.setOpaque(true);
-        this.initUIBuchungen();
+        this.initUIBookings();
     }
 
     @SuppressWarnings("unchecked")
-    private void initUIBuchungen() {
-        final var columnNames = Arrays.stream(this.buchungen.get(0).getAttributeArray())
+    private void initUIBookings() {
+        final var columnNames = Arrays.stream(this.bookings.get(0).getAttributeArray())
                 .map(Attribute::getName)
                 .toList()
                 .toArray(new String[0]);
 
         final var table = SimpleTableComponent
-                .builder(BUCHUNGS_SIMPLETABLE_COMPONENT_ID)
+                .builder(BOOKING_SIMPLE_TABLE_COMPONENT_ID)
                 .columnNames(columnNames)
                 .cellRenderer(this, List.class)
-                .data((List<IDepictable>) this.buchungen)
+                .data((List<IDepictable>) this.bookings)
                 .build();
-
-        table.setBackground(this.config.getBackgroundColor());
-        table.setForeground(this.config.getTextColor());
-        table.setFont(this.config.getFont());
+        super.colorizeTable(table);
         table.addObserver(this);
 
-        final var scrollPane = (JScrollPane) table.getComponent(0);
-        scrollPane.setBackground(this.config.getBackgroundColor());
-        scrollPane.setForeground(this.config.getTextColor());
-        scrollPane.setFont(this.config.getFont());
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        final var viewport = scrollPane.getViewport();
-        viewport.setBackground(this.config.getBackgroundColor());
-        viewport.setForeground(this.config.getTextColor());
-        viewport.setFont(this.config.getFont());
-        final var tableComponent = (JTable) viewport.getComponent(0);
-        tableComponent.setRowHeight(75);
-        tableComponent.setBackground(this.config.getBackgroundColor());
-        tableComponent.setForeground(this.config.getTextColor());
-        tableComponent.setFont(this.config.getFont());
-        tableComponent.setSelectionBackground(this.config.getAccentColor());
-        tableComponent.setBorder(BorderFactory.createEmptyBorder());
-        final var tableHeader = tableComponent.getTableHeader();
-        tableHeader.setBackground(this.config.getSecondaryBackgroundColor());
-        tableHeader.setForeground(this.config.getTextColor());
-        tableHeader.setFont(this.config.getFont());
-        tableHeader.setBorder(BorderFactory.createEmptyBorder());
         this.add(table, BorderLayout.CENTER);
     }
 }

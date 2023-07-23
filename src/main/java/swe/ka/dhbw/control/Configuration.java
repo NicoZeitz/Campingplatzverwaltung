@@ -19,6 +19,8 @@ public class Configuration implements ReadonlyConfiguration {
     private Color backgroundColor;
     private Color secondaryBackgroundColor;
     private Color accentColor;
+    private Color successColor;
+    private Color failureColor;
 
     private Configuration(
             final int fontSize,
@@ -28,6 +30,8 @@ public class Configuration implements ReadonlyConfiguration {
             final Color backgroundColor,
             final Color secondaryBackgroundColor,
             final Color accentColor,
+            final Color successColor,
+            final Color failureColor,
             final IPropertyManager propertyManager
     ) {
         this.fontSize = fontSize;
@@ -37,6 +41,8 @@ public class Configuration implements ReadonlyConfiguration {
         this.backgroundColor = backgroundColor;
         this.secondaryBackgroundColor = secondaryBackgroundColor;
         this.accentColor = accentColor;
+        this.successColor = successColor;
+        this.failureColor = failureColor;
         this.propertyManager = propertyManager;
     }
 
@@ -48,7 +54,7 @@ public class Configuration implements ReadonlyConfiguration {
                     final var windowName = entry.getKey();
                     final var windowLocation = entry.getValue();
                     final var sb = new StringBuilder();
-                    sb.append("%s:".formatted(windowName));
+                    sb.append("%s.".formatted(windowName));
                     sb.append("x=%d,".formatted(windowLocation.x()));
                     sb.append("y=%d,".formatted(windowLocation.y()));
                     sb.append("w=%d,".formatted(windowLocation.width()));
@@ -77,7 +83,10 @@ public class Configuration implements ReadonlyConfiguration {
                 Objects.equals(this.getTextColor(), that.getTextColor()) &&
                 Objects.equals(this.getBackgroundColor(), that.getBackgroundColor()) &&
                 Objects.equals(this.getSecondaryBackgroundColor(), that.getSecondaryBackgroundColor()) &&
-                Objects.equals(this.getAccentColor(), that.getAccentColor());
+                Objects.equals(this.getAccentColor(), that.getAccentColor()) &&
+                Objects.equals(this.getSuccessColor(), that.getSuccessColor()) &&
+                Objects.equals(this.getFailureColor(), that.getFailureColor());
+
     }
 
     public Color getAccentColor() {
@@ -95,6 +104,15 @@ public class Configuration implements ReadonlyConfiguration {
 
     public void setBackgroundColor(final Color backgroundColor) {
         this.backgroundColor = backgroundColor;
+    }
+
+    @Override
+    public Color getFailureColor() {
+        return this.failureColor;
+    }
+
+    public void setFailureColor(final Color failureColor) {
+        this.failureColor = failureColor;
     }
 
     @Override
@@ -154,6 +172,16 @@ public class Configuration implements ReadonlyConfiguration {
     }
 
     @Override
+    public Color getSuccessColor() {
+        return this.successColor;
+
+    }
+
+    public void setSuccessColor(final Color successColor) {
+        this.successColor = successColor;
+    }
+
+    @Override
     public Color getTextColor() {
         return this.textColor;
     }
@@ -180,7 +208,9 @@ public class Configuration implements ReadonlyConfiguration {
                 this.getTextColor(),
                 this.getBackgroundColor(),
                 this.getSecondaryBackgroundColor(),
-                this.getAccentColor());
+                this.getAccentColor(),
+                this.getSuccessColor(),
+                this.getFailureColor());
     }
 
     @Override
@@ -192,6 +222,8 @@ public class Configuration implements ReadonlyConfiguration {
                 ", backgroundColor=" + this.getBackgroundColor() +
                 ", secondaryBackgroundColor=" + this.getSecondaryBackgroundColor() +
                 ", accentColor=" + this.getAccentColor() +
+                ", successColor=" + this.getSuccessColor() +
+                ", failureColor=" + this.getFailureColor() +
                 ", windowLocations=" + this.getWindowLocations() +
                 '}';
     }
@@ -214,6 +246,8 @@ public class Configuration implements ReadonlyConfiguration {
         private Color backgroundColor = DEFAULT_BACKGROUND_COLOR;
         private Color secondaryBackgroundColor = DEFAULT_SECONDARY_BACKGROUND_COLOR;
         private Color accentColor = DEFAULT_ACCENT_COLOR;
+        private Color successColor = DEFAULT_SUCCESS_COLOR;
+        private Color failureColor = DEFAULT_FAILURE_COLOR;
         private IPropertyManager propertyManager = new PropertyManager(System.getProperty("user.home") + File.separator + "configuration.properties",
                 Configuration.class,
                 "/configuration.properties");
@@ -234,8 +268,8 @@ public class Configuration implements ReadonlyConfiguration {
                         continue;
                     }
 
-                    final var windowName = serializedLocation.split(":")[0];
-                    final var windowLocation = WindowLocation.fromSerialized(serializedLocation.split(":")[1]);
+                    final var windowName = serializedLocation.split("\\.")[0];
+                    final var windowLocation = WindowLocation.fromSerialized(serializedLocation.split("\\.")[1]);
                     this.windowLocations.put(windowName, windowLocation);
                 }
             }
@@ -256,6 +290,8 @@ public class Configuration implements ReadonlyConfiguration {
                     this.backgroundColor,
                     this.secondaryBackgroundColor,
                     this.accentColor,
+                    this.successColor,
+                    this.failureColor,
                     this.propertyManager
             );
         }
@@ -265,6 +301,11 @@ public class Configuration implements ReadonlyConfiguration {
                     .textColor(DARK_DEFAULT_TEXT_COLOR)
                     .secondaryBackgroundColor(DARK_DEFAULT_SECONDARY_BACKGROUND_COLOR)
                     .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR);
+        }
+
+        public Builder failureColor(final Color color) {
+            this.failureColor = color;
+            return this;
         }
 
         public Builder font(final Font font) {
@@ -301,6 +342,11 @@ public class Configuration implements ReadonlyConfiguration {
 
         public Builder secondaryBackgroundColor(final Color color) {
             this.secondaryBackgroundColor = color;
+            return this;
+        }
+
+        public Builder successColor(final Color color) {
+            this.successColor = color;
             return this;
         }
 

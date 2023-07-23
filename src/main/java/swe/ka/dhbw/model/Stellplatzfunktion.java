@@ -7,6 +7,8 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -133,12 +135,10 @@ public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPer
 
     @Override
     public String toString() {
-        return "Stellplatzfunktion{" +
-                "status=" + this.getStatus() +
-                ", gebuehr=" + this.getGebuehr() +
-                ", maximalAnzahl=" + this.getMaximalAnzahl() +
-                ", beschreibung='" + this.getBeschreibung() + '\'' +
-                '}';
+        final var df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+        final var price = df.format(this.getGebuehr().setScale(2, RoundingMode.HALF_EVEN)) + "€";
+        return this.getBeschreibung() + "für den Stellplatz - " + price;
     }
 
     public void addStellplatz(final Stellplatz stellplatz) {
