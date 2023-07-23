@@ -11,13 +11,13 @@ import java.awt.*;
 
 public class GUIMain extends GUIComponent {
     public enum Commands implements EventCommand {
-        BOOKING_MANAGEMENT("Buchungen verwalten"),
-        PITCH_MANAGEMENT("Stellplätze verwalten"),
-        GUEST_MANAGEMENT("Gästedaten verwalten"),
-        FACILITY_MANAGEMENT("Einrichtungen verwalten"),
-        PERSONNEL_MANAGEMENT("Personal verwalten"),
-        CREATE_BOOKING("Buchung erstellen"),
-        CHECK_IN_CHECK_OUT("Check-In / Check-Out");
+        BOOKING_MANAGEMENT("GUIMain::BOOKING_MANAGEMENT"),
+        PITCH_MANAGEMENT("GUIMain::PITCH_MANAGEMENT"),
+        GUEST_MANAGEMENT("GUIMain::GUEST_MANAGEMENT"),
+        FACILITY_MANAGEMENT("GUIMain::FACILITY_MANAGEMENT"),
+        PERSONNEL_MANAGEMENT("GUIMain::PERSONNEL_MANAGEMENT"),
+        CREATE_BOOKING("GUIMain::CREATE_BOOKING"),
+        CHECK_IN_CHECK_OUT("GUIMain::CHECK_IN_CHECK_OUT");
 
         public final String cmdText;
 
@@ -50,42 +50,42 @@ public class GUIMain extends GUIComponent {
         this.setLayout(new BorderLayout());
         this.setBackground(this.config.getBackgroundColor());
 
-        // Titel
-        final var title = new JPanel();
-        title.setLayout(new GridLayout(2, 1, 0, 10));
-        title.setBackground(this.config.getBackgroundColor());
-        title.setOpaque(true);
+        // Title & Heading
+        final var topPanel = new JPanel();
+        topPanel.setLayout(new GridLayout(2, 1, 0, 10));
+        topPanel.setBackground(this.config.getBackgroundColor());
+        topPanel.setOpaque(true);
 
-        final var titleHeader = new JLabel("Campingplatzverwaltung");
-        titleHeader.setHorizontalAlignment(SwingConstants.CENTER);
-        titleHeader.setFont(this.config.getHeaderFont());
-        titleHeader.setForeground(this.config.getTextColor());
-        titleHeader.setBorder(new EmptyBorder(10, 10, 10, 10));
-        title.add(titleHeader);
+        final var title = new JLabel("Campingplatzverwaltung");
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setFont(this.config.getHeaderFont());
+        title.setForeground(this.config.getTextColor());
+        title.setBorder(new EmptyBorder(10, 10, 10, 10));
+        topPanel.add(title);
 
-        final var subtitle = new JLabel("Hauptanwendungen");
-        subtitle.setHorizontalAlignment(SwingConstants.LEFT);
-        subtitle.setFont(this.config.getLargeFont());
-        subtitle.setForeground(this.config.getTextColor());
-        subtitle.setBorder(new EmptyBorder(10, 10, 10, 10));
-        title.add(subtitle);
+        final var header = new JLabel("Hauptanwendungen");
+        header.setHorizontalAlignment(SwingConstants.LEFT);
+        header.setFont(this.config.getLargeFont());
+        header.setForeground(this.config.getTextColor());
+        header.setBorder(new EmptyBorder(10, 10, 10, 10));
+        topPanel.add(header);
 
-        this.add(title, BorderLayout.NORTH);
+        this.add(topPanel, BorderLayout.NORTH);
 
-        // Hauptanwendungen
+        // Main Apps
         final var mainApps = new JPanel();
         mainApps.setLayout(new GridLayout(2, 3, 10, 10));
         mainApps.setBackground(this.config.getBackgroundColor());
         mainApps.setOpaque(true);
         mainApps.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        final var buchungen = new JButton("Buchungen verwalten");
-        final var stellplaetze = new JButton("Stellplätze verwalten");
-        final var gaeste = new JButton("Gästedaten verwalten");
-        final var einrichtungen = new JButton("Einrichtungen verwalten");
-        final var personal = new JButton("Personaldaten verwalten");
+        final var bookingManagement = new JButton("Buchungen verwalten");
+        final var pitchManagement = new JButton("Stellplätze verwalten");
+        final var guestManagement = new JButton("Gästedaten verwalten");
+        final var facilityManagement = new JButton("Einrichtungen verwalten");
+        final var staffManagement = new JButton("Personaldaten verwalten");
 
-        for (final var btn : new JButton[] {buchungen, stellplaetze, gaeste, einrichtungen, personal}) {
+        for (final var btn : new JButton[] {bookingManagement, pitchManagement, guestManagement, facilityManagement, staffManagement}) {
             btn.setFont(this.config.getLargeFont());
             btn.setForeground(this.config.getTextColor());
             btn.setBackground(this.config.getAccentColor());
@@ -95,17 +95,17 @@ public class GUIMain extends GUIComponent {
             mainApps.add(btn);
         }
 
-        // Schnellfunktionen
+        // Quick Functions
         final var quickApps = new JPanel();
         quickApps.setLayout(new GridLayout(2, 1, 10, 10));
         quickApps.setBackground(this.config.getBackgroundColor());
         quickApps.setOpaque(true);
         quickApps.setBorder(BorderFactory.createEmptyBorder());
 
-        final var buchungErstellen = new JButton("Buchung erstellen");
+        final var createBooking = new JButton("Buchung erstellen");
         final var checkInCheckOut = new JButton("Check-In / Check-Out");
 
-        for (final var btn : new JButton[] {buchungErstellen, checkInCheckOut}) {
+        for (final var btn : new JButton[] {createBooking, checkInCheckOut}) {
             btn.setFont(this.config.getLargeFont());
             btn.setForeground(this.config.getTextColor());
             btn.setBackground(this.config.getSecondaryAccentColor());
@@ -117,12 +117,12 @@ public class GUIMain extends GUIComponent {
 
         mainApps.add(quickApps);
 
-        buchungen.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BOOKING_MANAGEMENT)));
-        stellplaetze.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.PITCH_MANAGEMENT)));
-        gaeste.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.GUEST_MANAGEMENT)));
-        einrichtungen.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.FACILITY_MANAGEMENT)));
-        personal.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.PERSONNEL_MANAGEMENT)));
-        buchungErstellen.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.CREATE_BOOKING)));
+        bookingManagement.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BOOKING_MANAGEMENT)));
+        pitchManagement.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.PITCH_MANAGEMENT)));
+        guestManagement.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.GUEST_MANAGEMENT)));
+        facilityManagement.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.FACILITY_MANAGEMENT)));
+        staffManagement.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.PERSONNEL_MANAGEMENT)));
+        createBooking.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.CREATE_BOOKING)));
         checkInCheckOut.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.CHECK_IN_CHECK_OUT)));
 
         this.add(mainApps, BorderLayout.CENTER);

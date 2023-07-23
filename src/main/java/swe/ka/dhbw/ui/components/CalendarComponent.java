@@ -18,7 +18,7 @@ import java.util.Optional;
 
 public class CalendarComponent extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
-        DATE_SELECTED("CalendarComponent.dateSelected", LocalDate.class);
+        DATE_SELECTED("CalendarComponent::DATE_SELECTED", LocalDate.class);
 
         public final Class<?> payloadType;
         public final String cmdText;

@@ -24,6 +24,7 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         this.config = config;
     }
 
+    // TODO: remove if not used
     public JTable createTable(String[] columnNames) {
         // we need to create our own table as the SimpleTableComponent does not allow us to listen to events that happen inside the table
         // and we want to grow the table dynamically instead of using a scrollpane
@@ -115,6 +116,7 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         text.setBackground(this.config.getBackgroundColor());
         text.setForeground(this.config.getTextColor());
         text.setEditable(false);
+        text.setFocusable(false);
         text.setOpaque(true);
         text.setText(message);
         var doc = text.getStyledDocument();

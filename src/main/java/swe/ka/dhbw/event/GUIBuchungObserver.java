@@ -24,12 +24,12 @@ public class GUIBuchungObserver implements IGUIEventListener {
             GUIController.getInstance().handleWindowBookingAppointmentOverviewPreviousWeek((LocalDate) ge.getData());
         } else if (ge.getCmd() == BookingOverviewComponent.Commands.NEXT_WEEK) {
             GUIController.getInstance().handleWindowBookingAppointmentOverviewNextWeek((LocalDate) ge.getData());
-        } else if (ge.getCmd() == BookingOverviewComponent.Commands.BUCHUNG_SELECTED) {
+        } else if (ge.getCmd() == BookingOverviewComponent.Commands.BOOKING_SELECTED) {
             GUIController.getInstance().handleWindowBookingBookingSelected(((IDepictable) ge.getData()).getElementID());
         }
 
         // BookingListComponent
-        else if (ge.getCmd() == BookingListComponent.Commands.BUCHUNG_SELECTED) {
+        else if (ge.getCmd() == BookingListComponent.Commands.BOOKING_SELECTED) {
             GUIController.getInstance().handleWindowBookingBookingSelected(((IDepictable) ge.getData()).getElementID());
         }
 
@@ -52,11 +52,11 @@ public class GUIBuchungObserver implements IGUIEventListener {
 
             GUIController.getInstance()
                     .openDialogDatePicker(date, (BookingCreateComponent) ge.getSource(), BookingCreateComponent.Commands.SELECT_END_DATE.cmdText);
-        } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_CHIPKARTE) {
+        } else if (ge.getCmd() == BookingCreateComponent.Commands.SELECT_CHIPCARD) {
             final var payload = (BookingCreateComponent.SelectChipkartePayload) ge.getData();
             GUIController.getInstance().bookingCreateSelectChipkarte((List<Chipkarte>) payload.availableChipkarten(),
                     (List<Chipkarte>) payload.selectedChipkarten(), (Chipkarte) payload.selectedChipkarte());
-        } else if (ge.getCmd() == BookingCreateComponent.Commands.DELETE_CHIPKARTE) {
+        } else if (ge.getCmd() == BookingCreateComponent.Commands.DELETE_CHIPCARD) {
             final var payload = (BookingCreateComponent.DeleteChipkartePayload) ge.getData();
             GUIController.getInstance().bookingRemoveChipkarte((List<Chipkarte>) payload.availableChipkarten(),
                     (List<Chipkarte>) payload.selectedChipkarten(), (Chipkarte) payload.deletedChipkarte());

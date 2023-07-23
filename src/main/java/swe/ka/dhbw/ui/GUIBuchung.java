@@ -23,9 +23,9 @@ import java.util.Optional;
 
 public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
-        OPEN_TAB("GUIBuchung.openTab", TabPayload.class),
-        CLOSE_TAB("GUIBuchung.closeTab", ObservableComponent.class),
-        SWITCH_TAB("GUIBuchung.switchTab", Tabs.class);
+        OPEN_TAB("GUIBuchung::OPEN_TAB", TabPayload.class),
+        CLOSE_TAB("GUIBuchung::CLOSE_TAB", ObservableComponent.class),
+        SWITCH_TAB("GUIBuchung::SWITCH_TAB", Tabs.class);
 
         public final Class<?> payloadType;
         public final String cmdText;

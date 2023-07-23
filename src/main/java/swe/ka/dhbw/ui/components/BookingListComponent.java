@@ -20,7 +20,7 @@ import java.util.*;
 
 public class BookingListComponent extends GUIComponent implements IGUIEventListener, TableCellRenderer {
     public enum Commands implements EventCommand {
-        BUCHUNG_SELECTED("BookingListComponent.buchungSelected", IDepictable.class);
+        BOOKING_SELECTED("BookingListComponent::BOOKING_SELECTED", IDepictable.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -92,7 +92,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         if (ge.getCmd() == SimpleTableComponent.Commands.ROW_SELECTED) {
             this.fireGUIEvent(new GUIEvent(
                     this,
-                    Commands.BUCHUNG_SELECTED,
+                    Commands.BOOKING_SELECTED,
                     ge.getData()
             ));
         }

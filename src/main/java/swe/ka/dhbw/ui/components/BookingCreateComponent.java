@@ -25,15 +25,15 @@ import java.util.stream.Stream;
 
 public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
-        ADD_GUEST("BookingCreateComponent.addGuest"),
-        ADD_SERVICE("BookingCreateComponent.addService"),
-        ADD_EQUIPMENT("BookingCreateComponent.addEquipment"),
-        SELECT_START_DATE("BookingCreateComponent.selectStartDate", Optional.class),
-        SELECT_END_DATE("BookingCreateComponent.selectEndDate", Optional.class),
-        SELECT_CHIPKARTE("BookingCreateComponent.selectChipkarte", SelectChipkartePayload.class),
-        DELETE_CHIPKARTE("BookingCreateComponent.deleteChipkarte", DeleteChipkartePayload.class),
-        RESET("BookingCreateComponent.reset"),
-        CREATE_BOOKING("BookingCreateComponent.createBooking");
+        ADD_GUEST("BookingCreateComponent::ADD_GUEST"),
+        ADD_SERVICE("BookingCreateComponent::ADD_SERVICE"),
+        ADD_EQUIPMENT("BookingCreateComponent::ADD_EQUIPMENT"),
+        SELECT_START_DATE("BookingCreateComponent::SELECT_START_DATE", Optional.class),
+        SELECT_END_DATE("BookingCreateComponent::SELECT_END_DATE", Optional.class),
+        SELECT_CHIPCARD("BookingCreateComponent::SELECT_CHIPCARD", SelectChipkartePayload.class),
+        DELETE_CHIPCARD("BookingCreateComponent::DELETE_CHIPCARD", DeleteChipkartePayload.class),
+        RESET("BookingCreateComponent::RESET"),
+        CREATE_BOOKING("BookingCreateComponent::CREATE_BOOKING");
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -116,7 +116,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                         return;
                     }
 
-                    this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_CHIPKARTE, new SelectChipkartePayload(
+                    this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_CHIPCARD, new SelectChipkartePayload(
                             this.availableChipkarten,
                             this.selectedChipkarten,
                             value
@@ -133,7 +133,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                             .filter(c -> c.getElementID().equals(((IDepictable) ge.getData()).getElementID()))
                             .findFirst();
                     if (chipkarte.isPresent()) {
-                        this.fireGUIEvent(new GUIEvent(this, Commands.DELETE_CHIPKARTE, new DeleteChipkartePayload(
+                        this.fireGUIEvent(new GUIEvent(this, Commands.DELETE_CHIPCARD, new DeleteChipkartePayload(
                                 this.availableChipkarten,
                                 this.selectedChipkarten,
                                 chipkarte.get()
@@ -160,7 +160,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
             this.abreisedatum.setValue(date.format(this.dateTimeFormatter));
         } else if (ue.getCmd() == Commands.RESET) {
             this.resetInput();
-        } else if (ue.getCmd() == Commands.SELECT_CHIPKARTE) {
+        } else if (ue.getCmd() == Commands.SELECT_CHIPCARD) {
             final var payload = (SelectChipkartePayload) ue.getData();
             this.availableChipkarten = payload.availableChipkarten();
             this.selectedChipkarten = payload.selectedChipkarten();

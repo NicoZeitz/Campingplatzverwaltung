@@ -191,7 +191,7 @@ public class GUIController implements IUpdateEventSender {
         selectedChipkarten.add(newlySelectedChipkarte);
         this.fireUpdateEvent(new UpdateEvent(
                 this,
-                BookingCreateComponent.Commands.SELECT_CHIPKARTE,
+                BookingCreateComponent.Commands.SELECT_CHIPCARD,
                 new BookingCreateComponent.SelectChipkartePayload(
                         availableChipkarten.stream().filter(c -> !c.equals(newlySelectedChipkarte)).sorted().toList(),
                         selectedChipkarten,
@@ -206,7 +206,7 @@ public class GUIController implements IUpdateEventSender {
         selectedChipCards.remove(deletedChipCard);
         this.fireUpdateEvent(new UpdateEvent(
                 this,
-                BookingCreateComponent.Commands.SELECT_CHIPKARTE,
+                BookingCreateComponent.Commands.SELECT_CHIPCARD,
                 new BookingCreateComponent.SelectChipkartePayload(
                         Stream.concat(Stream.of(deletedChipCard), availableChipCards.stream()).sorted().toList(),
                         selectedChipCards,
@@ -285,13 +285,16 @@ public class GUIController implements IUpdateEventSender {
         }
     }
 
-    public void handleWindowConfigurationSetAccentColor(final Color color) {
-        this.configurationBuilder = this.configurationBuilder.accentColor(color);
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                GUIConfiguration.Commands.REBUILD_UI,
-                this.configurationBuilder.build()
-        ));
+    public void handleWindowConfigurationSetAccentColor(final Color currentColor) {
+        final var nextColor = JColorChooser.showDialog(this.windowConfiguration, "Farbe auswählen", currentColor);
+        if (nextColor != null) {
+            this.configurationBuilder = this.configurationBuilder.accentColor(nextColor);
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIConfiguration.Commands.REBUILD_UI,
+                    this.configurationBuilder.build()
+            ));
+        }
     }
 
     public void handleWindowConfigurationSetDarkMode(final boolean darkModeActive) {

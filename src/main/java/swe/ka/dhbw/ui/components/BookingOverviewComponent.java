@@ -20,10 +20,10 @@ import java.util.Map;
 
 public class BookingOverviewComponent extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
-        NEXT_WEEK("BookingOverviewComponent.nextWeek", LocalDate.class),
-        PREVIOUS_WEEK("BookingOverviewComponent.previousWeek", LocalDate.class),
-        BUCHUNG_SELECTED("BookingOverviewComponent.buchungSelected", IDepictable.class),
-        UPDATE_WEEK("BookingOverviewComponent.updateWeek", LocalDate.class);
+        NEXT_WEEK("BookingOverviewComponent::NEXT_WEEK", LocalDate.class),
+        PREVIOUS_WEEK("BookingOverviewComponent::PREVIOUS_WEEK", LocalDate.class),
+        BOOKING_SELECTED("BookingOverviewComponent::BOOKING_SELECTED", IDepictable.class),
+        UPDATE_WEEK("BookingOverviewComponent::UPDATE_WEEK", LocalDate.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -222,7 +222,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
                 for (var j = 0; j < buchungen.size(); ++j) {
                     final var buchung = buchungen.get(j);
                     final var entry = new JButton();
-                    entry.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BUCHUNG_SELECTED, buchung)));
+                    entry.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BOOKING_SELECTED, buchung)));
                     entry.setToolTipText("Buchung anzeigen");
                     entry.setFont(this.config.getFont());
                     entry.setForeground(this.config.getTextColor());
