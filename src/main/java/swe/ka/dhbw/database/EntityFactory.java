@@ -240,8 +240,7 @@ public class EntityFactory {
         final var stellplatzId = Integer.parseInt(csvData[Buchung.CSVPosition.GEBUCHTER_STELLPLATZ_ID.ordinal()]);
         this.onReferenceFound(Stellplatz.class, stellplatzId, buchung::setGebuchterStellplatz);
 
-        for (final var ausgehaendigteChipkartenId : csvData[Buchung.CSVPosition.AUSGEHAENDIGTE_CHIPKARTEN_IDS.ordinal()].trim()
-                .split(",")) {
+        for (final var ausgehaendigteChipkartenId : this.getListValues(csvData[Buchung.CSVPosition.AUSGEHAENDIGTE_CHIPKARTEN_IDS.ordinal()])) {
             this.onReferenceFound(Chipkarte.class,
                     Integer.parseInt(ausgehaendigteChipkartenId),
                     buchung::addAusgehaendigteChipkarte);
@@ -467,8 +466,7 @@ public class EntityFactory {
                 Integer.parseInt(csvData[Stellplatz.CSVPosition.ANZAHL_ZELTE.ordinal()])
         );
 
-        for (final var stellplatzfunktionId : csvData[Stellplatz.CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.ordinal()].trim()
-                .split(",")) {
+        for (final var stellplatzfunktionId : this.getListValues(csvData[Stellplatz.CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.ordinal()])) {
             this.onReferenceFound(Stellplatzfunktion.class,
                     Integer.parseInt(stellplatzfunktionId),
                     stellplatz::addVerfuegbareFunktion);

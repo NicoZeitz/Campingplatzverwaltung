@@ -9,9 +9,11 @@ import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.GUIController;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
+import swe.ka.dhbw.event.LogObserver;
 import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.time.LocalDate;
@@ -29,12 +31,15 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         ADD_GUEST("BookingCreateComponent::ADD_GUEST"),
         ADD_SERVICE("BookingCreateComponent::ADD_SERVICE"),
         ADD_EQUIPMENT("BookingCreateComponent::ADD_EQUIPMENT"),
+        RESPONSIBLE_GUEST_SELECTED("BookingCreateComponent::RESPONSIBLE_GUEST_SELECTED", ResponsibleGuestSelectedPayload.class),
+        GUEST_DELETED("BookingCreateComponent::GUEST_DELETED", GuestDeletedPayload.class),
 
         SELECT_CHIPCARD("BookingCreateComponent::SELECT_CHIPCARD", SelectChipkartePayload.class),
         DELETE_CHIPCARD("BookingCreateComponent::DELETE_CHIPCARD", DeleteChipkartePayload.class),
+        CREATE_BOOKING("BookingCreateComponent::CREATE_BOOKING"),
         // incoming update events TODO: check if right like this
         RESET("BookingCreateComponent::RESET"),
-        CREATE_BOOKING("BookingCreateComponent::CREATE_BOOKING"),
+        UPDATE_SELECTED_GUESTS("BookingCreateComponent::UPDATE_SELECTED_GUESTS", UpdateSelectedGuestsPayload.class),
         // Callback events
         SELECT_PITCH_INTERACTIVELY("BookingCreateComponent::SELECT_PITCH_INTERACTIVELY"),
         SELECT_START_DATE("BookingCreateComponent::SELECT_START_DATE", Optional.class),
@@ -75,6 +80,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     private static final String CHIPCARD_SIMPLE_TABLE_COMPONENT_ID = "BookingCreateComponent::CHIPCARD_SIMPLE_TABLE_COMPONENT_ID";
     private static final String PITCH_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::PITCH_ATTRIBUTE_ELEMENT_ID";
     private static final String SELECT_PITCH_BUTTON_ELEMENT_ID = "BookingCreateComponent::SELECT_PITCH_BUTTON_ELEMENT_ID";
+    private static final String DELETE_GUEST_BUTTON_ELEMENT_ID = "BookingCreateComponent::DELETE_GUEST_BUTTON_ELEMENT_ID";
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMANY);
     // Components
@@ -83,6 +89,8 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     private AttributeElement chipCardSelector;
     private SimpleTableComponent chipCardTable;
     private AttributeElement pitchSelector;
+    private ButtonGroup guestButtonGroup;
+    private JPanel guestTable;
 
     // Data
     private List<? extends IDepictable> availablePitches = new ArrayList<>();
@@ -94,6 +102,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
 
     private List<? extends IDepictable> availableChipCards = new ArrayList<>();
     private List<? extends IDepictable> selectedChipCards = new ArrayList<>();
+    private List<? extends IDepictable> selectedGuests = new ArrayList<>();
 
     public BookingCreateComponent(
             final ReadonlyConfiguration config
@@ -164,6 +173,9 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 case SELECT_PITCH_BUTTON_ELEMENT_ID -> {
                     this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_PITCH_INTERACTIVELY));
                 }
+                default -> {
+                    LogObserver.logGUIEvent(guiEvent);
+                }
             }
         }
     }
@@ -171,8 +183,19 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     @Override
     @SuppressWarnings("unchecked")
     public void processUpdateEvent(final UpdateEvent updateEvent) {
+        // guest selection
+        if (updateEvent.getCmdText().equals(Commands.ADD_GUEST.getCmdText())) {
+            ((List<IDepictable>) this.selectedGuests).add((IDepictable) updateEvent.getData());
+            this.buildGuestTable();
+        } else if (updateEvent.getCmd() == Commands.UPDATE_SELECTED_GUESTS) {
+            final var payload = (UpdateSelectedGuestsPayload) updateEvent.getData();
+            this.selectedGuests = payload.selectedGuests();
+            this.responsibleGuest = payload.responsibleGuest();
+            this.buildGuestTable();
+        }
+
         // date selection
-        if (updateEvent.getCmdText().equals(Commands.SELECT_START_DATE.getCmdText())) {
+        else if (updateEvent.getCmdText().equals(Commands.SELECT_START_DATE.getCmdText())) {
             final var date = LocalDateTime.of((LocalDate) updateEvent.getData(), LocalTime.of(0, 0));
             this.arrivalDateComponent.setValue(date.format(this.dateTimeFormatter));
         } else if (updateEvent.getCmdText().equals(Commands.SELECT_END_DATE.getCmdText())) {
@@ -220,11 +243,101 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         this.repaint();
     }
 
-    private JComponent createAusruestungTable() {
-        return new JPanel();
+    private void buildGuestTable() {
+        this.guestTable.removeAll();
+        this.guestButtonGroup = new ButtonGroup();
+
+        final var columns = new String[] {"Gast", "Verantwortlich", " "};
+        for (var i = 0; i < columns.length; ++i) {
+            final var text = columns[i];
+            final var label = new JLabel();
+            label.setText(text);
+            label.setFont(this.config.getFont());
+            label.setForeground(this.config.getTextColor());
+            label.setBackground(this.config.getSecondaryBackgroundColor());
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(this.config.getTextColor(), 1),
+                    new EmptyBorder(2, 10, 2, 10)
+            ));
+            label.setOpaque(true);
+            this.guestTable.add(label, new GridBagConstraints(
+                    i,
+                    0,
+                    1,
+                    1,
+                    i == 0 ? 1d : 0d,
+                    0d,
+                    GridBagConstraints.NORTH,
+                    GridBagConstraints.HORIZONTAL,
+                    new Insets(0, 0, 0, 0), 0,
+                    0
+            ));
+        }
+
+        for (var i = 0; i < this.selectedGuests.size(); ++i) {
+            final var guest = this.selectedGuests.get(i);
+
+            final var text = new JLabel();
+            text.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(this.config.getTextColor(), 1),
+                    BorderFactory.createEmptyBorder(2, 10, 2, 10)
+            ));
+            text.setText(guest.getVisibleText());
+            text.setFont(this.config.getFont());
+            text.setForeground(this.config.getTextColor());
+            text.setBackground(this.config.getBackgroundColor());
+
+            final var radioButton = new JRadioButton();
+            this.guestButtonGroup.add(radioButton);
+            radioButton.setToolTipText("Wählt den Gast als verantwortlichen Gast für die Buchung aus");
+            radioButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            radioButton.setBorder(BorderFactory.createLineBorder(this.config.getSecondaryBackgroundColor(), 1));
+            radioButton.setBackground(this.config.getSecondaryBackgroundColor());
+            radioButton.setForeground(this.config.getTextColor());
+            radioButton.setFont(this.config.getFont());
+            radioButton.setHorizontalAlignment(SwingConstants.CENTER);
+            radioButton.setSelected(guest.equals(this.responsibleGuest.orElse(null)));
+            radioButton.addActionListener(e -> this.fireGUIEvent(new GUIEvent(
+                    this,
+                    Commands.RESPONSIBLE_GUEST_SELECTED,
+                    new ResponsibleGuestSelectedPayload(this.selectedGuests, guest)
+            )));
+
+            final var radioButtonPanel = new JPanel();
+            radioButtonPanel.setLayout(new GridLayout(1, 1));
+            radioButtonPanel.setBorder(BorderFactory.createLineBorder(this.config.getTextColor(), 1));
+            radioButtonPanel.setBackground(this.config.getSecondaryBackgroundColor());
+            radioButtonPanel.add(radioButton);
+
+            final var deleteButton = new JButton();
+            deleteButton.setText("Löschen");
+            deleteButton.setToolTipText("Löscht den Gast aus der Buchung");
+            deleteButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            deleteButton.setFont(this.config.getFont());
+            deleteButton.setForeground(this.config.getTextColor());
+            deleteButton.setBackground(this.config.getFailureColor());
+            deleteButton.setSize(GUIConstants.DimSizes.DEFAULT_BUTTON_SIZE.getValue());
+            deleteButton.addActionListener(e -> this.fireGUIEvent(new GUIEvent(
+                    this,
+                    Commands.GUEST_DELETED,
+                    new GuestDeletedPayload(this.selectedGuests, guest)
+            )));
+            deleteButton.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(this.config.getTextColor(), 1),
+                    new EmptyBorder(0, 10, 0, 10)
+            ));
+
+            // @formatter:off
+            this.guestTable.add(text,             new GridBagConstraints(0, i + 1, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            this.guestTable.add(radioButtonPanel, new GridBagConstraints(1, i + 1, 1, 1, 0d, 0d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            this.guestTable.add(deleteButton,     new GridBagConstraints(2, i + 1, 1, 1, 0d, 0d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            // @formatter:on
+        }
+        this.revalidate();
     }
 
-    private JComponent createBuchungszeitraum() {
+    private JComponent createBookingTimeSpan() {
         this.arrivalDateComponent = AttributeElement
                 .builder(BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Anreisedatum")
@@ -287,7 +400,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         return panel;
     }
 
-    private JComponent createChipkartenAuswahl() {
+    private JComponent createChipCardSelector() {
         final var panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         panel.getInsets().set(10, 10, 10, 10);
@@ -354,25 +467,35 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         panel.add(this.chipCardTable,
                 new GridBagConstraints(0, 1, 1, 1, 1d, 1d, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
 
-        final var table = super.createTable(new String[] {"Nummer", "Status", ""});
-        table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        final var scrollPane = new JScrollPane(table);
-        panel.add(scrollPane,
-                new GridBagConstraints(0, 1, 1, 1, 1d, 1d, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
+        // TODO: work on this
+//        final var table = super.createTable(new String[] {"Nummer", "Status", ""});
+//        table.setPreferredScrollableViewportSize(table.getPreferredSize());
+//        final var scrollPane = new JScrollPane(table);
+//        panel.add(scrollPane,
+//                new GridBagConstraints(0, 1, 1, 1, 1d, 1d, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
 
         this.resetInput();
         return panel;
     }
 
-    private JComponent createGastTable() {
+    private JComponent createEquipmentTable() {
         return new JPanel();
     }
 
-    private JComponent createLeistungTable() {
-        return new JPanel();
+    private JComponent createGuestTable() {
+        this.guestTable = new JPanel();
+        this.guestTable.setBorder(new EmptyBorder(10, 2, 10, 2));
+        this.guestTable.setForeground(this.config.getTextColor());
+        this.guestTable.setBackground(this.config.getBackgroundColor());
+        this.guestTable.setLayout(new GridBagLayout());
+        this.guestTable.setOpaque(true);
+
+        this.buildGuestTable();
+
+        return this.guestTable;
     }
 
-    private JComponent createStellplatzauswahl() {
+    private JComponent createPitchSelector() {
         final var panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         panel.getInsets().set(10, 10, 10, 10);
@@ -426,6 +549,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         return panel;
     }
 
+    private JComponent createServiceTable() {
+        return new JPanel();
+    }
+
     private void initUI() {
         this.setLayout(new GridLayout(1, 1));
         this.setOpaque(true);
@@ -456,27 +583,27 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 super.generateRandomID(),
                 ADD_GUEST_BUTTON_ELEMENT_ID,
                 "Fügt einen neuen Gast hinzu",
-                this.createGastTable()
+                this.createGuestTable()
         ), new GridBagConstraints(1, 1, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         leftPanel.add(super.createAddableWrapper(
                 "Leistungen auswählen",
                 super.generateRandomID(),
                 ADD_SERVICE_BUTTON_ELEMENT_ID,
                 "Fügt eine neue gebuchte Leistung hinzu",
-                this.createLeistungTable()
+                this.createServiceTable()
         ), new GridBagConstraints(1, 2, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         leftPanel.add(super.createAddableWrapper(
                 "Mitgebrachte Ausrüstung auswählen",
                 super.generateRandomID(),
                 ADD_EQUIPMENT_BUTTON_ELEMENT_ID,
                 "Fügt eine neue mitgebrachte Ausrüstung hinzu",
-                this.createAusruestungTable()
+                this.createEquipmentTable()
         ), new GridBagConstraints(1, 3, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         leftPanel.add(super.createFillComponent(), new GridBagConstraints(1, 4, 1, 1, 1d, 1d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
 
-        rightPanel.add(super.createWrapper("Buchungszeitraum", this.createBuchungszeitraum()),   new GridBagConstraints(1, 1, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
-        rightPanel.add(super.createWrapper("Stellplatzauswahl", this.createStellplatzauswahl()), new GridBagConstraints(1, 2, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
-        rightPanel.add(super.createWrapper("Chipkartenauswahl", this.createChipkartenAuswahl()), new GridBagConstraints(1, 3, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
+        rightPanel.add(super.createWrapper("Buchungszeitraum", this.createBookingTimeSpan()),   new GridBagConstraints(1, 1, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
+        rightPanel.add(super.createWrapper("Stellplatzauswahl", this.createPitchSelector()), new GridBagConstraints(1, 2, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
+        rightPanel.add(super.createWrapper("Chipkartenauswahl", this.createChipCardSelector()), new GridBagConstraints(1, 3, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         rightPanel.add(super.createFillComponent(),                                              new GridBagConstraints(1, 4, 1, 1, 1d, 1d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
         // @formatter:on
 
@@ -553,6 +680,15 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     }
                 }).toArray(IDepictable[]::new), new String[] {"Nummer", "Status", ""});
         this.revalidate();
+    }
+
+    public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedGuest) {
+    }
+
+    public record GuestDeletedPayload(List<? extends IDepictable> selectedGuests, IDepictable deletedGuest) {
+    }
+
+    public record UpdateSelectedGuestsPayload(List<? extends IDepictable> selectedGuests, Optional<IDepictable> responsibleGuest) {
     }
 
     public record SelectChipkartePayload(List<? extends IDepictable> availableChipkarten, List<? extends IDepictable> selectedChipkarten,

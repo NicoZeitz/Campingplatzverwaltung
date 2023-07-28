@@ -62,6 +62,9 @@ public class GUIBuchungObserver implements IGUIEventListener {
             GUIController.getInstance().handleWindowBookingCreateBookingCreate((BookingCreateComponent.BookingCreatePayload) guiEvent.getData());
         } else if (guiEvent.getCmd() == BookingCreateComponent.Commands.SELECT_PITCH_INTERACTIVELY) {
             GUIController.getInstance().openDialogPitchSelector(guiEvent);
+        } else if (guiEvent.getCmd() == BookingCreateComponent.Commands.RESPONSIBLE_GUEST_SELECTED) {
+            final var payload = (BookingCreateComponent.ResponsibleGuestSelectedPayload) guiEvent.getData();
+            GUIController.getInstance().handleWindowBookingCreateResponsibleGuestSelected(payload);
         }
 
 

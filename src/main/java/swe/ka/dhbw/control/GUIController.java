@@ -2,9 +2,12 @@ package swe.ka.dhbw.control;
 
 import de.dhbwka.swe.utils.event.*;
 import de.dhbwka.swe.utils.model.Attribute;
+import de.dhbwka.swe.utils.model.ICSVPersistable;
 import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.ImageElement;
+import de.dhbwka.swe.utils.util.AppLogger;
 import de.dhbwka.swe.utils.util.PropertyManager;
+import swe.ka.dhbw.database.Datenbasis;
 import swe.ka.dhbw.database.EntityManager;
 import swe.ka.dhbw.event.GUIBuchungObserver;
 import swe.ka.dhbw.event.GUIConfigurationObserver;
@@ -69,6 +72,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     private GUICheckInCheckOut windowCheckInCheckOut;
     // Other properties
     private EntityManager entityManager;
+    private Datenbasis<ICSVPersistable> database;
     private Campingplatzverwaltung app;
     private Configuration.Builder configurationBuilder;
 
@@ -172,6 +176,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.app = app;
     }
 
+    public void setDatabase(final Datenbasis<ICSVPersistable> database) {
+        this.database = database;
+    }
+
     @Override
     public boolean addObserver(final EventListener eventListener) {
         return this.updateEventObservers.add(eventListener);
@@ -221,14 +229,14 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         ));
     }
 
+    // Event Handlers
+
     public void exitApplication() {
         if (this.app.getConfig() == null) {
             this.app.setConfig(this.configurationBuilder.build());
         }
         this.app.exitApplication();
     }
-
-    // Event Handlers
 
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
         for (final var eventListener : this.updateEventObservers) {
@@ -343,10 +351,28 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             booking.addAusgehaendigteChipkarte((Chipkarte) chipCard);
         }
 
+        try {
+            this.database.create(Buchung.class, booking);
+        } catch (IOException e) {
+            AppLogger.getInstance().error("Failed to create booking in database.");
+            AppLogger.getInstance().error(e);
+            JOptionPane.showMessageDialog(null, "Die Buchung konnte nicht erstellt werden.", "Fehler", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         this.entityManager.persist(booking);
-        // TODO: save in db
         this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.RESET));
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
+    }
+
+    public void handleWindowBookingCreateResponsibleGuestSelected(final BookingCreateComponent.ResponsibleGuestSelectedPayload payload) {
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.UPDATE_SELECTED_GUESTS,
+                new BookingCreateComponent.UpdateSelectedGuestsPayload(
+                        payload.selectedGuests(),
+                        Optional.of(payload.selectedGuest())
+                )
+        ));
     }
 
     public void handleWindowConfigurationSetAccentColor(final Color currentColor) {
@@ -378,14 +404,15 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_CREATE));
     }
 
+    // Dialogs
+
     public void handleWindowMainOpenBookingManagement() {
         this.openWindowBooking();
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.APPOINTMENT_OVERVIEW));
     }
 
-    // Dialogs
-
     public void initialize() {
+        this.addObserver(this);
         this.app.setConfig(this.configurationBuilder.build());
 
         // create all window components
@@ -603,6 +630,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
+    // Windows
+
     public void openDialogPitchSelector(final PayloadEvent callbackToEvent) {
         final var source = (GUIComponent) callbackToEvent.getSource();
         final var pitches = this.entityManager
@@ -662,8 +691,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
         });
     }
-
-    // Windows
 
     @SuppressWarnings("unchecked")
     public void openDialogServiceSelector(final PayloadEvent callbackToEvent) {

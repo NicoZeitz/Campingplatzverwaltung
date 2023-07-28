@@ -24,6 +24,7 @@ public class PitchSelectorComponent extends GUIComponent {
         PITCH_SELECTED("PitchSelectorComponent::PITCH_SELECTED", IDepictable.class),
         // incoming update events
         UPDATE_PITCHES("PitchSelectorComponent::UPDATE_PITCHES", List.class);
+        
         public final Class<?> payloadType;
         public final String cmdText;
 
@@ -52,15 +53,19 @@ public class PitchSelectorComponent extends GUIComponent {
 
     // Data
     private List<Pitch> pitches = new ArrayList<>();
-    private BufferedImage map;
     private Dimension dimension = new Dimension(0, 0);
+    private BufferedImage mapImage;
 
     public PitchSelectorComponent(final ReadonlyConfiguration config) {
         super("PitchSelectorComponent", config);
         try {
-            this.map = ImageIO.read(Objects.requireNonNull(this.getClass().getResourceAsStream("/Campsite.png")));
+            this.mapImage = ImageIO.read(Objects.requireNonNull(this.getClass().getResourceAsStream("/Campsite.png")));
         } catch (IOException e) {
-            this.map = new BufferedImage(350, 350, BufferedImage.TYPE_INT_RGB);
+            this.mapImage = new BufferedImage(350, 350, BufferedImage.TYPE_INT_RGB);
+            final var g = this.mapImage.createGraphics();
+            g.setColor(this.config.getBackgroundColor());
+            g.drawRect(0, 0, 350, 350);
+            g.dispose();
         }
         this.initUI();
     }
@@ -74,7 +79,7 @@ public class PitchSelectorComponent extends GUIComponent {
     }
 
     public void setSizeWithWidth(final int width) {
-        this.dimension = new Dimension(width, (int) Math.round(width / (double) this.map.getWidth() * this.map.getHeight()));
+        this.dimension = new Dimension(width, (int) Math.round(width / (double) this.mapImage.getWidth() * this.mapImage.getHeight()));
     }
 
     @Override
@@ -93,6 +98,7 @@ public class PitchSelectorComponent extends GUIComponent {
 
         for (var pitch : this.pitches) {
             var pitchButton = new JButton();
+            pitchButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             pitchButton.setBorder(BorderFactory.createLineBorder(this.config.getAccentColor(), 3));
             pitchButton.setFont(this.config.getFont());
             pitchButton.setForeground(this.config.getTextColor());
@@ -114,7 +120,7 @@ public class PitchSelectorComponent extends GUIComponent {
     }
 
     private void initUI() {
-        this.mapComponent = new ImagePanel(this.map);
+        this.mapComponent = new ImagePanel(this.mapImage);
         this.mapComponent.setLayout(null);
         this.addComponentListener(new ComponentAdapter() {
             @Override
