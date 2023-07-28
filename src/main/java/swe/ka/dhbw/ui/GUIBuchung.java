@@ -5,7 +5,6 @@ import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.ObservableComponent;
-import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.ui.components.BookingCreateComponent;
 import swe.ka.dhbw.ui.components.BookingImportExportComponent;
@@ -15,10 +14,7 @@ import swe.ka.dhbw.ui.components.BookingOverviewComponent;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class GUIBuchung extends GUIComponent implements IGUIEventListener {
@@ -74,13 +70,9 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     private BookingCreateComponent bookingCreate;
     private JTabbedPane tabs;
 
-    public GUIBuchung(final ReadonlyConfiguration config,
-                      final List<? extends IDepictable> bookings,
-                      final Map<LocalDate, List<? extends IDepictable>> appointments,
-                      final LocalDate currentWeek,
-                      final List<? extends IDepictable> chipkarten) {
+    public GUIBuchung(final ReadonlyConfiguration config) {
         super("GUIBuchung", config);
-        this.initUI(bookings, appointments, currentWeek, chipkarten);
+        this.initUI();
     }
 
     public BookingOverviewComponent getBookingOverview() {
@@ -104,8 +96,9 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     }
 
     @Override
-    public void processGUIEvent(GUIEvent ge) {
-        fireGUIEvent(ge);
+    public void processGUIEvent(GUIEvent guiEvent) {
+        // delegate all events from child tabs
+        fireGUIEvent(guiEvent);
     }
 
     @Override
@@ -113,7 +106,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         if (updateEvent.getCmd() == Commands.OPEN_TAB) {
             final var payload = (TabPayload) updateEvent.getData();
 
-            // Tab existiert bereits, erneut öffnen
+            // Tab already exists, focus it
             final var index = this.tabs.indexOfTabComponent(payload.component());
             if (index != -1) {
                 this.tabs.setSelectedIndex(index);
@@ -148,24 +141,23 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         } else if (Arrays.stream(BookingListComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingList.processUpdateEvent(updateEvent);
         }
-        // send unknown commands to current active tab
+        // send unknown commands to all tabs
         else {
-            this.getSelectedTab().processUpdateEvent(updateEvent);
+            this.bookingOverview.processUpdateEvent(updateEvent);
+            this.bookingList.processUpdateEvent(updateEvent);
+            this.bookingCreate.processUpdateEvent(updateEvent);
         }
     }
 
-    private void initUI(
-            final List<? extends IDepictable> bookings,
-            final Map<LocalDate, List<? extends IDepictable>> appointments,
-            final LocalDate currentWeek,
-            final List<? extends IDepictable> chipkarten) {
-        this.bookingOverview = new BookingOverviewComponent(appointments, currentWeek, this.config);
+    private void initUI() {
+        // create tab components
+        this.bookingOverview = new BookingOverviewComponent(this.config);
         this.bookingOverview.addObserver(this);
 
-        this.bookingList = new BookingListComponent(this.config, bookings);
+        this.bookingList = new BookingListComponent(this.config);
         this.bookingList.addObserver(this);
 
-        this.bookingCreate = new BookingCreateComponent(this.config, chipkarten);
+        this.bookingCreate = new BookingCreateComponent(this.config);
         this.bookingCreate.addObserver(this);
 
         final var bookingImportExport = new BookingImportExportComponent(this.config);
@@ -175,6 +167,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.setForeground(this.config.getTextColor());
         this.setOpaque(true);
 
+        // add tabs
         UIManager.put("TabbedPane.selected", this.config.getAccentColor());
         UIManager.put("TabbedPane.borderColor", this.config.getAccentColor());
         UIManager.put("TabbedPane.contentBorderInsets", new Insets(-1, -1, -1, -1));
@@ -184,19 +177,33 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.tabs.setForeground(this.config.getTextColor());
         this.tabs.setOpaque(true);
 
-        this.tabs.addTab(Tabs.APPOINTMENT_OVERVIEW.getName(),
+        this.tabs.addTab(
+                Tabs.APPOINTMENT_OVERVIEW.getName(),
                 null,
                 this.bookingOverview,
-                Tabs.APPOINTMENT_OVERVIEW.getTooltip());
+                Tabs.APPOINTMENT_OVERVIEW.getTooltip()
+        );
         this.tabs.setMnemonicAt(0, KeyEvent.VK_1);
-        this.tabs.addTab(Tabs.BOOKING_LIST.getName(), null, this.bookingList, Tabs.BOOKING_LIST.getTooltip());
+        this.tabs.addTab(
+                Tabs.BOOKING_LIST.getName(),
+                null,
+                this.bookingList,
+                Tabs.BOOKING_LIST.getTooltip()
+        );
         this.tabs.setMnemonicAt(0, KeyEvent.VK_2);
-        this.tabs.addTab(Tabs.BOOKING_CREATE.getName(), null, this.wrapInWrapper(this.bookingCreate), Tabs.BOOKING_CREATE.getTooltip());
+        this.tabs.addTab(
+                Tabs.BOOKING_CREATE.getName(),
+                null,
+                this.wrapInWrapper(this.bookingCreate),
+                Tabs.BOOKING_CREATE.getTooltip()
+        );
         this.tabs.setMnemonicAt(0, KeyEvent.VK_3);
-        this.tabs.addTab(Tabs.BOOKING_IMPORT_EXPORT.getName(),
+        this.tabs.addTab(
+                Tabs.BOOKING_IMPORT_EXPORT.getName(),
                 null,
                 this.wrapInWrapper(bookingImportExport),
-                Tabs.BOOKING_IMPORT_EXPORT.getTooltip());
+                Tabs.BOOKING_IMPORT_EXPORT.getTooltip()
+        );
         this.tabs.setMnemonicAt(0, KeyEvent.VK_4);
 
         for (var i = 0; i < this.tabs.getTabCount(); ++i) {
@@ -209,28 +216,20 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
     private JPanel wrapInWrapper(final ObservableComponent component) {
         final var wrapper = new JPanel();
         wrapper.setLayout(new GridBagLayout());
-        wrapper.add(component,
-                new GridBagConstraints(1,
-                        1,
-                        1,
-                        1,
-                        1d,
-                        1d,
-                        GridBagConstraints.CENTER,
-                        GridBagConstraints.BOTH,
-                        new Insets(0, 0, 0, 0),
-                        0,
-                        0));
+        wrapper.setBackground(this.config.getBackgroundColor());
+        wrapper.setForeground(this.config.getTextColor());
+        wrapper.setOpaque(true);
+
         final var panel = new JPanel();
         panel.setMaximumSize(new Dimension(0, 0));
         panel.setSize(new Dimension(0, 0));
         panel.setBackground(null);
         panel.setOpaque(true);
-        wrapper.add(panel,
-                new GridBagConstraints(1, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
-        wrapper.setBackground(this.config.getBackgroundColor());
-        wrapper.setForeground(this.config.getTextColor());
-        wrapper.setOpaque(true);
+
+        // @formatter:off
+        wrapper.add(component, new GridBagConstraints(1, 1, 1, 1, 1d, 1d, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+        wrapper.add(panel, new GridBagConstraints(1, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+        // @formatter:on
         return wrapper;
     }
 

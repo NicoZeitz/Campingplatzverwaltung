@@ -72,6 +72,10 @@ public final class Campingplatzverwaltung {
         controller.setEntityManager(entityManager);
         controller.setApp(this);
 
-        controller.openWindowConfiguration(propManager);
+        if (arguments.skipConfiguration()) {
+            controller.openWindowMain(propManager);
+        } else {
+            controller.openWindowConfiguration(propManager);
+        }
     }
 }

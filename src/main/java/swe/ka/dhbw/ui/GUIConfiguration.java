@@ -22,12 +22,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class GUIConfiguration extends GUIComponent implements IGUIEventListener {
+    // Commands
     public enum Commands implements EventCommand {
+        // outgoing gui events
         OPEN_MAIN_GUI("GUIConfiguration::OPEN_MAIN_GUI"),
         EXIT_APPLICATION("GUIConfiguration::EXIT_APPLICATION"),
         CONFIGURATION_ACCENT_COLOR("GUIConfiguration::CONFIGURATION_ACCENT_COLOR", Color.class),
         CONFIGURATION_DARK_MODE("GUIConfiguration::CONFIGURATION_DARK_MODE", Boolean.class),
         CONFIGURATION_TEXT_FONT("GUIConfiguration::CONFIGURATION_TEXT_FONT", Font.class),
+        // incoming update events
         REBUILD_UI("GUIConfiguration::REBUILD_UI", ReadonlyConfiguration.class);
 
         public final Class<?> payloadType;
@@ -53,11 +56,13 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
         }
     }
 
+    // UI IDs
     private static final String START_APP_BUTTON_ELEMENT_ID = "GUIConfiguration::START_APP_BUTTON_ELEMENT_ID";
     private static final String EXIT_APP_BUTTON_ELEMENT_ID = "GUIConfiguration::EXIT_APP_BUTTON_ELEMENT_ID";
     private static final String ACCENT_COLOR_BUTTON_ELEMENT_ID = "GUIConfiguration::ACCENT_COLOR_BUTTON_ELEMENT_ID";
     private static final String DARK_MODE_BUTTON_ELEMENT_ID = "GUIConfiguration::DARK_MODE_BUTTON_ELEMENT_ID";
 
+    // Components
     private ButtonElement appExitButton;
     private ButtonElement appStartButton;
     private ButtonElement accentColorButton;
@@ -74,8 +79,8 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     }
 
     @Override
-    public void processGUIEvent(GUIEvent ge) {
-        if (ge.getSource() instanceof ObservableComponent component) {
+    public void processGUIEvent(GUIEvent guiEvent) {
+        if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
                 case ACCENT_COLOR_BUTTON_ELEMENT_ID -> {
@@ -94,9 +99,9 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     }
 
     @Override
-    public void processUpdateEvent(UpdateEvent ue) {
-        if (ue.getCmd() == Commands.REBUILD_UI) {
-            this.config = (ReadonlyConfiguration) ue.getData();
+    public void processUpdateEvent(UpdateEvent updateEvent) {
+        if (updateEvent.getCmd() == Commands.REBUILD_UI) {
+            this.config = (ReadonlyConfiguration) updateEvent.getData();
             this.rebuildUI();
         }
     }
@@ -258,12 +263,11 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
         } catch (IOException e) { /* Ignore Errors */ }
         // @formatter:on
 
-        // Welcome Message
+        // @formatter:off - Welcome Message
         this.welcomeText = new JTextPane();
         this.welcomeText.setText("Willkommen zur Campingplatzverwaltungssoftware von Wolf & Zeitz");
         this.welcomeText.setEditable(false);
         this.welcomeText.setOpaque(true);
-        // @formatter:off
         rightSide.add(this.welcomeText, new GridBagConstraints(1, 2, 1, 1, 1d, 1d, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
         // @formatter:on
 

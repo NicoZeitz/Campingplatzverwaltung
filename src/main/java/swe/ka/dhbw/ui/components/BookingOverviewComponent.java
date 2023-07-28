@@ -15,14 +15,19 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class BookingOverviewComponent extends GUIComponent implements IGUIEventListener {
+    // Commands
     public enum Commands implements EventCommand {
+        // outgoing gui events
         NEXT_WEEK("BookingOverviewComponent::NEXT_WEEK", LocalDate.class),
         PREVIOUS_WEEK("BookingOverviewComponent::PREVIOUS_WEEK", LocalDate.class),
         BOOKING_SELECTED("BookingOverviewComponent::BOOKING_SELECTED", IDepictable.class),
+        // incoming update events
+        UPDATE_APPOINTMENTS("BookingOverviewComponent::UPDATE_APPOINTMENTS", Map.class),
         UPDATE_WEEK("BookingOverviewComponent::UPDATE_WEEK", LocalDate.class);
 
         public final Class<?> payloadType;
@@ -44,22 +49,23 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         }
     }
 
-
+    // UI IDs
     private static final String PREVIOUS_WEEK_BUTTON_ELEMENT_ID = "BookingOverviewComponent::PREVIOUS_WEEK_BUTTON_ELEMENT_ID";
     private static final String NEXT_WEEK_BUTTON_ELEMENT_ID = "BookingOverviewComponent::NEXT_WEEK_BUTTON_ELEMENT_ID";
+
+    // Components
+    private JLabel timespanLabel;
+    private JPanel calendarComponent;
+
+    // Data
     private String previousWeekLabel = "<";
     private String nextWeekLabel = ">";
     private LocalDate currentWeek;
-    private Map<LocalDate, List<? extends IDepictable>> appointments;
-    private JLabel timespanLabel;
-    private JPanel calendar;
+    private Map<LocalDate, List<? extends IDepictable>> appointments = new HashMap<>();
 
-    public BookingOverviewComponent(final Map<LocalDate, List<? extends IDepictable>> appointments,
-                                    final LocalDate currentWeek,
-                                    final ReadonlyConfiguration config) {
+    public BookingOverviewComponent(final ReadonlyConfiguration config) {
         super("BookingOverviewComponent", config);
-        this.appointments = appointments;
-        this.setCurrentWeek(currentWeek);
+        this.setCurrentWeek(LocalDate.now());
         this.initUI();
     }
 
@@ -103,13 +109,9 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         return "KW %d (%s - %s)".formatted(kw, startOfWeek, endOfWeek);
     }
 
-    public void setAppointments(final Map<LocalDate, List<? extends IDepictable>> appointments) {
-        this.appointments = appointments;
-    }
-
     @Override
-    public void processGUIEvent(final GUIEvent ge) {
-        if (ge.getSource() instanceof ObservableComponent component) {
+    public void processGUIEvent(final GUIEvent guiEvent) {
+        if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
                 case PREVIOUS_WEEK_BUTTON_ELEMENT_ID: {
@@ -125,17 +127,77 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
     }
 
     @Override
-    public void processUpdateEvent(final UpdateEvent ue) {
-        if (ue.getCmd() == Commands.UPDATE_WEEK) {
-            this.setCurrentWeek((LocalDate) ue.getData());
+    @SuppressWarnings("unchecked")
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
+        if (updateEvent.getCmd() == Commands.UPDATE_WEEK) {
+            this.setCurrentWeek((LocalDate) updateEvent.getData());
             this.timespanLabel.setText(this.getTimespanLabelText());
-            // remove the entire calendar component to avoid a bug where there are sometimes weird artifacts when window is in fullscreen
-            this.calendar.removeAll();
-            this.remove(this.calendar);
-            this.calendar = new JPanel(new GridBagLayout());
-            this.calendar.setBackground(this.config.getBackgroundColor());
-            this.initUIBuchungen(this.calendar);
-            this.add(this.calendar, BorderLayout.CENTER);
+            this.rebuildUI();
+        } else if (updateEvent.getCmd() == Commands.UPDATE_APPOINTMENTS) {
+            this.appointments = ((Map<LocalDate, List<? extends IDepictable>>) updateEvent.getData());
+            this.rebuildUI();
+        }
+    }
+
+    private void buildUIAppointments(final JComponent component) {
+        final var days = new String[] {"MO", "DI", "MI", "DO", "FR", "SA", "SO"};
+        for (var i = 0; i < days.length; ++i) {
+            final var day = days[i];
+
+            // The day (MO - SO)
+            final var header = new JLabel(day);
+            header.setToolTipText(this.getCurrentWeek().plusDays(i).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            header.setFont(this.config.getLargeFont());
+            header.setHorizontalAlignment(SwingConstants.CENTER);
+            header.setBackground(this.config.getAccentColor());
+            header.setForeground(this.config.getTextColor());
+            header.setBorder(BorderFactory.createEmptyBorder());
+            header.setOpaque(true);
+
+            // All bookings on this day
+            final var viewPort = new JPanel();
+            viewPort.setBackground(this.config.getBackgroundColor());
+            viewPort.setOpaque(true);
+
+            final var appointments = this.appointments.get(this.currentWeek.plusDays(i));
+            if (appointments != null && appointments.size() > 0) {
+                viewPort.setLayout(new GridBagLayout());
+                // @formatter:off
+                for (var j = 0; j < appointments.size(); ++j) {
+                    final var appointment = appointments.get(j);
+                    final var entry = new JButton();
+                    entry.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BOOKING_SELECTED, appointment)));
+                    entry.setToolTipText("Buchung anzeigen");
+                    entry.setFont(this.config.getFont());
+                    entry.setForeground(this.config.getTextColor());
+                    entry.setBackground(this.config.getSecondaryBackgroundColor());
+                    entry.setText("<html>%s</html>".formatted(appointment.getVisibleText().replaceAll("\n", "<br>")));
+                    entry.setHorizontalAlignment(SwingConstants.CENTER);
+                    entry.setBorder(BorderFactory.createEmptyBorder());
+                    viewPort.add(entry, new GridBagConstraints(0, j, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 10, 0), 0, 40));
+                }
+
+                final var padding = new JPanel();
+                padding.setBackground(this.config.getBackgroundColor());
+                viewPort.add(padding, new GridBagConstraints(0, appointments.size(), 1, 1, 1d, 1d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+                // @formatter:on
+            } else {
+                // No bookings available on that day
+                final var infoMessage = new JLabel("Keine Buchungen");
+                infoMessage.setFont(this.config.getFont());
+                infoMessage.setForeground(this.config.getTextColor());
+                infoMessage.setHorizontalAlignment(SwingConstants.CENTER);
+                viewPort.add(infoMessage);
+                viewPort.setLayout(new GridLayout(1, 1));
+                viewPort.setBackground(this.config.getSecondaryBackgroundColor());
+            }
+            // @formatter:off
+            final var scrollPane = new JScrollPane(viewPort, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+            component.add(header,     new GridBagConstraints(i, 0, 1, 1, 1d, 0d, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 50));
+            component.add(scrollPane, new GridBagConstraints(i, 1, 1, 1, 1d, 1d, GridBagConstraints.CENTER, GridBagConstraints.BOTH,       new Insets(5, 5, 5, 5), 0, 0));
+            // @formatter:on
         }
     }
 
@@ -143,7 +205,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         this.setLayout(new BorderLayout());
         this.setBackground(this.config.getBackgroundColor());
 
-        // Titel
+        // Title
         final var title = new JPanel();
         title.setLayout(new GridLayout(2, 1, 0, 5));
         title.setBackground(this.config.getBackgroundColor());
@@ -163,7 +225,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
 
         this.add(title, BorderLayout.NORTH);
 
-        // Navigation zur vorherigen Woche
+        // Navigation to previous week
         final var previousWeek = ButtonElement
                 .builder(PREVIOUS_WEEK_BUTTON_ELEMENT_ID)
                 .toolTip("Vorherige Woche")
@@ -175,7 +237,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         previousWeek.addObserver(this); // cannot add in builder as this adds the observer two times
         this.add(previousWeek, BorderLayout.WEST);
 
-        // Navigation zur nächsten Woche
+        // Navigation to next week
         final var nextWeek = ButtonElement
                 .builder(NEXT_WEEK_BUTTON_ELEMENT_ID)
                 .toolTip("Nächste Woche")
@@ -188,71 +250,19 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         this.add(nextWeek, BorderLayout.EAST);
 
         // Main Calendar
-        this.calendar = new JPanel(new GridBagLayout());
-        this.calendar.setBackground(this.config.getBackgroundColor());
-        this.initUIBuchungen(this.calendar);
-        this.add(this.calendar, BorderLayout.CENTER);
+        this.calendarComponent = new JPanel(new GridBagLayout());
+        this.calendarComponent.setBackground(this.config.getBackgroundColor());
+        this.buildUIAppointments(this.calendarComponent);
+        this.add(this.calendarComponent, BorderLayout.CENTER);
     }
 
-    private void initUIBuchungen(final JComponent component) {
-        final var days = new String[] {"MO", "DI", "MI", "DO", "FR", "SA", "SO"};
-        for (var i = 0; i < days.length; ++i) {
-            final var day = days[i];
-
-            // Der Tag (MO - SO)
-            final var header = new JLabel(day);
-            header.setToolTipText(this.getCurrentWeek().plusDays(i).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
-            header.setFont(this.config.getLargeFont());
-            header.setHorizontalAlignment(SwingConstants.CENTER);
-            header.setBackground(this.config.getAccentColor());
-            header.setForeground(this.config.getTextColor());
-            header.setBorder(BorderFactory.createEmptyBorder());
-            header.setOpaque(true);
-
-            // Alle Buchungen an diesem Tag
-            final var viewPort = new JPanel();
-            viewPort.setBackground(this.config.getBackgroundColor());
-            viewPort.setOpaque(true);
-
-            final var buchungen = this.appointments.get(this.currentWeek.plusDays(i));
-            if (buchungen != null && buchungen.size() > 0) {
-                viewPort.setLayout(new GridBagLayout());
-                // @formatter:off
-                for (var j = 0; j < buchungen.size(); ++j) {
-                    final var buchung = buchungen.get(j);
-                    final var entry = new JButton();
-                    entry.addActionListener(e -> this.fireGUIEvent(new GUIEvent(this, Commands.BOOKING_SELECTED, buchung)));
-                    entry.setToolTipText("Buchung anzeigen");
-                    entry.setFont(this.config.getFont());
-                    entry.setForeground(this.config.getTextColor());
-                    entry.setBackground(this.config.getSecondaryBackgroundColor());
-                    entry.setText("<html>%s</html>".formatted(buchung.getVisibleText().replaceAll("\n", "<br>")));
-                    entry.setHorizontalAlignment(SwingConstants.CENTER);
-                    entry.setBorder(BorderFactory.createEmptyBorder());
-                    viewPort.add(entry, new GridBagConstraints(0, j, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 10, 0), 0, 40));
-                }
-
-                final var padding = new JPanel();
-                padding.setBackground(this.config.getBackgroundColor());
-                viewPort.add(padding, new GridBagConstraints(0, buchungen.size(), 1, 1, 1d, 1d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-                // @formatter:on
-            } else {
-                // Keine Buchungen vorhanden
-                final var infoMessage = new JLabel("Keine Buchungen");
-                infoMessage.setFont(this.config.getFont());
-                infoMessage.setForeground(this.config.getTextColor());
-                infoMessage.setHorizontalAlignment(SwingConstants.CENTER);
-                viewPort.add(infoMessage);
-                viewPort.setLayout(new GridLayout(1, 1));
-                viewPort.setBackground(this.config.getSecondaryBackgroundColor());
-            }
-            // @formatter:off
-            final var scrollPane = new JScrollPane(viewPort, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            scrollPane.setBorder(BorderFactory.createEmptyBorder());
-
-            component.add(header,     new GridBagConstraints(i, 0, 1, 1, 1d, 0d, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 50));
-            component.add(scrollPane, new GridBagConstraints(i, 1, 1, 1, 1d, 1d, GridBagConstraints.CENTER, GridBagConstraints.BOTH,       new Insets(5, 5, 5, 5), 0, 0));
-            // @formatter:on
-        }
+    private void rebuildUI() {
+        // remove the entire calendar component to avoid a bug where there are sometimes weird artifacts when window is in fullscreen
+        this.calendarComponent.removeAll();
+        this.remove(this.calendarComponent);
+        this.calendarComponent = new JPanel(new GridBagLayout());
+        this.calendarComponent.setBackground(this.config.getBackgroundColor());
+        this.buildUIAppointments(this.calendarComponent);
+        this.add(this.calendarComponent, BorderLayout.CENTER);
     }
 }

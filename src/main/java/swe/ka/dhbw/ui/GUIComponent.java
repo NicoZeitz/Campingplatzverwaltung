@@ -9,7 +9,9 @@ import javax.swing.table.JTableHeader;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public abstract class GUIComponent extends ObservableComponent implements IUpdateEventListener {
     protected ReadonlyConfiguration config;
@@ -160,5 +162,14 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
 
     protected String generateRandomID() {
         return "%s::%s".formatted(this.getClass().getSimpleName(), UUID.randomUUID().toString());
+    }
+
+    protected <T> Optional<T> tryOptional(final Supplier<T> supplier) {
+        try {
+            return Optional.ofNullable(supplier.get());
+        } catch (final Exception e) {
+            // ignore exception
+            return Optional.empty();
+        }
     }
 }

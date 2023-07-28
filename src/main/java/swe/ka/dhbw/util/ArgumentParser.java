@@ -13,16 +13,18 @@ public final class ArgumentParser {
             new CommandLineArgument(new String[] {"-p", "--properties"}, "The path to the properties file."),
             new CommandLineArgument(new String[] {"-i", "--images"}, "The path to the images folder."),
             new CommandLineArgument(new String[] {"-h", "--help"}, "Prints this help message."),
-            new CommandLineArgument(new String[] {"-v", "--version"}, "Prints the version of this program.")
+            new CommandLineArgument(new String[] {"-v", "--version"}, "Prints the version of this program."),
+            new CommandLineArgument(new String[] {"--skip-configuration"}, "Skips the configuration window.")
     };
 
     private ArgumentParser() {
     }
 
     public static ArgumentsParseResult parse(final String[] args) throws ArgumentParseException {
-        Optional<String> dataPath = Optional.empty();
-        Optional<String> propertiesPath = Optional.empty();
-        Optional<String> imagesPath = Optional.empty();
+        var dataPath = Optional.<String>empty();
+        var propertiesPath = Optional.<String>empty();
+        var imagesPath = Optional.<String>empty();
+        var skipConfiguration = Optional.<Boolean>empty();
 
         var currentModifier = "";
         for (var arg : args) {
@@ -34,6 +36,11 @@ public final class ArgumentParser {
             if (arg.equals("-v") || arg.equals("--version")) {
                 AppLogger.getInstance().info("Version: " + Campingplatzverwaltung.VERSION);
                 System.exit(0);
+            }
+
+            if (arg.equals("--skip-configuration")) {
+                skipConfiguration = Optional.of(true);
+                continue;
             }
 
             if (arg.equals("--data") || arg.equals("-d")) {
@@ -88,20 +95,25 @@ public final class ArgumentParser {
             throw new ArgumentParseException("You have to specify a images path.");
         }
 
-        var arguments = new ArgumentsParseResult(dataPath.get(), propertiesPath.get(), imagesPath.get());
+        var arguments = new ArgumentsParseResult(dataPath.get(), propertiesPath.get(), imagesPath.get(), skipConfiguration.orElse(false));
         return arguments;
     }
 
     public static void printCommandLineArguments() {
-        var message = Arrays.stream(commandLineArguments).map(argument -> {
-            var modifiers = Arrays.stream(argument.modifiers)
-                    .collect(Collectors.joining(", "));
-            return modifiers + "\t" + argument.description;
-        }).collect(Collectors.joining("\n"));
+        var message = Arrays
+                .stream(commandLineArguments)
+                .map(argument -> {
+                    var modifiers = Arrays.stream(argument.modifiers).collect(Collectors.joining(", "));
+                    return modifiers + "\t" + argument.description;
+                })
+                .collect(Collectors.joining("\n"));
 
-        AppLogger.getInstance().info("Usage: java -jar <jar-file> [options]\n" +
-                "Options:\n" +
-                message);
+        AppLogger.getInstance().info("""
+                Usage: java -jar <jar-file> [options]
+                Options:
+                """ + message
+        );
+
     }
 
     public record CommandLineArgument<T>(String[] modifiers, String description, Optional<T> value) {
@@ -110,6 +122,6 @@ public final class ArgumentParser {
         }
     }
 
-    public record ArgumentsParseResult(String dataPath, String propertiesPath, String imagesPath) {
+    public record ArgumentsParseResult(String dataPath, String propertiesPath, String imagesPath, boolean skipConfiguration) {
     }
 }

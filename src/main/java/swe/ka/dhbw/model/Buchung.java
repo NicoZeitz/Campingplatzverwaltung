@@ -39,7 +39,6 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     private LocalDateTime abreise;
     private Stellplatz gebuchterStellplatz;
     private Optional<Rechnung> rechnung = Optional.empty();
-    ;
     private Gast verantwortlicherGast;
 
     public Buchung(final int buchungsnummer,

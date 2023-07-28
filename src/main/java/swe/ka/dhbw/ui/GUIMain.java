@@ -10,7 +10,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class GUIMain extends GUIComponent {
+    // Commands
     public enum Commands implements EventCommand {
+        // outgoing gui events
         BOOKING_MANAGEMENT("GUIMain::BOOKING_MANAGEMENT"),
         PITCH_MANAGEMENT("GUIMain::PITCH_MANAGEMENT"),
         GUEST_MANAGEMENT("GUIMain::GUEST_MANAGEMENT"),
@@ -42,7 +44,7 @@ public class GUIMain extends GUIComponent {
     }
 
     @Override
-    public void processUpdateEvent(final UpdateEvent ue) {
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
         // Empty as nothing can change the main gui
     }
 

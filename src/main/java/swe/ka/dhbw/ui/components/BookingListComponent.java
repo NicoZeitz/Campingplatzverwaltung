@@ -19,8 +19,12 @@ import java.util.List;
 import java.util.*;
 
 public class BookingListComponent extends GUIComponent implements IGUIEventListener, TableCellRenderer {
+    // Commands
     public enum Commands implements EventCommand {
-        BOOKING_SELECTED("BookingListComponent::BOOKING_SELECTED", IDepictable.class);
+        // outgoing gui events
+        BOOKING_SELECTED("BookingListComponent::BOOKING_SELECTED", IDepictable.class),
+        // incoming update events
+        UPDATE_BOOKINGS("BookingListComponent::UPDATE_BOOKINGS", List.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -41,13 +45,18 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         }
     }
 
+    // UI IDs
     private static final String BOOKING_SIMPLE_TABLE_COMPONENT_ID = "BookingListComponent::BOOKING_SIMPLE_TABLE_COMPONENT_ID";
-    private List<? extends IDepictable> bookings;
+
+    // Components
+    private SimpleTableComponent tableComponent;
+
+    // Data
+    private List<? extends IDepictable> bookings = new ArrayList<>();
     private Map<ImageElement, ImageIcon> cachedImages = new HashMap<>();
 
-    public BookingListComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> bookings) {
+    public BookingListComponent(final ReadonlyConfiguration config) {
         super("BookingListComponent", config);
-        this.bookings = bookings;
         this.initUI();
     }
 
@@ -68,6 +77,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
             cell.setFont(table.getFont());
             cell.setOpaque(true);
             for (final var image : collection) {
+                // cache resized images to avoid resizing them on every render
                 final var img = this.cachedImages.computeIfAbsent((ImageElement) image,
                         i -> new ImageIcon(i.getBaseImage()
                                 .getScaledInstance(table.getRowHeight(), table.getRowHeight(), Image.SCALE_DEFAULT)));
@@ -80,44 +90,41 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
     }
 
     @Override
-    public void processGUIEvent(final GUIEvent ge) {
-        if (ge.getCmd() == SimpleTableComponent.Commands.ROW_SELECTED) {
+    public void processGUIEvent(final GUIEvent guiEvent) {
+        if (guiEvent.getCmd() == SimpleTableComponent.Commands.ROW_SELECTED) {
             this.fireGUIEvent(new GUIEvent(
                     this,
                     Commands.BOOKING_SELECTED,
-                    ge.getData()
+                    guiEvent.getData()
             ));
         }
     }
 
     @Override
-    public void processUpdateEvent(final UpdateEvent ue) {
-
+    @SuppressWarnings("unchecked")
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
+        if (updateEvent.getCmd() == Commands.UPDATE_BOOKINGS) {
+            this.bookings = (List<? extends IDepictable>) updateEvent.getData();
+            final var columnNames = Arrays.stream(this.bookings.get(0).getAttributeArray())
+                    .map(Attribute::getName)
+                    .toList()
+                    .toArray(new String[0]);
+            this.tableComponent.setData(this.bookings.toArray(new IDepictable[0]), columnNames);
+        }
     }
 
     private void initUI() {
         this.setLayout(new GridLayout(1, 1));
         this.setBackground(this.config.getBackgroundColor());
         this.setOpaque(true);
-        this.initUIBookings();
-    }
 
-    @SuppressWarnings("unchecked")
-    private void initUIBookings() {
-        final var columnNames = Arrays.stream(this.bookings.get(0).getAttributeArray())
-                .map(Attribute::getName)
-                .toList()
-                .toArray(new String[0]);
-
-        final var table = SimpleTableComponent
+        this.tableComponent = SimpleTableComponent
                 .builder(BOOKING_SIMPLE_TABLE_COMPONENT_ID)
-                .columnNames(columnNames)
+                .columnNames(new String[0])
                 .cellRenderer(this, List.class)
-                .data((List<IDepictable>) this.bookings)
                 .build();
-        super.colorizeTable(table);
-        table.addObserver(this);
-
-        this.add(table, BorderLayout.CENTER);
+        super.colorizeTable(this.tableComponent);
+        this.tableComponent.addObserver(this);
+        this.add(this.tableComponent, BorderLayout.CENTER);
     }
 }

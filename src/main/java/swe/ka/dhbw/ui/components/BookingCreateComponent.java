@@ -7,6 +7,7 @@ import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.*;
 import de.dhbwka.swe.utils.model.Attribute;
 import de.dhbwka.swe.utils.model.IDepictable;
+import swe.ka.dhbw.control.GUIController;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.ui.GUIComponent;
 
@@ -17,22 +18,27 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Stream;
 
+// TODO: save state in gui controller instead
 public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
+        // outgoing gui events
         ADD_GUEST("BookingCreateComponent::ADD_GUEST"),
         ADD_SERVICE("BookingCreateComponent::ADD_SERVICE"),
         ADD_EQUIPMENT("BookingCreateComponent::ADD_EQUIPMENT"),
-        SELECT_START_DATE("BookingCreateComponent::SELECT_START_DATE", Optional.class),
-        SELECT_END_DATE("BookingCreateComponent::SELECT_END_DATE", Optional.class),
+
         SELECT_CHIPCARD("BookingCreateComponent::SELECT_CHIPCARD", SelectChipkartePayload.class),
         DELETE_CHIPCARD("BookingCreateComponent::DELETE_CHIPCARD", DeleteChipkartePayload.class),
+        // incoming update events TODO: check if right like this
         RESET("BookingCreateComponent::RESET"),
-        CREATE_BOOKING("BookingCreateComponent::CREATE_BOOKING");
+        CREATE_BOOKING("BookingCreateComponent::CREATE_BOOKING"),
+        // Callback events
+        SELECT_PITCH_INTERACTIVELY("BookingCreateComponent::SELECT_PITCH_INTERACTIVELY"),
+        SELECT_START_DATE("BookingCreateComponent::SELECT_START_DATE", Optional.class),
+        SELECT_END_DATE("BookingCreateComponent::SELECT_END_DATE", Optional.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -67,51 +73,62 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     private static final String BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID";
     private static final String CHIPCARD_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::CHIPCARD_ATTRIBUTE_ELEMENT_ID";
     private static final String CHIPCARD_SIMPLE_TABLE_COMPONENT_ID = "BookingCreateComponent::CHIPCARD_SIMPLE_TABLE_COMPONENT_ID";
+    private static final String PITCH_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::PITCH_ATTRIBUTE_ELEMENT_ID";
+    private static final String SELECT_PITCH_BUTTON_ELEMENT_ID = "BookingCreateComponent::SELECT_PITCH_BUTTON_ELEMENT_ID";
+
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMANY);
-    private AttributeElement arrivalDate;
-    private AttributeElement departureDate;
+    // Components
+    private AttributeElement arrivalDateComponent;
+    private AttributeElement departureDateComponent;
     private AttributeElement chipCardSelector;
     private SimpleTableComponent chipCardTable;
-    private List<? extends IDepictable> availableChipCards;
+    private AttributeElement pitchSelector;
+
+    // Data
+    private List<? extends IDepictable> availablePitches = new ArrayList<>();
+    private List<? extends IDepictable> associatedGuests = new ArrayList<>();
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private Optional<? extends IDepictable> responsibleGuest = Optional.empty();
+    private List<? extends IDepictable> bookedServices = new ArrayList<>();
+    private List<? extends IDepictable> rentedEquipment = new ArrayList<>();
+
+    private List<? extends IDepictable> availableChipCards = new ArrayList<>();
     private List<? extends IDepictable> selectedChipCards = new ArrayList<>();
 
-    public BookingCreateComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> availableChipCards) {
+    public BookingCreateComponent(
+            final ReadonlyConfiguration config
+    ) {
         super("BookingCreateComponent", config);
-        this.availableChipCards = availableChipCards;
         this.initUI();
     }
 
     @Override
-    public void processGUIEvent(final GUIEvent ge) {
-        if (ge.getSource() instanceof ObservableComponent component) {
+    public void processGUIEvent(final GUIEvent guiEvent) {
+        if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
                 case ADD_GUEST_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_GUEST));
                 case ADD_SERVICE_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_SERVICE));
                 case ADD_EQUIPMENT_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.ADD_EQUIPMENT));
                 case BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID -> {
-                    if (ge.getCmd() != AttributeElement.Commands.BUTTON_PRESSED) {
+                    if (guiEvent.getCmd() != AttributeElement.Commands.BUTTON_PRESSED) {
                         return;
                     }
-                    Optional<LocalDateTime> value = Optional.empty();
-                    try {
-                        value = Optional.of(LocalDateTime.parse(((AttributeElement) ge.getData()).getValueAsString(), dateTimeFormatter));
-                    } catch (DateTimeParseException e) { /* Ignore Errors */ }
-                    this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_START_DATE, value));
+                    final var data = ((AttributeElement) guiEvent.getData()).getValueAsString();
+                    final var startDate = tryOptional(() -> LocalDateTime.parse(data, dateTimeFormatter));
+                    this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_START_DATE, startDate));
 
                 }
                 case BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID -> {
-                    if (ge.getCmd() != AttributeElement.Commands.BUTTON_PRESSED) {
+                    if (guiEvent.getCmd() != AttributeElement.Commands.BUTTON_PRESSED) {
                         return;
                     }
-                    Optional<LocalDateTime> value = Optional.empty();
-                    try {
-                        value = Optional.of(LocalDateTime.parse(((AttributeElement) ge.getData()).getValueAsString(), dateTimeFormatter));
-                    } catch (DateTimeParseException e) { /* Ignore Errors */ }
-                    this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_END_DATE, value));
+                    final var data = ((AttributeElement) guiEvent.getData()).getValueAsString();
+                    final var endDate = tryOptional(() -> LocalDateTime.parse(data, dateTimeFormatter));
+                    this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_END_DATE, endDate));
                 }
                 case CHIPCARD_ATTRIBUTE_ELEMENT_ID -> {
-                    final var value = ((AttributeElement) ge.getData()).getValue();
+                    final var value = ((AttributeElement) guiEvent.getData()).getValue();
                     if (value instanceof String str && str.isEmpty()) {
                         return;
                     }
@@ -126,19 +143,17 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     final var scrollPane = (JScrollPane) this.chipCardTable.getComponent(0);
                     final var viewport = scrollPane.getViewport();
                     final var tableComponent = (JTable) viewport.getComponent(0);
-                    if (tableComponent.getSelectedColumn() != 2 || ge.getCmd() != SimpleTableComponent.Commands.ROW_SELECTED) {
+                    if (tableComponent.getSelectedColumn() != 2 || guiEvent.getCmd() != SimpleTableComponent.Commands.ROW_SELECTED) {
                         return;
                     }
                     final var chipkarte = this.selectedChipCards.stream()
-                            .filter(c -> c.getElementID().equals(((IDepictable) ge.getData()).getElementID()))
+                            .filter(c -> c.getElementID().equals(((IDepictable) guiEvent.getData()).getElementID()))
                             .findFirst();
-                    if (chipkarte.isPresent()) {
-                        this.fireGUIEvent(new GUIEvent(this, Commands.DELETE_CHIPCARD, new DeleteChipkartePayload(
-                                this.availableChipCards,
-                                this.selectedChipCards,
-                                chipkarte.get()
-                        )));
-                    }
+                    chipkarte.ifPresent(iDepictable -> this.fireGUIEvent(new GUIEvent(this, Commands.DELETE_CHIPCARD, new DeleteChipkartePayload(
+                            this.availableChipCards,
+                            this.selectedChipCards,
+                            iDepictable
+                    ))));
                 }
                 case CREATE_BOOKING_BUTTON_ELEMENT_ID -> {
                     this.fireGUIEvent(new GUIEvent(this, Commands.CREATE_BOOKING, BookingCreatePayload.create(this)));
@@ -146,22 +161,36 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 case CANCEL_CREATE_BOOKING_BUTTON_ELEMENT_ID -> {
                     this.fireGUIEvent(new GUIEvent(this, Commands.RESET));
                 }
+                case SELECT_PITCH_BUTTON_ELEMENT_ID -> {
+                    this.fireGUIEvent(new GUIEvent(this, Commands.SELECT_PITCH_INTERACTIVELY));
+                }
             }
         }
     }
 
     @Override
-    public void processUpdateEvent(final UpdateEvent ue) {
-        if (ue.getCmdText().equals(Commands.SELECT_START_DATE.getCmdText())) {
-            final var date = LocalDateTime.of((LocalDate) ue.getData(), LocalTime.of(0, 0));
-            this.arrivalDate.setValue(date.format(this.dateTimeFormatter));
-        } else if (ue.getCmdText().equals(Commands.SELECT_END_DATE.getCmdText())) {
-            final var date = LocalDateTime.of((LocalDate) ue.getData(), LocalTime.of(23, 59));
-            this.departureDate.setValue(date.format(this.dateTimeFormatter));
-        } else if (ue.getCmd() == Commands.RESET) {
-            this.resetInput();
-        } else if (ue.getCmd() == Commands.SELECT_CHIPCARD) {
-            final var payload = (SelectChipkartePayload) ue.getData();
+    @SuppressWarnings("unchecked")
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
+        // date selection
+        if (updateEvent.getCmdText().equals(Commands.SELECT_START_DATE.getCmdText())) {
+            final var date = LocalDateTime.of((LocalDate) updateEvent.getData(), LocalTime.of(0, 0));
+            this.arrivalDateComponent.setValue(date.format(this.dateTimeFormatter));
+        } else if (updateEvent.getCmdText().equals(Commands.SELECT_END_DATE.getCmdText())) {
+            final var date = LocalDateTime.of((LocalDate) updateEvent.getData(), LocalTime.of(23, 59));
+            this.departureDateComponent.setValue(date.format(this.dateTimeFormatter));
+        }
+
+        // pitch selection
+        else if (updateEvent.getCmd() == GUIController.Commands.UPDATE_PITCHES) {
+            this.availablePitches = (List<? extends IDepictable>) updateEvent.getData();
+            this.pitchSelector.setData(this.availablePitches.toArray(new IDepictable[0]));
+        } else if (updateEvent.getCmdText().equals(Commands.SELECT_PITCH_INTERACTIVELY.getCmdText())) {
+            this.pitchSelector.setValue(updateEvent.getData());
+        }
+
+        // chip card selection
+        else if (updateEvent.getCmd() == Commands.SELECT_CHIPCARD) {
+            final var payload = (SelectChipkartePayload) updateEvent.getData();
             this.availableChipCards = payload.availableChipkarten();
             this.selectedChipCards = payload.selectedChipkarten();
 
@@ -170,15 +199,24 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
             if (this.availableChipCards.size() == 0) this.chipCardSelector.setEnabled(false);
             this.reloadChipkarten();
         }
+
+        // other
+        else if (updateEvent.getCmd() == Commands.RESET) {
+            this.resetInput();
+        }
     }
 
     @SuppressWarnings("unchecked")
     public void resetInput() {
-        this.arrivalDate.setValue("");
-        this.departureDate.setValue("");
+        this.arrivalDateComponent.setValue("");
+        this.departureDateComponent.setValue("");
         this.availableChipCards = Stream.concat(this.availableChipCards.stream(), this.selectedChipCards.stream()).sorted().toList();
         this.selectedChipCards.clear();
         this.reloadChipkarten();
+
+        this.pitchSelector.setData(this.availablePitches);
+        this.pitchSelector.setValue(null);
+
         this.repaint();
     }
 
@@ -187,7 +225,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     }
 
     private JComponent createBuchungszeitraum() {
-        this.arrivalDate = AttributeElement
+        this.arrivalDateComponent = AttributeElement
                 .builder(BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Anreisedatum")
                 .toolTip("Angabe des Anreisedatums der Buchung (Format: dd.MM.yyyy HH:mm)")
@@ -210,9 +248,9 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .actionElementBackgroundColor(this.config.getBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
-        this.arrivalDate.addObserver(this);
+        this.arrivalDateComponent.addObserver(this);
 
-        this.departureDate = AttributeElement
+        this.departureDateComponent = AttributeElement
                 .builder(BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Abreisedatum")
                 .toolTip("Angabe des Abreisedatums der Buchung (Format: dd.MM.yyyy HH:mm)")
@@ -235,10 +273,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .actionElementBackgroundColor(this.config.getBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
-        this.departureDate.addObserver(this);
+        this.departureDateComponent.addObserver(this);
 
         final var panel = AttributeComponent.builder(super.generateRandomID())
-                .attributeElements(new AttributeElement[] {this.arrivalDate, this.departureDate})
+                .attributeElements(new AttributeElement[] {this.arrivalDateComponent, this.departureDateComponent})
                 .build();
         panel.setBackground(this.config.getBackgroundColor());
         panel.setForeground(this.config.getTextColor());
@@ -335,7 +373,57 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     }
 
     private JComponent createStellplatzauswahl() {
-        return new JPanel();
+        final var panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        panel.getInsets().set(10, 10, 10, 10);
+        panel.setOpaque(true);
+        panel.setBackground(this.config.getBackgroundColor());
+        panel.setForeground(this.config.getTextColor());
+
+        this.pitchSelector = AttributeElement.builder(PITCH_ATTRIBUTE_ELEMENT_ID)
+                .labelName("Stellplatz")
+                .toolTip("Auswahl des Stellplatzes")
+                // label
+                .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
+                .labelFont(this.config.getFont())
+                .labelTextColor(this.config.getTextColor())
+                .labelBackgroundColor(this.config.getBackgroundColor())
+                // input
+                .mandatory(true)
+                .formatType(AttributeElement.FormatType.TEXT)
+                .autoformat()
+                .modificationType(AttributeElement.ModificationType.INTERACTIVE_AND_DIRECT)
+                // action button
+                .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
+                .actionType(AttributeElement.ActionType.COMBOBOX)
+                .actionElementFont(this.config.getFont())
+                .actionElementTextColor(this.config.getTextColor())
+                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementInsets(new Insets(0, 0, 0, 0))
+                .build();
+        this.pitchSelector.addObserver(this);
+
+        final var selectorComponent = AttributeComponent.builder(super.generateRandomID())
+                .attributeElements(new AttributeElement[] {this.pitchSelector})
+                .build();
+
+        selectorComponent.setFont(this.config.getFont());
+        selectorComponent.setForeground(this.config.getTextColor());
+        selectorComponent.setBackground(this.config.getBackgroundColor());
+        selectorComponent.getComponent(0).setBackground(this.config.getBackgroundColor());
+        selectorComponent.getComponent(0).setForeground(this.config.getTextColor());
+        selectorComponent.getComponent(0).setFont(this.config.getFont());
+        panel.add(selectorComponent,
+                new GridBagConstraints(0, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+
+        final var interactiveSelectorButton = super.createAddButton(SELECT_PITCH_BUTTON_ELEMENT_ID, "Stellplatz interaktiv auswählen");
+        interactiveSelectorButton.setButtonText("Kartenauswahl");
+        interactiveSelectorButton.setMargin(new Insets(0, 10, 0, 10));
+
+        panel.add(interactiveSelectorButton,
+                new GridBagConstraints(1, 0, 1, 1, 0d, 0d, GridBagConstraints.NORTH, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0));
+
+        return panel;
     }
 
     private void initUI() {
@@ -419,7 +507,6 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .orientation(ButtonComponent.Orientation.RIGHT)
                 .build();
 
-        // TODO: why is the border background blue???
         final var border = BorderFactory.createTitledBorder("Neue Buchung anlegen");
         border.setTitleColor(this.config.getTextColor());
         border.setTitleFont(this.config.getHeaderFont());
@@ -477,26 +564,35 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     }
 
     public record BookingCreatePayload(
-            Optional<LocalDateTime> anreisedatum,
-            Optional<LocalDateTime> abreisedatum,
-            List<? extends IDepictable> chipkarten
+            Optional<LocalDateTime> arrivalDate,
+            Optional<LocalDateTime> departureDate,
+            List<? extends IDepictable> associatedGuests,
+            Optional<? extends IDepictable> responsibleGuest,
+            List<? extends IDepictable> bookedServices,
+            List<? extends IDepictable> rentedEquipment,
+            IDepictable bookedPitch,
+            List<? extends IDepictable> chipCards
     ) {
         public static BookingCreatePayload create(final BookingCreateComponent component) {
-            Optional<LocalDateTime> anreisedatum = Optional.empty();
-            try {
-                anreisedatum = Optional.of(LocalDateTime.parse(component.arrivalDate.getValueAsString(), component.dateTimeFormatter));
-            } catch (DateTimeParseException e) {
-                // Fehler ignorieren
-            }
+            final var arrivalDate = component.tryOptional(() -> LocalDateTime.parse(
+                    component.arrivalDateComponent.getValueAsString(),
+                    component.dateTimeFormatter
+            ));
+            final var departureDate = component.tryOptional(() -> LocalDateTime.parse(
+                    component.departureDateComponent.getValueAsString(),
+                    component.dateTimeFormatter
+            ));
 
-            Optional<LocalDateTime> abreisedatum = Optional.empty();
-            try {
-                abreisedatum = Optional.of(LocalDateTime.parse(component.departureDate.getValueAsString(), component.dateTimeFormatter));
-            } catch (DateTimeParseException e) {
-                // Fehler ignorieren
-            }
-
-            return new BookingCreatePayload(anreisedatum, abreisedatum, component.selectedChipCards);
+            return new BookingCreatePayload(
+                    arrivalDate,
+                    departureDate,
+                    component.associatedGuests,
+                    component.responsibleGuest,
+                    component.bookedServices,
+                    component.rentedEquipment,
+                    (IDepictable) component.pitchSelector.getValue(),
+                    component.selectedChipCards
+            );
         }
     }
 }
