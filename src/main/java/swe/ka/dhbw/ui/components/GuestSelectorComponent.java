@@ -60,25 +60,25 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
     }
 
     @Override
-    public void processGUIEvent(final GUIEvent ge) {
-        if (ge.getSource() instanceof ObservableComponent component) {
+    public void processGUIEvent(final GUIEvent guiEvent) {
+        if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
                 case SEARCH_INPUT_ELEMENT_ID -> {
-                    if (ge.getCmd() == SimpleTextComponent.Commands.TEXT_CHANGED) {
+                    if (guiEvent.getCmd() == SimpleTextComponent.Commands.TEXT_CHANGED) {
                         final var text = this.searchInputElement.getText();
                         final var payload = new SearchInputChangedPayload(text, this.guests);
                         this.fireGUIEvent(new GUIEvent(this, Commands.SEARCH_INPUT_CHANGED, payload));
                     }
                 }
                 case ADD_BUTTON_ELEMENT_ID -> {
-                    if (ge.getCmd() == ButtonElement.Commands.BUTTON_PRESSED) {
+                    if (guiEvent.getCmd() == ButtonElement.Commands.BUTTON_PRESSED) {
                         this.fireGUIEvent(new GUIEvent(this, Commands.ADD_GUEST_BUTTON_PRESSED));
                     }
                 }
                 case GUEST_LIST_ELEMENT_ID -> {
-                    if (ge.getCmd() == SimpleListComponent.Commands.ELEMENT_SELECTED) {
-                        final var guest = (IDepictable) ge.getData();
+                    if (guiEvent.getCmd() == SimpleListComponent.Commands.ELEMENT_SELECTED) {
+                        final var guest = (IDepictable) guiEvent.getData();
                         this.fireGUIEvent(new GUIEvent(this, Commands.GUEST_SELECTED, guest));
                     }
                 }
@@ -88,9 +88,9 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
 
     @Override
     @SuppressWarnings("unchecked")
-    public void processUpdateEvent(final UpdateEvent ue) {
-        if (ue.getCmd() == Commands.UPDATE_GUESTS) {
-            this.guests = (List<? extends IDepictable>) ue.getData();
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
+        if (updateEvent.getCmd() == Commands.UPDATE_GUESTS) {
+            this.guests = (List<? extends IDepictable>) updateEvent.getData();
             this.guestListElement.setListElements(this.guests);
         }
     }

@@ -10,17 +10,17 @@ import java.awt.*;
 
 public class GUIConfigurationObserver implements IGUIEventListener {
     @Override
-    public void processGUIEvent(GUIEvent ge) {
-        if (ge.getCmd() == GUIConfiguration.Commands.OPEN_MAIN_GUI) {
+    public void processGUIEvent(GUIEvent guiEvent) {
+        if (guiEvent.getCmd() == GUIConfiguration.Commands.OPEN_MAIN_GUI) {
             SwingUtilities.invokeLater(() -> GUIController.getInstance().openWindowMain());
-        } else if (ge.getCmd() == GUIConfiguration.Commands.EXIT_APPLICATION) {
+        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.EXIT_APPLICATION) {
             GUIController.getInstance().exitApplication();
-        } else if (ge.getCmd() == GUIConfiguration.Commands.CONFIGURATION_ACCENT_COLOR) {
-            GUIController.getInstance().handleWindowConfigurationSetAccentColor((Color) ge.getData());
-        } else if (ge.getCmd() == GUIConfiguration.Commands.CONFIGURATION_DARK_MODE) {
-            GUIController.getInstance().handleWindowConfigurationSetDarkMode((Boolean) ge.getData());
-        } else if (ge.getCmd() == GUIConfiguration.Commands.CONFIGURATION_TEXT_FONT) {
-            GUIController.getInstance().handleWindowConfigurationSetTextFont((Font) ge.getData());
+        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.CONFIGURATION_ACCENT_COLOR) {
+            GUIController.getInstance().handleWindowConfigurationSetAccentColor((Color) guiEvent.getData());
+        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.CONFIGURATION_DARK_MODE) {
+            GUIController.getInstance().handleWindowConfigurationSetDarkMode((Boolean) guiEvent.getData());
+        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.CONFIGURATION_TEXT_FONT) {
+            GUIController.getInstance().handleWindowConfigurationSetTextFont((Font) guiEvent.getData());
         }
     }
 }

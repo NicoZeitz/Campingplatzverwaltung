@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public final class Adresse implements IPersistable, IDepictable, ICSVPersistable {
-    // Keine vollständige Liste
+    // Not a complete list
     public enum Land {
         DE("Deutschland"),
         US("Vereinigte Staaten von Amerika"),

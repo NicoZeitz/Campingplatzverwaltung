@@ -6,10 +6,13 @@ import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableModel;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public abstract class GUIComponent extends ObservableComponent implements IUpdateEventListener {
     protected ReadonlyConfiguration config;
@@ -25,20 +28,22 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
     }
 
     // TODO: remove if not used
-    public JTable createTable(String[] columnNames) {
+    public JTable createTable(final TableModel model) {
         // we need to create our own table as the SimpleTableComponent does not allow us to listen to events that happen inside the table
         // and we want to grow the table dynamically instead of using a scrollpane
-        final var table = new JTable(new Object[0][0], columnNames);
+        final var table = new JTable(model);
         table.setFont(this.config.getFont());
         table.setForeground(this.config.getTextColor());
         table.setBackground(this.config.getBackgroundColor());
         table.setRowSelectionAllowed(false);
+        table.setSelectionBackground(this.config.getAccentColor());
         final var tableHeader = new JTableHeader();
         tableHeader.setColumnModel(table.getColumnModel());
         tableHeader.setFont(this.config.getFont());
         tableHeader.setForeground(this.config.getTextColor());
         tableHeader.setBackground(this.config.getSecondaryBackgroundColor());
         table.setTableHeader(tableHeader);
+
         return table;
     }
 
@@ -160,5 +165,14 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
 
     protected String generateRandomID() {
         return "%s::%s".formatted(this.getClass().getSimpleName(), UUID.randomUUID().toString());
+    }
+
+    protected <T> Optional<T> tryOptional(final Supplier<T> supplier) {
+        try {
+            return Optional.ofNullable(supplier.get());
+        } catch (final Exception e) {
+            // ignore exception
+            return Optional.empty();
+        }
     }
 }

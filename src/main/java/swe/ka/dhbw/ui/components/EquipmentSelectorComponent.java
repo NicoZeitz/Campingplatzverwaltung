@@ -65,8 +65,8 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
     }
 
     @Override
-    public void processGUIEvent(final GUIEvent ge) {
-        if (ge.getSource() instanceof ObservableComponent component) {
+    public void processGUIEvent(final GUIEvent guiEvent) {
+        if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
                 case CANCEL_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.CANCEL));
@@ -74,14 +74,8 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                     this.widthElement.getValue();
                     final var description = Optional.of((String) this.descriptionElement.getValue()).filter(s -> !s.isBlank());
                     final var amount = (Integer) this.amountElement.getValue();
-                    Optional<Double> width = Optional.empty();
-                    try {
-                        width = Optional.of(Double.parseDouble((this.widthElement.getValueAsString()).replaceAll(",", ".")));
-                    } catch (NumberFormatException ignored) { /* Ignore Errors */ }
-                    Optional<Double> height = Optional.empty();
-                    try {
-                        height = Optional.of(Double.parseDouble((this.heightElement.getValueAsString()).replaceAll(",", ".")));
-                    } catch (NumberFormatException ignored) { /* Ignore Errors */ }
+                    final var width = tryOptional(() -> Double.parseDouble((this.widthElement.getValueAsString()).replaceAll(",", ".")));
+                    final var height = tryOptional(() -> Double.parseDouble((this.heightElement.getValueAsString()).replaceAll(",", ".")));
                     final var licensePlate = Optional.of((String) this.licensePlateElement.getValue()).filter(s -> !s.isBlank());
                     final var vehicleTyp = this.vehicleTypElement.getValue();
 

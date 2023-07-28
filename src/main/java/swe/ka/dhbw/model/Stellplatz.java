@@ -302,22 +302,9 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
 
     @Override
     public String toString() {
-        return "Stellplatz{" +
-                "stellplatz='" + this.getStellplatz() + '\'' +
-                ", gebuehr=" + this.getGroesse() +
-                ", groesse=" + this.getGroesse() +
-                ", barrierefrei=" + this.isBarrierefrei() +
-                ", anzahWohnwagen=" + this.getAnzahWohnwagen() +
-                ", anzahlPKW=" + this.getAnzahlPKW() +
-                ", anzahlZelte=" + this.getAnzahlZelte() +
-                ", lage=" + this.getLage() +
-                ", bereich=" + this.getBereich() +
-                ", verfuegbareFunktionen=[" + this.getVerfuegbareFunktionen()
-                .stream()
-                .map(Objects::toString)
-                .collect(Collectors.joining(", ")) + "]" +
-                ", fotos=[" + this.getFotos().stream().map(Objects::toString).collect(Collectors.joining(", ")) + "]" +
-                '}';
+        final var foto = this.getFotos().stream().findAny();
+        final var beschreibung = foto.isPresent() ? " (" + foto.get().getTitel() + ")" : "";
+        return "Stellplatz " + this.getStellplatz() + beschreibung;
     }
 
     public void addVerfuegbareFunktion(final Stellplatzfunktion funktion) {

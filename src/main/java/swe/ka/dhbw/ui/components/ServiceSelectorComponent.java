@@ -13,13 +13,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 public class ServiceSelectorComponent extends GUIComponent implements IGUIEventListener {
+    // Commands
     public enum Commands implements EventCommand {
+        // outgoing gui events
         DATE_PICKER_START_DATE("ServiceSelectorComponent::DATE_PICKER_START_DATE", LocalDate.class),
         DATE_PICKER_END_DATE("ServiceSelectorComponent::DATE_PICKER_END_DATE", LocalDate.class),
         CANCEL("ServiceSelectorComponent::CANCEL"),
@@ -48,17 +49,21 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
         }
     }
 
+    // UI IDs
     private static final String SERVICE_TYPE_ELEMENT_ID = "ServiceSelectorComponent::SERVICE_TYPE_ELEMENT_ID";
     private static final String START_DATE_ELEMENT_ID = "ServiceSelectorComponent::START_DATE_ELEMENT_ID";
     private static final String END_DATE_ELEMENT_ID = "ServiceSelectorComponent::END_DATE_ELEMENT_ID";
     private static final String CANCEL_BUTTON_ELEMENT_ID = "ServiceSelectorComponent::CANCEL_BUTTON_ELEMENT_ID";
     private static final String SAVE_BUTTON_ELEMENT_ID = "ServiceSelectorComponent::SAVE_BUTTON_ELEMENT_ID";
 
+    // Components
     private AttributeElement serviceTypeElement;
     private AttributeElement startDateElement;
     private AttributeElement endDateElement;
-    private List<? extends IDepictable> serviceTypes;
+
+    // Data
     private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
+    private List<? extends IDepictable> serviceTypes;
 
     public ServiceSelectorComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> serviceTypes, final EditPayload payload) {
         // edit mode
@@ -75,40 +80,28 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
     }
 
     @Override
-    public void processGUIEvent(final GUIEvent ge) {
-        if (ge.getSource() instanceof ObservableComponent component) {
+    public void processGUIEvent(final GUIEvent guiEvent) {
+        if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
                 case SERVICE_TYPE_ELEMENT_ID -> {
                 }
                 case START_DATE_ELEMENT_ID -> {
-                    if (ge.getCmd() == AttributeElement.Commands.BUTTON_PRESSED) {
-                        Optional<LocalDate> value = Optional.empty();
-                        try {
-                            value = Optional.of(LocalDate.parse(this.startDateElement.getValueAsString(), this.dateTimeFormatter));
-                        } catch (DateTimeParseException ignored) { /* Ignore Errors */ }
-                        this.fireGUIEvent(new GUIEvent(this, Commands.DATE_PICKER_START_DATE, value));
+                    if (guiEvent.getCmd() == AttributeElement.Commands.BUTTON_PRESSED) {
+                        final var startDate = tryOptional(() -> LocalDate.parse(this.startDateElement.getValueAsString(), this.dateTimeFormatter));
+                        this.fireGUIEvent(new GUIEvent(this, Commands.DATE_PICKER_START_DATE, startDate));
                     }
                 }
                 case END_DATE_ELEMENT_ID -> {
-                    if (ge.getCmd() == AttributeElement.Commands.BUTTON_PRESSED) {
-                        Optional<LocalDate> value = Optional.empty();
-                        try {
-                            value = Optional.of(LocalDate.parse(this.endDateElement.getValueAsString(), this.dateTimeFormatter));
-                        } catch (DateTimeParseException ignored) { /* Ignore Errors */ }
-                        this.fireGUIEvent(new GUIEvent(this, Commands.DATE_PICKER_END_DATE, value));
+                    if (guiEvent.getCmd() == AttributeElement.Commands.BUTTON_PRESSED) {
+                        final var endDate = tryOptional(() -> LocalDate.parse(this.endDateElement.getValueAsString(), this.dateTimeFormatter));
+                        this.fireGUIEvent(new GUIEvent(this, Commands.DATE_PICKER_END_DATE, endDate));
                     }
                 }
                 case CANCEL_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.CANCEL));
                 case SAVE_BUTTON_ELEMENT_ID -> {
-                    Optional<LocalDate> startDate = Optional.empty();
-                    try {
-                        startDate = Optional.of(LocalDate.parse(this.startDateElement.getValueAsString(), this.dateTimeFormatter));
-                    } catch (DateTimeParseException ignored) { /* Ignore Errors */ }
-                    Optional<LocalDate> endDate = Optional.empty();
-                    try {
-                        endDate = Optional.of(LocalDate.parse(this.endDateElement.getValueAsString(), this.dateTimeFormatter));
-                    } catch (DateTimeParseException ignored) { /* Ignore Errors */ }
+                    final var startDate = tryOptional(() -> LocalDate.parse(this.startDateElement.getValueAsString(), this.dateTimeFormatter));
+                    final var endDate = tryOptional(() -> LocalDate.parse(this.endDateElement.getValueAsString(), this.dateTimeFormatter));
 
                     final var payload = new SavePayload(
                             (IDepictable) this.serviceTypeElement.getValue(),
@@ -122,11 +115,11 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
     }
 
     @Override
-    public void processUpdateEvent(final UpdateEvent ue) {
-        if (ue.getCmdText().equals(Commands.DATE_PICKER_START_DATE.getCmdText())) {
-            this.startDateElement.setValue(((LocalDate) ue.getData()).format(this.dateTimeFormatter));
-        } else if (ue.getCmdText().equals(Commands.DATE_PICKER_END_DATE.getCmdText())) {
-            this.endDateElement.setValue(((LocalDate) ue.getData()).format(this.dateTimeFormatter));
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
+        if (updateEvent.getCmdText().equals(Commands.DATE_PICKER_START_DATE.getCmdText())) {
+            this.startDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
+        } else if (updateEvent.getCmdText().equals(Commands.DATE_PICKER_END_DATE.getCmdText())) {
+            this.endDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
         }
     }
 

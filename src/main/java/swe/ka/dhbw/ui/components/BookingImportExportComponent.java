@@ -12,7 +12,7 @@ public class BookingImportExportComponent extends GUIComponent {
     }
 
     @Override
-    public void processUpdateEvent(final UpdateEvent ue) {
+    public void processUpdateEvent(final UpdateEvent updateEvent) {
         // placeholder
     }
 }
