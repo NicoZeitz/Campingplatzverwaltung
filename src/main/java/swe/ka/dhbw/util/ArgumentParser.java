@@ -8,13 +8,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class ArgumentParser {
-    private static final CommandLineArgument[] commandLineArguments = new CommandLineArgument[] {
-            new CommandLineArgument(new String[] {"-d", "--data"}, "The path to where all the data is stored."),
-            new CommandLineArgument(new String[] {"-p", "--properties"}, "The path to the properties file."),
-            new CommandLineArgument(new String[] {"-i", "--images"}, "The path to the images folder."),
-            new CommandLineArgument(new String[] {"-h", "--help"}, "Prints this help message."),
-            new CommandLineArgument(new String[] {"-v", "--version"}, "Prints the version of this program."),
-            new CommandLineArgument(new String[] {"--skip-configuration"}, "Skips the configuration window.")
+    private static final CommandLineArgument<?>[] commandLineArguments = new CommandLineArgument<?>[] {
+            new CommandLineArgument<Void>(new String[] {"-d", "--data"}, "The path to where all the data is stored."),
+            new CommandLineArgument<Void>(new String[] {"-p", "--properties"}, "The path to the properties file."),
+            new CommandLineArgument<Void>(new String[] {"-i", "--images"}, "The path to the images folder."),
+            new CommandLineArgument<Void>(new String[] {"-h", "--help"}, "Prints this help message."),
+            new CommandLineArgument<Void>(new String[] {"-v", "--version"}, "Prints the version of this program."),
+            new CommandLineArgument<Void>(new String[] {"--skip-configuration"}, "Skips the configuration window.")
     };
 
     private ArgumentParser() {
@@ -95,15 +95,14 @@ public final class ArgumentParser {
             throw new ArgumentParseException("You have to specify a images path.");
         }
 
-        var arguments = new ArgumentsParseResult(dataPath.get(), propertiesPath.get(), imagesPath.get(), skipConfiguration.orElse(false));
-        return arguments;
+        return new ArgumentsParseResult(dataPath.get(), propertiesPath.get(), imagesPath.get(), skipConfiguration.orElse(false));
     }
 
     public static void printCommandLineArguments() {
         var message = Arrays
                 .stream(commandLineArguments)
                 .map(argument -> {
-                    var modifiers = Arrays.stream(argument.modifiers).collect(Collectors.joining(", "));
+                    final var modifiers = String.join(", ", argument.modifiers);
                     return modifiers + "\t" + argument.description;
                 })
                 .collect(Collectors.joining("\n"));

@@ -20,6 +20,7 @@ public class EntityManager {
         return instance;
     }
 
+
     public <Entity extends IPersistable> boolean contains(final Entity element) {
         return this.findOne(element.getClass(), element.getPrimaryKey()).isPresent();
     }

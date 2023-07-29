@@ -12,6 +12,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 
 public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
@@ -151,7 +152,7 @@ public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistab
         final var df = new DecimalFormat();
         df.setMaximumFractionDigits(2);
         final var price = df.format(this.getGebuehr().setScale(2, RoundingMode.HALF_EVEN)) + "€";
-        final var purchaseDate = this.getAnschaffungsdatum().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        final var purchaseDate = this.getAnschaffungsdatum().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
         return this.getBeschreibung() + " - " + price + " (" + this.getZustand() + ", angeschafft am " + purchaseDate + ")";
     }
 }

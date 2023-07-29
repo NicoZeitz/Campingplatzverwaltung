@@ -14,6 +14,7 @@ public record WindowLocation(int x, int y, int width, int height, State state) {
     public static final int DEFAULT_WINDOW_Y = getDefaultWindowY();
     public static final State DEFAULT_WINDOW_STATE = State.WINDOWED;
 
+    @SuppressWarnings("unused")
     public WindowLocation(final int x, final int y, final int width, final int height) {
         this(x, y, width, height, State.WINDOWED);
     }
@@ -47,16 +48,12 @@ public record WindowLocation(int x, int y, int width, int height, State state) {
             final var key = keyValuePair[0];
             final var value = keyValuePair[1];
 
-            if (key.equals("x")) {
-                x = Integer.parseInt(value);
-            } else if (key.equals("y")) {
-                y = Integer.parseInt(value);
-            } else if (key.equals("w")) {
-                width = Integer.parseInt(value);
-            } else if (key.equals("h")) {
-                height = Integer.parseInt(value);
-            } else if (key.equals("s")) {
-                state = State.valueOf(value);
+            switch (key) {
+                case "x" -> x = Integer.parseInt(value);
+                case "y" -> y = Integer.parseInt(value);
+                case "w" -> width = Integer.parseInt(value);
+                case "h" -> height = Integer.parseInt(value);
+                case "s" -> state = State.valueOf(value);
             }
         }
 
@@ -73,6 +70,7 @@ public record WindowLocation(int x, int y, int width, int height, State state) {
         );
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public WindowLocation clone() {
         return new WindowLocation(this.x, this.y, this.width, this.height, this.state);
     }
@@ -81,6 +79,7 @@ public record WindowLocation(int x, int y, int width, int height, State state) {
         return new WindowLocation(this.x, this.y, this.width, height, this.state);
     }
 
+    @SuppressWarnings("unused")
     public WindowLocation withState(final State state) {
         return new WindowLocation(this.x, this.y, this.width, this.height, state);
     }
@@ -89,10 +88,12 @@ public record WindowLocation(int x, int y, int width, int height, State state) {
         return new WindowLocation(this.x, this.y, width, this.height, this.state);
     }
 
+    @SuppressWarnings("unused")
     public WindowLocation withX(final int x) {
         return new WindowLocation(x, this.y, this.width, this.height, this.state);
     }
 
+    @SuppressWarnings("unused")
     public WindowLocation withY(final int y) {
         return new WindowLocation(this.x, y, this.width, this.height, this.state);
     }

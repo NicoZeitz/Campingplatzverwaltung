@@ -186,7 +186,7 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
     public void addEinrichtung(final Einrichtung einrichtung) {
         Validator.getInstance().validateNotNull(einrichtung);
         this.einrichtungen.add(einrichtung);
-        if (!einrichtung.getZustaendigeFirma().equals(this)) {
+        if (!this.equals(einrichtung.getZustaendigeFirma().orElse(null))) {
             einrichtung.setZustaendigeFirma(Optional.of(this));
         }
     }
@@ -194,16 +194,18 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
     public void addWartung(final Wartung wartung) {
         Validator.getInstance().validateNotNull(wartung);
         this.wartungen.add(wartung);
-        if (!wartung.getZustaendigeFirma().equals(this)) {
+        if (!this.equals(wartung.getZustaendigeFirma().orElse(null))) {
             wartung.setZustaendigeFirma(Optional.of(this));
         }
     }
 
+    @SuppressWarnings("unused")
     public void removeEinrichtung(final Einrichtung einrichtung) {
         Validator.getInstance().validateNotNull(einrichtung);
         this.einrichtungen.remove(einrichtung);
     }
 
+    @SuppressWarnings("unused")
     public void removeWartung(final Wartung wartung) {
         Validator.getInstance().validateNotNull(wartung);
         this.wartungen.remove(wartung);

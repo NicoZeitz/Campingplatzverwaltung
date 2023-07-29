@@ -38,6 +38,7 @@ public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable, Co
     private final int nummer;
     private Status status;
 
+    @SuppressWarnings("unused")
     public Chipkarte(final int nummer) {
         this(nummer, Status.VERFUEGBAR);
     }
@@ -81,12 +82,12 @@ public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable, Co
                         this,
                         Integer.class,
                         this.getNummer(),
-                        this.getNummer(),
+                        0,
                         true,
                         false,
                         false,
                         true),
-                new Attribute(Attributes.STATUS.name(), this, Status.class, this.getStatus(), this.getStatus(), true)
+                new Attribute(Attributes.STATUS.name(), this, Status.class, this.getStatus(), Status.VERFUEGBAR, true)
         };
     }
 

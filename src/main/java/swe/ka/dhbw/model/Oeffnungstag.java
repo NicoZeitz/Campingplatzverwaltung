@@ -51,6 +51,7 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
         return this.oeffnungszeiten;
     }
 
+    @SuppressWarnings("unused")
     public void setOeffnungszeiten(List<Oeffnungszeit> oeffnungszeiten) {
         Validator.getInstance().validateNotNull(oeffnungszeiten);
         this.oeffnungszeiten = oeffnungszeiten;
@@ -137,6 +138,7 @@ public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable 
         this.oeffnungszeiten.add(oeffnungszeit);
     }
 
+    @SuppressWarnings("unused")
     public void removeOeffnungszeit(Oeffnungszeit oeffnungszeit) {
         Validator.getInstance().validateNotNull(oeffnungszeit);
         this.oeffnungszeiten.remove(oeffnungszeit);

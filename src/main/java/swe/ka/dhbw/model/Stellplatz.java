@@ -303,7 +303,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
     @Override
     public String toString() {
         final var foto = this.getFotos().stream().findAny();
-        final var beschreibung = foto.isPresent() ? " (" + foto.get().getTitel() + ")" : "";
+        final var beschreibung = foto.map(value -> " (" + value.getTitel() + ")").orElse("");
         return "Stellplatz " + this.getStellplatz() + beschreibung;
     }
 

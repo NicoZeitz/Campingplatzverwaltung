@@ -28,15 +28,31 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+// TODO:HANDLER: look that all handlers treat collections as immutable, don't get as payload, check before fire update
+// TODO:DIALOG: GUI DIalogs dont pass data in constructor but in processUpdateEvent
+// TODO: für Buchung bearbeiten auch einen buchung löschen button
 public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public enum Commands implements EventCommand {
-        UPDATE_PITCHES("GUIController::UPDATE_PITCHES", List.class),
+        UPDATE_ADDRESSES("GUIController::UPDATE_ADDRESSES", List.class),
+        UPDATE_EQUIPMENT("GUIController::UPDATE_EQUIPMENT", List.class),
+        UPDATE_AREAS("GUIController::UPDATE_AREAS", List.class),
         UPDATE_BOOKINGS("GUIController::UPDATE_BOOKINGS", List.class),
-        DATE_SELECTED("GUIController::DATE_SELECTED", Optional.class);
+        UPDATE_CHIPCARDS("GUIController::UPDATE_CHIPCARDS", List.class),
+        UPDATE_FACILITIES("GUIController::UPDATE_FACILITIES", List.class),
+        UPDATE_CONTRACTORS("GUIController::UPDATE_CONTRACTORS", List.class),
+        UPDATE_BOOKED_SERVICES("GUIController::UPDATE_BOOKED_SERVICES", List.class),
+        UPDATE_SERVICES("GUIController::UPDATE_SERVICES", List.class),
+        UPDATE_OPENING_DAYS("GUIController::UPDATE_OPENING_DAYS", List.class),
+        UPDATE_OPENING_HOURS("GUIController::UPDATE_OPENING_HOURS", List.class),
+        UPDATE_PERSONS("GUIController::UPDATE_PERSONS", List.class),
+        UPDATE_STAFF("GUIController::UPDATE_STAFF", List.class),
+        UPDATE_INVOICES("GUIController::UPDATE_INVOICES", List.class),
+        UPDATE_PITCHES("GUIController::UPDATE_PITCHES", List.class),
+        UPDATE_DISTURBANCES("GUIController::UPDATE_DISTURBANCES", List.class),
+        UPDATE_MAINTENANCE("GUIController::UPDATE_MAINTENANCE", List.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -90,7 +106,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return instance;
     }
 
-    private Map<LocalDate, List<? extends IDepictable>> getAppointments() {
+    private Map<LocalDate, List<IDepictable>> getAppointments() {
         return this.entityManager.find(Buchung.class).stream()
                 .sorted((buchung1, buchung2) -> {
                     final var res = buchung1.getAnreise().compareTo(buchung2.getAnreise());
@@ -102,11 +118,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .flatMap(buchung -> {
                     final var anreise = buchung.getAnreise().toLocalDate();
                     final var abreise = buchung.getAbreise().toLocalDate();
-                    final var entries = new HashMap<LocalDate, ArrayList<IDepictable>>();
+                    final var entries = new HashMap<LocalDate, IDepictable>();
                     for (var date = anreise; date.isBefore(abreise); date = date.plusDays(1)) {
                         final var finalDate = date;
-                        final var list = entries.computeIfAbsent(finalDate, k -> new ArrayList<>());
-                        list.add(new IDepictable() {
+                        entries.put(finalDate, new IDepictable() {
                             @Override
                             public Attribute[] getAttributeArray() {
                                 final var array = buchung.getAttributeArray();
@@ -125,14 +140,23 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                             public String toString() {
                                 final var gastName = buchung.getVerantwortlicherGast().getName();
                                 final var stellplatzName = buchung.getGebuchterStellplatz().getStellplatz();
-                                final var anreise = buchung.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-                                final var abreise = buchung.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+                                final var anreise = buchung.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
+                                final var abreise = buchung.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
                                 return gastName + "\n" + stellplatzName + "\n" + anreise + " - " + abreise;
                             }
                         });
                     }
                     return entries.entrySet().stream();
-                }).collect(HashMap::new, (map, entry) -> map.put(entry.getKey(), entry.getValue()), HashMap::putAll);
+                })
+                .<Map<LocalDate, List<IDepictable>>>collect(HashMap::new, (map, entry) -> {
+                    map.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
+                }, (hashMap1, hashMap2) -> {
+                    for (final var entry : hashMap2.entrySet()) {
+                        final var list = hashMap1.getOrDefault(entry.getKey(), new ArrayList<>());
+                        list.addAll(entry.getValue());
+                        hashMap1.put(entry.getKey(), list);
+                    }
+                });
     }
 
     private List<? extends IDepictable> getBookingsAsDisplayableList() {
@@ -149,7 +173,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         // @formatter:off
                         return new Attribute[] {
                             new Attribute("Buchungsnummer", b, Integer.class, b.getBuchungsnummer(), null, true, false, false, true),
-                            new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), null, true, false, false, true),
+                            new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)), null, true, false, false, true),
                             new Attribute("Verantwortlicher Gast", b, String.class, verantwortlicherGast.getName() + " (" + verantwortlicherGast.getKundennummer() + ")", null, true, false, false, true),
                             new Attribute("Stellplatz", b, String.class, stellplatz.getStellplatz(), null, true, false, false, true),
                             new Attribute("Bereich", b, String.class, bereich.map(Bereich::getKennzeichen).orElse('-'), null, true, false, false, true),
@@ -188,9 +212,13 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     @Override
     public void processUpdateEvent(final UpdateEvent updateEvent) {
         // react to own events and fire additional companion events
-        if (updateEvent.getCmd() == Commands.UPDATE_BOOKINGS) {
-            this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_APPOINTMENTS, this.getAppointments()));
-            this.fireUpdateEvent(new UpdateEvent(this, BookingListComponent.Commands.UPDATE_BOOKINGS, this.getBookingsAsDisplayableList()));
+        if (updateEvent.getCmd() instanceof Commands command) {
+            switch (command) {
+                case UPDATE_BOOKINGS -> {
+                    this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_APPOINTMENTS, this.getAppointments()));
+                    this.fireUpdateEvent(new UpdateEvent(this, BookingListComponent.Commands.UPDATE_BOOKINGS, this.getBookingsAsDisplayableList()));
+                }
+            }
         }
     }
 
@@ -199,33 +227,20 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.updateEventObservers.remove(eventListener);
     }
 
-    public void bookingCreateSelectChipkarte(final List<Chipkarte> availableChipkarten,
-                                             final List<Chipkarte> selectedChipkarten,
-                                             final Chipkarte newlySelectedChipkarte) {
-        selectedChipkarten.add(newlySelectedChipkarte);
+    public void bookingCreateSelectChipkarte(final Chipkarte newlySelectedChipkarte) {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
-                BookingCreateComponent.Commands.SELECT_CHIPCARD,
-                new BookingCreateComponent.SelectChipkartePayload(
-                        availableChipkarten.stream().filter(c -> !c.equals(newlySelectedChipkarte)).sorted().toList(),
-                        selectedChipkarten,
-                        ""
-                )
+                BookingCreateComponent.Commands.ADD_SELECTED_CHIPCARD,
+                newlySelectedChipkarte
         ));
     }
 
-    public void bookingRemoveChipkarte(final List<Chipkarte> availableChipCards,
-                                       final List<Chipkarte> selectedChipCards,
-                                       final Chipkarte deletedChipCard) {
+    public void bookingRemoveChipkarte(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
         selectedChipCards.remove(deletedChipCard);
         this.fireUpdateEvent(new UpdateEvent(
                 this,
-                BookingCreateComponent.Commands.SELECT_CHIPCARD,
-                new BookingCreateComponent.SelectChipkartePayload(
-                        Stream.concat(Stream.of(deletedChipCard), availableChipCards.stream()).sorted().toList(),
-                        selectedChipCards,
-                        ""
-                )
+                BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
+                selectedChipCards
         ));
     }
 
@@ -278,61 +293,92 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         );
 
         if (decision == JOptionPane.YES_OPTION) {
-            this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.RESET));
+            this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.RESET_INPUT));
             this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
         }
     }
 
     public void handleWindowBookingCreateBookingCreate(final BookingCreateComponent.BookingCreatePayload payload) {
+        var hasError = false;
+        this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_RESET));
+
+
         if (payload.arrivalDate().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Bitte geben Sie ein Anreisedatum an.", "Fehler", JOptionPane.ERROR_MESSAGE);
-            return;
+            this.fireUpdateEvent(new UpdateEvent(this,
+                    BookingCreateComponent.Commands.ERRORS_SHOW_START_DATE,
+                    "Bitte geben Sie ein Anreisedatum an."));
+            hasError = true;
+        } else if (payload.arrivalDate().get().isBefore(LocalDateTime.now())) {
+            this.fireUpdateEvent(new UpdateEvent(this,
+                    BookingCreateComponent.Commands.ERRORS_SHOW_START_DATE,
+                    "Das Anreisedatum muss in der Zukunft liegen."));
+            hasError = true;
         }
+
         if (payload.departureDate().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Bitte geben Sie ein Abreisedatum an.", "Fehler", JOptionPane.ERROR_MESSAGE);
+            this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_SHOW_END_DATE, "Bitte geben Sie ein Abreisedatum an."));
+            hasError = true;
+        }
+
+
+        if (payload.responsibleGuest().isEmpty()) {
+            this.fireUpdateEvent(new UpdateEvent(this,
+                    BookingCreateComponent.Commands.ERRORS_SHOW_GUEST,
+                    "Bitte wählen Sie einen verantwortlichen Gast aus."));
+            hasError = true;
+        }
+
+        final var pitch = (Stellplatz) payload.bookedPitch();
+
+        if (payload.arrivalDate().isPresent() && payload.departureDate().isPresent()) {
+            final var arrivalDate = payload.arrivalDate().get();
+            final var departureDate = payload.departureDate().get();
+
+            if (arrivalDate.isAfter(departureDate)) {
+                this.fireUpdateEvent(new UpdateEvent(this,
+                        BookingCreateComponent.Commands.ERRORS_SHOW_END_DATE,
+                        "Bitte geben Sie ein Abreisedatum an."));
+                hasError = true;
+            }
+
+            final var conflictingBookingsCount = this.entityManager
+                    .find(Buchung.class)
+                    .stream()
+                    .filter(b -> b.getGebuchterStellplatz().equals(pitch))
+                    .filter(b -> {
+                        final var otherArrivalDate = b.getAnreise();
+                        final var otherDepartureDate = b.getAbreise();
+                        return otherDepartureDate.isAfter(arrivalDate) && otherArrivalDate.isBefore(departureDate) ||
+                                otherArrivalDate.isBefore(departureDate) && otherDepartureDate.isAfter(arrivalDate);
+                    })
+                    .count();
+
+            if (conflictingBookingsCount > 0) {
+                this.fireUpdateEvent(new UpdateEvent(this,
+                        BookingCreateComponent.Commands.ERRORS_SHOW_PITCH,
+                        "Der Stellplatz ist in diesem Zeitraum bereits belegt. Bitte wählen Sie einen anderen Stellplatz aus."));
+                hasError = true;
+            }
+
+            final var serviceErrors = payload.bookedServices()
+                    .stream()
+                    .map(s -> (GebuchteLeistung) s)
+                    .filter(s -> s.getBuchungStart().isBefore(arrivalDate.toLocalDate()) || s.getBuchungsEnde().isAfter(departureDate.toLocalDate()))
+                    .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum")
+                    .collect(Collectors.joining("\n"));
+
+            if (!serviceErrors.isEmpty()) {
+                this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_SHOW_SERVICES, serviceErrors));
+                hasError = true;
+            }
+        }
+
+        if (hasError) {
             return;
         }
 
         final var arrivalDate = payload.arrivalDate().get();
         final var departureDate = payload.departureDate().get();
-
-        if (arrivalDate.isAfter(departureDate)) {
-            JOptionPane.showMessageDialog(null, "Das Abreisedatum muss nach dem Anreisedatum liegen.", "Fehler", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (arrivalDate.isBefore(LocalDateTime.now())) {
-            JOptionPane.showMessageDialog(null, "Das Anreisedatum muss in der Zukunft liegen.", "Fehler", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        final var pitch = (Stellplatz) payload.bookedPitch();
-
-        final var conflictingBookingsCount = this.entityManager
-                .find(Buchung.class)
-                .stream()
-                .filter(b -> b.getGebuchterStellplatz().equals(pitch))
-                .filter(b -> {
-                    final var otherArrivalDate = b.getAnreise();
-                    final var otherDepartureDate = b.getAbreise();
-                    return otherDepartureDate.isAfter(arrivalDate) && otherArrivalDate.isBefore(departureDate) ||
-                            otherArrivalDate.isBefore(departureDate) && otherDepartureDate.isAfter(arrivalDate);
-                })
-                .count();
-
-        if (conflictingBookingsCount > 0) {
-            JOptionPane.showMessageDialog(null,
-                    "Der Stellplatz ist in diesem Zeitraum bereits belegt. Bitte wählen Sie einen anderen Stellplatz aus.",
-                    "Fehler",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (payload.responsibleGuest().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Bitte wählen Sie einen verantwortlichen Gast aus.", "Fehler", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         final var responsibleGuest = (Gast) payload.responsibleGuest().get();
 
         final var booking = new Buchung(this.entityManager.generateNextPrimaryKey(Buchung.class), arrivalDate, departureDate);
@@ -352,23 +398,115 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
 
         try {
-            this.database.create(Buchung.class, booking);
+            this.database.transaction(() -> {
+                this.database.upsert(Gast.class, booking.getVerantwortlicherGast());
+                for (final var associatedGuest : booking.getZugehoerigeGaeste()) {
+                    this.database.upsert(Gast.class, associatedGuest);
+                }
+                for (final var bookedService : booking.getGebuchteLeistungen()) {
+                    this.database.upsert(GebuchteLeistung.class, bookedService);
+                }
+                for (final var equipment : booking.getMitgebrachteAusruestung()) {
+                    this.database.upsert(Ausruestung.class, equipment);
+                }
+                this.database.create(Buchung.class, booking);
+            });
         } catch (IOException e) {
             AppLogger.getInstance().error("Failed to create booking in database.");
             AppLogger.getInstance().error(e);
             JOptionPane.showMessageDialog(null, "Die Buchung konnte nicht erstellt werden.", "Fehler", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        this.entityManager.persist(booking.getVerantwortlicherGast());
+        for (final var associatedGuest : booking.getZugehoerigeGaeste()) {
+            this.entityManager.persist(associatedGuest);
+        }
+        for (final var bookedService : booking.getGebuchteLeistungen()) {
+            this.entityManager.persist(bookedService);
+        }
+        for (final var equipment : booking.getMitgebrachteAusruestung()) {
+            this.entityManager.persist(equipment);
+        }
         this.entityManager.persist(booking);
-        this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.RESET));
+        this.doEntityUpdate();
+        this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.RESET_INPUT));
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
+    }
+
+    public void handleWindowBookingCreateDeleteEquipment(final List<Ausruestung> rentedEquipment, final Ausruestung equipmentToDelete) {
+        final var newRentedEquipment = new ArrayList<>(rentedEquipment);
+        newRentedEquipment.remove(equipmentToDelete);
+        if (newRentedEquipment.size() != rentedEquipment.size()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
+                    newRentedEquipment
+            ));
+        }
+    }
+
+    public void handleWindowBookingCreateDeleteService(final BookingCreateComponent.ServiceDeletePayload payload) {
+        final var newBookedServices = payload.selectedServices()
+                .stream()
+                .filter(s -> !s.equals(payload.serviceToDelete()))
+                .collect(Collectors.toList());
+        if (newBookedServices.size() != payload.selectedServices().size()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    BookingCreateComponent.Commands.SET_BOOKED_SERVICES,
+                    newBookedServices
+            ));
+        }
+    }
+
+    public void handleWindowBookingCreateEditEquipment(final List<Ausruestung> rentedEquipment,
+                                                       final Ausruestung equipmentToEdit,
+                                                       final int countDelta) {
+        final var index = rentedEquipment.indexOf(equipmentToEdit);
+        if (index == -1) {
+            return;
+        }
+
+        final var newCount = equipmentToEdit.getAnzahl() + countDelta;
+        if (newCount <= 0) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
+                    rentedEquipment.stream().filter(e -> !e.equals(equipmentToEdit)).collect(Collectors.toList())
+            ));
+        } else {
+            rentedEquipment.get(index).setAnzahl(newCount);
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
+                    rentedEquipment
+            ));
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    public void handleWindowBookingCreateGuestDeleted(final BookingCreateComponent.GuestDeletePayload payload) {
+        final var newSelectedGuests = payload.selectedGuests()
+                .stream()
+                .filter(g -> !g.equals(payload.deletedGuest()))
+                .collect(Collectors.toList());
+        final var newResponsibleGuest = payload.deletedGuest().equals(payload.responsibleGuest().orElse(null))
+                ? Optional.<IDepictable>empty()
+                : (Optional<IDepictable>) payload.responsibleGuest();
+
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
+                new Payload.GuestList(newSelectedGuests, newResponsibleGuest)
+        ));
     }
 
     public void handleWindowBookingCreateResponsibleGuestSelected(final BookingCreateComponent.ResponsibleGuestSelectedPayload payload) {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
-                BookingCreateComponent.Commands.UPDATE_SELECTED_GUESTS,
-                new BookingCreateComponent.UpdateSelectedGuestsPayload(
+                BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
+                new Payload.GuestList(
                         payload.selectedGuests(),
                         Optional.of(payload.selectedGuest())
                 )
@@ -404,12 +542,12 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_CREATE));
     }
 
-    // Dialogs
-
     public void handleWindowMainOpenBookingManagement() {
         this.openWindowBooking();
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.APPOINTMENT_OVERVIEW));
     }
+
+    // Dialogs
 
     public void initialize() {
         this.addObserver(this);
@@ -432,18 +570,19 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         // and so on... but as the other windows are just dummy placeholders we don't need to register them
 
         // setup up initial data
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PITCHES, this.entityManager.find(Stellplatz.class)));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKINGS, this.entityManager.find(Buchung.class)));
+        this.doEntityUpdate();
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, LocalDate.now()));
-        // TODO: chipkarten this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.CHI, this.getGuestsAsDisplayableList()));
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public void openDialogDatePicker(final Optional<LocalDate> optionalDate, final PayloadEvent callbackToEvent) {
-        final var source = (GUIComponent) callbackToEvent.getSource();
+    public void openDialogDatePicker(
+            final GUIComponent parentComponent,
+            final EventCommand eventToEmit,
+            final Optional<LocalDate> optionalDate
+    ) {
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::CalendarComponent").withWidth(300).withHeight(300);
         final var calendarComponent = new CalendarComponent(this.getConfig(), optionalDate);
-        final var parentWindow = this.getNearestWindow(source);
+        final var parentWindow = this.getNearestWindow(parentComponent);
 
         calendarComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() != CalendarComponent.Commands.DATE_SELECTED) {
@@ -451,19 +590,9 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
             final var dialog = SwingUtilities.getWindowAncestor(calendarComponent);
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-            source.processUpdateEvent(new UpdateEvent(
-                    GUIController.this,
-                    new EventCommand() {
-                        @Override
-                        public String getCmdText() {
-                            return callbackToEvent.getCmdText();
-                        }
-
-                        @Override
-                        public Class<?> getPayloadType() {
-                            return LocalDate.class;
-                        }
-                    },
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    eventToEmit,
                     guiEvent.getData()
             ));
         });
@@ -472,15 +601,144 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             final var window = e.getWindow();
             this.app.getConfig().setWindowLocation("Dialog::CalendarComponent", WindowLocation.from(window));
             window.dispose();
+            return true;
         });
     }
 
-    public void openDialogEquipmentSelector(final PayloadEvent callbackToEvent) {
-        final var source = (GUIComponent) callbackToEvent.getSource();
+    @SuppressWarnings("unchecked")
+    public void openDialogEditService(
+            final GUIComponent parentComponent,
+            final EventCommand eventToEmit,
+            final List<GebuchteLeistung> services,
+            final GebuchteLeistung serviceToEdit
+    ) {
+        // create dialog
+        final var serviceSelectorComponent = new ServiceSelectorComponent(this.getConfig());
+        this.addObserver(serviceSelectorComponent);
+
+        // create data for dialog
+        final var servicesTypes = this.entityManager.find(Leistungsbeschreibung.class);
+        this.fireUpdateEvent(new UpdateEvent(this, ServiceSelectorComponent.Commands.UPDATE_SERVICE_TYPES, servicesTypes));
+        this.fireUpdateEvent(new UpdateEvent(this, ServiceSelectorComponent.Commands.SET_MODE, ServiceSelectorComponent.Mode.EDIT));
+        this.fireUpdateEvent(new UpdateEvent(this, ServiceSelectorComponent.Commands.SET_START_DATE, serviceToEdit.getBuchungStart()));
+        this.fireUpdateEvent(new UpdateEvent(this, ServiceSelectorComponent.Commands.SET_END_DATE, serviceToEdit.getBuchungsEnde()));
+        this.fireUpdateEvent(new UpdateEvent(this,
+                ServiceSelectorComponent.Commands.SET_SELECTED_SERVICE_TYPE,
+                serviceToEdit.getLeistungsbeschreibung()));
+
+        // set window properties
+        final var parentWindow = this.getNearestWindow(parentComponent);
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::ServiceSelector")
+                .withWidth(440)
+                .withHeight(240);
+
+        serviceSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
+            if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_START_DATE) {
+                this.openDialogDatePicker(
+                        parentComponent,
+                        ServiceSelectorComponent.Commands.SET_START_DATE,
+                        (Optional<LocalDate>) guiEvent.getData()
+                );
+            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_END_DATE) {
+                this.openDialogDatePicker(
+                        parentComponent,
+                        ServiceSelectorComponent.Commands.SET_END_DATE,
+                        (Optional<LocalDate>) guiEvent.getData()
+                );
+            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
+                final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
+                dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
+                final var payload = (Payload.ServiceCreation) guiEvent.getData();
+                if (payload.startDate().isEmpty() && payload.endDate().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            parentComponent,
+                            "Bitte geben Sie ein Start- und Enddatum an.",
+                            "Fehler",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                if (payload.startDate().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            parentComponent,
+                            "Bitte geben Sie ein Startdatum an.",
+                            "Fehler",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                if (payload.endDate().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            parentComponent,
+                            "Bitte geben Sie ein Enddatum an.",
+                            "Fehler",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                if (payload.startDate().get().isAfter(payload.endDate().get())) {
+                    JOptionPane.showMessageDialog(
+                            parentComponent,
+                            "Das Startdatum muss vor dem Enddatum liegen.",
+                            "Fehler",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+
+                final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
+                final var index = services.indexOf(serviceToEdit);
+                if (index == -1) {
+                    JOptionPane.showMessageDialog(null, "Die Leistung konnte nicht bearbeitet werden.", "Fehler", JOptionPane.ERROR_MESSAGE);
+                    this.removeObserver(serviceSelectorComponent);
+                    dialog.dispose();
+                    return;
+                }
+
+                final var serviceType = (Leistungsbeschreibung) payload.serviceType();
+                services.get(index).setLeistungsbeschreibung(serviceType);
+                services.get(index).setBuchungStart(payload.startDate().get());
+                services.get(index).setBuchungsEnde(payload.endDate().get());
+
+                this.removeObserver(serviceSelectorComponent);
+                dialog.dispose();
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        eventToEmit,
+                        services
+                ));
+
+            }
+        });
+
+        // open Dialog
+        this.openInDialog(serviceSelectorComponent, parentWindow, "Leistung bearbeiten", windowLocation, (e) -> {
+            final var decision = JOptionPane.showConfirmDialog(
+                    null,
+                    "Wollen Sie die Bearbeitung der Leistung wirklich abbrechen?",
+                    "Leistungsbearbeitung abbrechen",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            final var close = decision == JOptionPane.YES_OPTION;
+            if (close) {
+                this.removeObserver(serviceSelectorComponent);
+                final var window = e.getWindow();
+                this.app.getConfig().setWindowLocation("Dialog::ServiceSelector", WindowLocation.from(window));
+            }
+            return close;
+        });
+    }
+
+    public void openDialogEquipmentSelector(
+            final GUIComponent parentComponent,
+            final EventCommand eventToEmit
+    ) {
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(440);
         final var vehicleTypes = Arrays.stream(Fahrzeug.Typ.values()).toList();
         final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig(), vehicleTypes);
-        final var parentWindow = this.getNearestWindow(source);
+        final var parentWindow = this.getNearestWindow(parentComponent);
 
         equipmentSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.CANCEL) {
@@ -490,7 +748,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var payload = (EquipmentSelectorComponent.SavePayload) guiEvent.getData();
                 if (payload.description().isEmpty()) {
                     JOptionPane.showMessageDialog(
-                            source,
+                            parentComponent,
                             "Bitte geben Sie eine Beschreibung an.",
                             "Fehler",
                             JOptionPane.ERROR_MESSAGE
@@ -499,7 +757,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 }
                 if (payload.height().isEmpty() || payload.width().isEmpty()) {
                     JOptionPane.showMessageDialog(
-                            source,
+                            parentComponent,
                             "Bitte geben Sie eine Höhe und Breite an.",
                             "Fehler",
                             JOptionPane.ERROR_MESSAGE
@@ -507,39 +765,28 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     return;
                 }
 
-                var equipment = new Ausruestung(
+                final var equipment = payload.licensePlate().isPresent()
+                        ? new Fahrzeug(
+                        this.entityManager.generateNextPrimaryKey(Ausruestung.class),
+                        payload.description().get(),
+                        payload.amount(),
+                        payload.height().get(),
+                        payload.width().get(),
+                        payload.licensePlate().get(),
+                        (Fahrzeug.Typ) payload.vehicleTyp()
+                ) : new Ausruestung(
                         this.entityManager.generateNextPrimaryKey(Ausruestung.class),
                         payload.description().get(),
                         payload.amount(),
                         payload.height().get(),
                         payload.width().get()
                 );
-                if (payload.licensePlate().isPresent()) {
-                    equipment = new Fahrzeug(
-                            this.entityManager.generateNextPrimaryKey(Ausruestung.class),
-                            payload.description().get(),
-                            payload.amount(),
-                            payload.height().get(),
-                            payload.width().get(),
-                            payload.licensePlate().get(),
-                            (Fahrzeug.Typ) payload.vehicleTyp()
-                    );
-                }
+
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
                 dialog.dispose();
-                source.processUpdateEvent(new UpdateEvent(
-                        GUIController.this,
-                        new EventCommand() {
-                            @Override
-                            public String getCmdText() {
-                                return callbackToEvent.getCmdText();
-                            }
-
-                            @Override
-                            public Class<?> getPayloadType() {
-                                return IDepictable.class;
-                            }
-                        },
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        eventToEmit,
                         equipment
                 ));
             }
@@ -553,67 +800,83 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     JOptionPane.YES_NO_OPTION
             );
 
-            if (decision == JOptionPane.YES_OPTION) {
+            final var close = decision == JOptionPane.YES_OPTION;
+            if (close) {
                 final var window = e.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::EquipmentSelector", WindowLocation.from(window));
-                window.dispose();
             }
+            return close;
         });
     }
 
-    public void openDialogGuestCreate(final PayloadEvent callbackToEvent) {
-        final var parentWindow = this.getNearestWindow((GUIComponent) callbackToEvent.getSource());
+    public void openDialogGuestCreate(
+            final GUIComponent parentComponent,
+            @SuppressWarnings("unused") final EventCommand eventToEmit
+    ) {
+        final var parentWindow = this.getNearestWindow(parentComponent);
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestCreate").withWidth(350).withHeight(350);
         this.openInDialog(new GuestCreateComponent(this.getConfig()), parentWindow, "Gast anlegen", windowLocation, (event) -> {
             final var window = event.getWindow();
             this.app.getConfig().setWindowLocation("Dialog::GuestCreate", WindowLocation.from(window));
-            window.dispose();
+            return true;
         });
     }
 
-    public void openDialogGuestSelector(final PayloadEvent callbackToEvent, final Set<Gast> withoutGuests) {
-        final var source = (GUIComponent) callbackToEvent.getSource();
-        final var guests = this.entityManager.find(Gast.class).stream().filter(g -> !withoutGuests.contains(g)).toList();
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestSelector").withWidth(400).withHeight(320);
-        final var guestSelectorComponent = new GuestSelectorComponent(this.getConfig(), guests);
-        final var parentWindow = this.getNearestWindow((GUIComponent) callbackToEvent.getSource());
+    public void openDialogGuestSelector(
+            final GUIComponent parentComponent,
+            final EventCommand eventToEmit,
+            final Set<Gast> excludedGuests
+    ) {
+        // create dialog
+        final var guestSelectorComponent = new GuestSelectorComponent(this.getConfig());
         this.addObserver(guestSelectorComponent);
 
+        // set window properties
+        final var parentWindow = this.getNearestWindow(parentComponent);
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestSelector").withWidth(400).withHeight(320);
+
+        // create data for dialog
+        final var guests = this.entityManager
+                .find(Gast.class)
+                .stream()
+                .filter(g -> !excludedGuests.contains(g))
+                .toList();
+        this.fireUpdateEvent(new UpdateEvent(this, GuestSelectorComponent.Commands.UPDATE_GUESTS, guests));
+
+        // react to changes in dialog
         guestSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == GuestSelectorComponent.Commands.SEARCH_INPUT_CHANGED) {
-                final var payload = (GuestSelectorComponent.SearchInputChangedPayload) guiEvent.getData();
-                final var filteredGuests = guests.stream()
-                        .filter(g -> g.getName().toLowerCase().contains(payload.text().toLowerCase()))
+                final var payload = ((GuestSelectorComponent.SearchInputChangedPayload) guiEvent.getData());
+                final var searchInput = payload.text().toLowerCase();
+                final var filteredGuests = payload.guests()
+                        .stream()
+                        .filter(g -> ((Gast) g).getName().toLowerCase().contains(searchInput))
                         .toList();
-                this.fireUpdateEvent(new UpdateEvent(
-                        this,
-                        GuestSelectorComponent.Commands.UPDATE_GUESTS,
-                        filteredGuests
-                ));
-            } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.GUEST_SELECTED) {
+
+                if (filteredGuests.size() != payload.guests().size()) {
+                    this.fireUpdateEvent(new UpdateEvent(
+                            this,
+                            GuestSelectorComponent.Commands.UPDATE_GUESTS,
+                            filteredGuests
+                    ));
+                }
+            } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.BUTTON_PRESSED_ADD_GUEST) {
+                this.openDialogGuestCreate((GUIComponent) guiEvent.getSource(), GuestSelectorComponent.Commands.SELECT_GUEST);
+            } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.BUTTON_PRESSED_GUEST_SELECTED) {
                 final var guest = (Gast) guiEvent.getData();
+
                 final var dialog = SwingUtilities.getWindowAncestor(guestSelectorComponent);
                 dialog.dispose();
-                source.processUpdateEvent(new UpdateEvent(
-                        GUIController.this,
-                        new EventCommand() {
-                            @Override
-                            public String getCmdText() {
-                                return callbackToEvent.getCmdText();
-                            }
 
-                            @Override
-                            public Class<?> getPayloadType() {
-                                return IDepictable.class;
-                            }
-                        },
+                this.fireUpdateEvent(new UpdateEvent(
+                        GUIController.this,
+                        eventToEmit,
                         guest
                 ));
-            } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.ADD_GUEST_BUTTON_PRESSED) {
-                this.openDialogGuestCreate(guiEvent);
             }
         });
 
+        // open Dialog
         this.openInDialog(guestSelectorComponent, parentWindow, "Gast auswählen", windowLocation, (event) -> {
             final var decision = JOptionPane.showConfirmDialog(
                     null,
@@ -622,18 +885,24 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     JOptionPane.YES_NO_OPTION
             );
 
-            if (decision == JOptionPane.YES_OPTION) {
+            final var close = decision == JOptionPane.YES_OPTION;
+            if (close) {
                 final var window = event.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::GuestSelector", WindowLocation.from(window));
-                window.dispose();
             }
+            return close;
         });
     }
 
-    // Windows
+    public void openDialogPitchSelector(
+            final GUIComponent parentComponent,
+            final EventCommand eventToEmit
+    ) {
+        // create dialog
+        final var pitchSelectorComponent = new PitchSelectorComponent(this.getConfig());
+        this.addObserver(pitchSelectorComponent);
 
-    public void openDialogPitchSelector(final PayloadEvent callbackToEvent) {
-        final var source = (GUIComponent) callbackToEvent.getSource();
+        // create data for dialog
         final var pitches = this.entityManager
                 .find(Stellplatz.class)
                 .stream()
@@ -644,38 +913,31 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         p
                 ))
                 .toList();
-        final var pitchSelectorComponent = new PitchSelectorComponent(this.getConfig());
-        this.addObserver(pitchSelectorComponent);
         this.fireUpdateEvent(new UpdateEvent(this, PitchSelectorComponent.Commands.UPDATE_PITCHES, pitches));
+
+        // set window properties
+        final var parentWindow = this.getNearestWindow(parentComponent);
         pitchSelectorComponent.setSizeWithWidth(720);
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::PitchSelector")
                 .withWidth(pitchSelectorComponent.getImageWidth())
                 .withHeight(pitchSelectorComponent.getImageHeight());
-        final var parentWindow = this.getNearestWindow(source);
+
+        // react to changes in dialog
         pitchSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == PitchSelectorComponent.Commands.PITCH_SELECTED) {
                 final var pitch = (Stellplatz) guiEvent.getData();
                 final var dialog = SwingUtilities.getWindowAncestor(pitchSelectorComponent);
+                this.removeObserver(pitchSelectorComponent);
                 dialog.dispose();
-                source.processUpdateEvent(new UpdateEvent(
-                        GUIController.this,
-                        new EventCommand() {
-                            @Override
-                            public String getCmdText() {
-                                return callbackToEvent.getCmdText();
-                            }
-
-                            @Override
-                            public Class<?> getPayloadType() {
-                                return IDepictable.class;
-                            }
-                        },
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        eventToEmit,
                         pitch
                 ));
             }
         });
-        // TODO: GUI DIalogs dont pass data in constructor but in processUpdateEvent
 
+        // open Dialog
         this.openInDialog(pitchSelectorComponent, parentWindow, "Stellplatz auswählen", windowLocation, (e) -> {
             final var decision = JOptionPane.showConfirmDialog(
                     null,
@@ -684,34 +946,61 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     JOptionPane.YES_NO_OPTION
             );
 
-            if (decision == JOptionPane.YES_OPTION) {
+            final var close = decision == JOptionPane.YES_OPTION;
+            if (close) {
+                this.removeObserver(pitchSelectorComponent);
                 final var window = e.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::PitchSelector", WindowLocation.from(window));
-                window.dispose();
             }
+            return close;
         });
     }
 
     @SuppressWarnings("unchecked")
-    public void openDialogServiceSelector(final PayloadEvent callbackToEvent) {
-        final var source = (GUIComponent) callbackToEvent.getSource();
-        final var services = this.entityManager.find(Leistungsbeschreibung.class);
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::ServiceSelector").withWidth(440).withHeight(240);
-        final var serviceSelectorComponent = new ServiceSelectorComponent(this.getConfig(), services);
-        final var parentWindow = this.getNearestWindow(source);
+    public void openDialogServiceSelector(
+            final GUIComponent parentComponent,
+            final EventCommand eventToEmit
+    ) {
+        // create dialog
+        final var serviceSelectorComponent = new ServiceSelectorComponent(this.getConfig());
+        this.addObserver(serviceSelectorComponent);
 
+        // create data for dialog
+        final var servicesTypes = this.entityManager.find(Leistungsbeschreibung.class);
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                ServiceSelectorComponent.Commands.UPDATE_SERVICE_TYPES,
+                servicesTypes
+        ));
+
+        // set window properties
+        final var parentWindow = this.getNearestWindow(parentComponent);
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::ServiceSelector")
+                .withWidth(440)
+                .withHeight(240);
+
+        // react to changes in dialog
         serviceSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
-            if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.DATE_PICKER_START_DATE ||
-                    guiEvent.getCmd() == ServiceSelectorComponent.Commands.DATE_PICKER_END_DATE) {
-                this.openDialogDatePicker((Optional<LocalDate>) guiEvent.getData(), guiEvent);
-            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.CANCEL) {
+            if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_START_DATE) {
+                this.openDialogDatePicker(
+                        parentComponent,
+                        ServiceSelectorComponent.Commands.SET_START_DATE,
+                        (Optional<LocalDate>) guiEvent.getData()
+                );
+            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_END_DATE) {
+                this.openDialogDatePicker(
+                        parentComponent,
+                        ServiceSelectorComponent.Commands.SET_END_DATE,
+                        (Optional<LocalDate>) guiEvent.getData()
+                );
+            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.SAVE) {
-                final var payload = (ServiceSelectorComponent.SavePayload) guiEvent.getData();
+            } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
+                final var payload = (Payload.ServiceCreation) guiEvent.getData();
                 if (payload.startDate().isEmpty() && payload.endDate().isEmpty()) {
                     JOptionPane.showMessageDialog(
-                            source,
+                            parentComponent,
                             "Bitte geben Sie ein Start- und Enddatum an.",
                             "Fehler",
                             JOptionPane.ERROR_MESSAGE
@@ -720,7 +1009,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 }
                 if (payload.startDate().isEmpty()) {
                     JOptionPane.showMessageDialog(
-                            source,
+                            parentComponent,
                             "Bitte geben Sie ein Startdatum an.",
                             "Fehler",
                             JOptionPane.ERROR_MESSAGE
@@ -729,8 +1018,17 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 }
                 if (payload.endDate().isEmpty()) {
                     JOptionPane.showMessageDialog(
-                            source,
+                            parentComponent,
                             "Bitte geben Sie ein Enddatum an.",
+                            "Fehler",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                if (payload.startDate().get().isAfter(payload.endDate().get())) {
+                    JOptionPane.showMessageDialog(
+                            parentComponent,
+                            "Das Startdatum muss vor dem Enddatum liegen.",
                             "Fehler",
                             JOptionPane.ERROR_MESSAGE
                     );
@@ -742,28 +1040,23 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         payload.startDate().get(),
                         payload.endDate().get()
                 );
-                final var leistungsbeschreibung = (Leistungsbeschreibung) payload.selectedServiceType();
-                bookedService.setLeistungsbeschreibung(leistungsbeschreibung);
-                final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
-                dialog.dispose();
-                source.processUpdateEvent(new UpdateEvent(
-                        GUIController.this,
-                        new EventCommand() {
-                            @Override
-                            public String getCmdText() {
-                                return callbackToEvent.getCmdText();
-                            }
 
-                            @Override
-                            public Class<?> getPayloadType() {
-                                return IDepictable.class;
-                            }
-                        },
+                final var serviceType = (Leistungsbeschreibung) payload.serviceType();
+                bookedService.setLeistungsbeschreibung(serviceType);
+
+                final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
+                this.removeObserver(serviceSelectorComponent);
+                dialog.dispose();
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        eventToEmit,
                         bookedService
                 ));
+
             }
         });
 
+        // open Dialog
         this.openInDialog(serviceSelectorComponent, parentWindow, "Leistung auswählen", windowLocation, (e) -> {
             final var decision = JOptionPane.showConfirmDialog(
                     null,
@@ -772,15 +1065,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     JOptionPane.YES_NO_OPTION
             );
 
-            if (decision == JOptionPane.YES_OPTION) {
+            final var close = decision == JOptionPane.YES_OPTION;
+            if (close) {
+                this.removeObserver(serviceSelectorComponent);
                 final var window = e.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::ServiceSelector", WindowLocation.from(window));
-                window.dispose();
             }
+            return close;
         });
     }
 
-    @SuppressWarnings("unchecked")
     public void openWindowBooking() {
         if (this.windowBooking.isDisplayable()) {
             this.windowBooking.grabFocus();
@@ -790,8 +1084,11 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.openInWindow(this.windowBooking, "Buchungen", "Window::Booking", event -> {
             ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
             this.windowMain.grabFocus();
+            return true;
         });
     }
+
+    // Windows
 
     public void openWindowCheckInCheckOut() {
         if (this.windowCheckInCheckOut.isDisplayable()) {
@@ -802,6 +1099,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.openInWindow(this.windowCheckInCheckOut, "Check-In / Check-Out", "Window::CheckInCheckOut", event -> {
             ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
             this.windowMain.grabFocus();
+            return true;
         });
     }
 
@@ -814,6 +1112,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         // Main GUI and Configuration GUI have the same window location
         this.openInWindow(this.windowConfiguration, "Konfiguration", "Window::Main", event -> {
             this.exitApplication();
+            return true;
         });
     }
 
@@ -826,6 +1125,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.openInWindow(this.windowFacility, "Einrichtungen", "Window::Facility", event -> {
             ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
             this.windowMain.grabFocus();
+            return true;
         });
     }
 
@@ -838,6 +1138,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.openInWindow(this.windowGuest, "Gäste", "Window::Guest", event -> {
             ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
             this.windowMain.grabFocus();
+            return true;
         });
     }
 
@@ -849,6 +1150,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
         this.openInWindow(this.windowMain, "Campingplatzverwaltung", "Window::Main", event -> {
             this.exitApplication();
+            return true;
         });
     }
 
@@ -864,6 +1166,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
         this.openInWindow(this.windowMain, "Campingplatzverwaltung", "Window::Main", event -> {
             this.exitApplication();
+            return true;
         });
     }
 
@@ -876,6 +1179,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.openInWindow(this.windowPitch, "Stellplätze", "Window::Pitch", event -> {
             ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
             this.windowMain.grabFocus();
+            return true;
         });
     }
 
@@ -888,7 +1192,28 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.openInWindow(this.windowStaff, "Personal", "Window::Staff", event -> {
             ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
             this.windowMain.grabFocus();
+            return true;
         });
+    }
+
+    private void doEntityUpdate() {
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_ADDRESSES, this.entityManager.find(Adresse.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PITCHES, this.entityManager.find(Bereich.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKINGS, this.entityManager.find(Buchung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_CHIPCARDS, this.entityManager.find(Chipkarte.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_FACILITIES, this.entityManager.find(Einrichtung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_CONTRACTORS, this.entityManager.find(Fremdfirma.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKED_SERVICES, this.entityManager.find(GebuchteLeistung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_SERVICES, this.entityManager.find(Leistungsbeschreibung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_OPENING_DAYS, this.entityManager.find(Oeffnungstag.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_OPENING_HOURS, this.entityManager.find(Oeffnungszeit.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PERSONS, this.entityManager.find(Person.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_STAFF, this.entityManager.find(Personal.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_INVOICES, this.entityManager.find(Rechnung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PITCHES, this.entityManager.find(Stellplatz.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_DISTURBANCES, this.entityManager.find(Stoerung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_MAINTENANCE, this.entityManager.find(Wartung.class)));
     }
 
     // Utility Methods
@@ -902,11 +1227,12 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return (JFrame) SwingUtilities.getWindowAncestor(maybeFrame);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private JDialog openInDialog(final Container content,
                                  final Frame parentWindow,
                                  final String title,
                                  final WindowLocation windowLocation,
-                                 final Consumer<WindowEvent> onExit) {
+                                 final Function<WindowEvent, Boolean> onExit) {
         final var config = Optional.ofNullable(this.getConfig())
                 .orElse(this.configurationBuilder.build());
         final var dialog = new JDialog(parentWindow);
@@ -925,7 +1251,9 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(final WindowEvent event) {
-                onExit.accept(event);
+                if (onExit.apply(event)) {
+                    dialog.dispose();
+                }
             }
         });
         try {
@@ -938,8 +1266,9 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     private JFrame openInWindow(final Container content,
                                 final String title,
                                 final WindowLocation windowLocation,
-                                final Consumer<WindowEvent> onExit) {
-        final var config = Optional.ofNullable(this.getConfig())
+                                final Function<WindowEvent, Boolean> onExit) {
+        final var config = Optional
+                .ofNullable(this.getConfig())
                 .orElse(this.configurationBuilder.build());
         final JFrame frame = new JFrame(title);
         frame.setForeground(config.getTextColor());
@@ -952,29 +1281,34 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         try {
             frame.setIconImage(ImageIO.read(Objects.requireNonNull(this.getClass().getResourceAsStream("/Logo.png"))));
         } catch (IOException e) { /* Ignore This Case */ }
+
         frame.setVisible(true);
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(final WindowEvent event) {
-                onExit.accept(event);
-                frame.dispose();
+                if (onExit.apply(event)) {
+                    frame.dispose();
+                }
             }
         });
         return frame;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private JFrame openInWindow(final Container content,
                                 final String title,
                                 final String windowLocationKey,
-                                final Consumer<WindowEvent> onExit) {
+                                final Function<WindowEvent, Boolean> onExit) {
         final var windowLocation = Optional.ofNullable(this.getConfig())
                 .orElse(this.configurationBuilder.build())
                 .getWindowLocation(windowLocationKey);
         return this.openInWindow(content, title, windowLocation, (event) -> {
-            onExit.accept(event);
-            final var window = event.getWindow();
-            this.app.getConfig().setWindowLocation(windowLocationKey, WindowLocation.from(window));
-            window.dispose();
+            final var close = onExit.apply(event);
+            if (close) {
+                final var window = event.getWindow();
+                this.app.getConfig().setWindowLocation(windowLocationKey, WindowLocation.from(window));
+            }
+            return close;
         });
     }
 }

@@ -61,14 +61,13 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     private static final String EXIT_APP_BUTTON_ELEMENT_ID = "GUIConfiguration::EXIT_APP_BUTTON_ELEMENT_ID";
     private static final String ACCENT_COLOR_BUTTON_ELEMENT_ID = "GUIConfiguration::ACCENT_COLOR_BUTTON_ELEMENT_ID";
     private static final String DARK_MODE_BUTTON_ELEMENT_ID = "GUIConfiguration::DARK_MODE_BUTTON_ELEMENT_ID";
-
     // Components
+    private final List<JLabel> labels = new ArrayList<>();
     private ButtonElement appExitButton;
     private ButtonElement appStartButton;
     private ButtonElement accentColorButton;
     private ButtonElement darkModeButton;
     private ButtonComponent buttonContainer;
-    private List<JLabel> labels = new ArrayList<>();
     private JTextPane welcomeText;
     private JComboBox<String> fontFamilyInput;
     private JSpinner fontSizeInput;

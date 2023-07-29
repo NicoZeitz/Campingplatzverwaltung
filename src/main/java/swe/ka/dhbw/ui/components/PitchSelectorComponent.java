@@ -24,13 +24,9 @@ public class PitchSelectorComponent extends GUIComponent {
         PITCH_SELECTED("PitchSelectorComponent::PITCH_SELECTED", IDepictable.class),
         // incoming update events
         UPDATE_PITCHES("PitchSelectorComponent::UPDATE_PITCHES", List.class);
-        
+
         public final Class<?> payloadType;
         public final String cmdText;
-
-        Commands(final String cmdText) {
-            this(cmdText, Void.class);
-        }
 
         Commands(final String cmdText, final Class<?> payloadType) {
             this.cmdText = cmdText;
@@ -104,9 +100,7 @@ public class PitchSelectorComponent extends GUIComponent {
             pitchButton.setForeground(this.config.getTextColor());
             pitchButton.setBackground(this.config.getBackgroundColor());
             final var image = pitch.resizedImage();
-            if (image.isPresent()) {
-                pitchButton.setIcon(new ImageIcon(image.get()));
-            }
+            image.ifPresent(value -> pitchButton.setIcon(new ImageIcon(value)));
             pitchButton.setToolTipText(pitch.pitch().getVisibleText());
 
             final var length = 50;
@@ -135,7 +129,7 @@ public class PitchSelectorComponent extends GUIComponent {
     }
 
     public record Pitch(double x, double y, Optional<Image> image, IDepictable pitch) {
-        private static Map<Pitch, Optional<Image>> cache = new HashMap<>();
+        private static final Map<Pitch, Optional<Image>> cache = new HashMap<>();
 
         public Optional<Image> resizedImage() {
             return Pitch.cache.computeIfAbsent(this, p ->
@@ -144,8 +138,8 @@ public class PitchSelectorComponent extends GUIComponent {
         }
     }
 
-    private class ImagePanel extends JPanel {
-        private BufferedImage image;
+    private static final class ImagePanel extends JPanel {
+        private final BufferedImage image;
 
         public ImagePanel(final BufferedImage image) {
             this.image = image;

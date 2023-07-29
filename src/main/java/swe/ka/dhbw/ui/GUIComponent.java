@@ -5,11 +5,11 @@ import de.dhbwka.swe.utils.gui.*;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 
 import javax.swing.*;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableModel;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
+import java.awt.font.TextAttribute;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -25,26 +25,6 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
     public GUIComponent(final ReadonlyConfiguration config) {
         super();
         this.config = config;
-    }
-
-    // TODO: remove if not used
-    public JTable createTable(final TableModel model) {
-        // we need to create our own table as the SimpleTableComponent does not allow us to listen to events that happen inside the table
-        // and we want to grow the table dynamically instead of using a scrollpane
-        final var table = new JTable(model);
-        table.setFont(this.config.getFont());
-        table.setForeground(this.config.getTextColor());
-        table.setBackground(this.config.getBackgroundColor());
-        table.setRowSelectionAllowed(false);
-        table.setSelectionBackground(this.config.getAccentColor());
-        final var tableHeader = new JTableHeader();
-        tableHeader.setColumnModel(table.getColumnModel());
-        tableHeader.setFont(this.config.getFont());
-        tableHeader.setForeground(this.config.getTextColor());
-        tableHeader.setBackground(this.config.getSecondaryBackgroundColor());
-        table.setTableHeader(tableHeader);
-
-        return table;
     }
 
     protected void colorizeTable(final SimpleTableComponent table) {
@@ -137,6 +117,47 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         this.setForeground(this.config.getTextColor());
         this.setOpaque(true);
         this.add(text);
+    }
+
+    protected JLabel createErrorLabel() {
+        final var label = new JLabel();
+        final var attributes = new HashMap<TextAttribute, Object>();
+        attributes.putAll(this.config.getFont().getAttributes());
+        attributes.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+
+        label.setVerticalAlignment(SwingConstants.CENTER);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setFont(this.config.getFont());
+        label.setFont(new Font(attributes));
+
+        label.setForeground(this.config.getFailureColor());
+        label.setBackground(this.config.getBackgroundColor());
+        label.setOpaque(true);
+        return label;
+    }
+
+    protected JPanel createErrorWrapper(final Component... errorLabels) {
+        final var panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBackground(this.config.getBackgroundColor());
+        panel.setForeground(this.config.getTextColor());
+        panel.setFont(this.config.getFont());
+        panel.setOpaque(true);
+
+        final var messagePanel = new JPanel();
+        messagePanel.setBackground(this.config.getBackgroundColor());
+        messagePanel.setForeground(this.config.getTextColor());
+        messagePanel.setFont(this.config.getFont());
+        messagePanel.setOpaque(true);
+        messagePanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        messagePanel.setLayout(new GridLayout(errorLabels.length, 1, 0, 5));
+        panel.add(messagePanel, BorderLayout.SOUTH);
+
+        for (final var label : errorLabels) {
+            messagePanel.add(label);
+        }
+
+        return panel;
     }
 
     protected JComponent createFillComponent() {

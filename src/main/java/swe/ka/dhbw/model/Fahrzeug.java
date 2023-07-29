@@ -79,14 +79,14 @@ public final class Fahrzeug extends Ausruestung {
                 this,
                 String.class,
                 this.kennzeichen,
-                this.kennzeichen,
+                "",
                 true);
         attributes[attributes.length - 1] = new Attribute(
                 Attributes.TYP.name(),
                 this,
                 Typ.class,
                 this.typ,
-                this.typ,
+                Typ.KFZ,
                 true);
         return attributes;
     }
@@ -97,6 +97,11 @@ public final class Fahrzeug extends Ausruestung {
         csvData[CSVPosition.KENNZEICHEN.ordinal()] = this.getKennzeichen();
         csvData[CSVPosition.FAHRZEUGTYP.ordinal()] = this.getTyp().toString();
         return csvData;
+    }
+
+    @Override
+    public String getVisibleText() {
+        return this.getAnzahl() + "x " + this.getBezeichnung() + " (" + this.getKennzeichen() + " " + this.getTyp() + ", " + this.getBreite() + "x" + this.getHoehe() + ")";
     }
 
     @Override

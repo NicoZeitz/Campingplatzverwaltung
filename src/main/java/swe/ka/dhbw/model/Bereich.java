@@ -175,6 +175,7 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
         }
     }
 
+    @SuppressWarnings("unused")
     public void removeAnlage(final Anlage anlage) {
         this.anlagen.remove(anlage);
         anlage.setBereich(Optional.empty());

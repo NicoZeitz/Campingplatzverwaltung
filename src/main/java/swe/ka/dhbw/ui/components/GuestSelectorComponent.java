@@ -14,13 +14,20 @@ import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GuestSelectorComponent extends GUIComponent implements IGUIEventListener {
+    public record SearchInputChangedPayload(String text, List<? extends IDepictable> guests) {
+    }
+
     public enum Commands implements EventCommand {
-        GUEST_SELECTED("GuestSelectorComponent::GUEST_SELECTED", IDepictable.class),
-        ADD_GUEST_BUTTON_PRESSED("GuestSelectorComponent::ADD_GUEST_BUTTON_PRESSED"),
+        // outgoing gui events
+        BUTTON_PRESSED_GUEST_SELECTED("GuestSelectorComponent::BUTTON_PRESSED_GUEST_SELECTED", IDepictable.class),
+        BUTTON_PRESSED_ADD_GUEST("GuestSelectorComponent::BUTTON_PRESSED_ADD_GUEST"),
         SEARCH_INPUT_CHANGED("GuestSelectorComponent::SEARCH_INPUT_CHANGED", SearchInputChangedPayload.class),
+        // incoming update events
+        SELECT_GUEST("GuestSelectorComponent::SELECT_GUEST", IDepictable.class),
         UPDATE_GUESTS("GuestSelectorComponent::UPDATE_GUESTS", List.class);
 
         public final Class<?> payloadType;
@@ -46,16 +53,20 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
         }
     }
 
+    // UI IDs
     private static final String SEARCH_INPUT_ELEMENT_ID = "GuestSelectorComponent::SEARCH_INPUT_ELEMENT_ID";
     private static final String ADD_BUTTON_ELEMENT_ID = "GuestSelectorComponent::ADD_BUTTON_ELEMENT_ID";
     private static final String GUEST_LIST_ELEMENT_ID = "GuestSelectorComponent::GUEST_LIST_ELEMENT_ID";
+
+    // Data
+    private List<? extends IDepictable> guests = new ArrayList<>();
+
+    // Components
     private SimpleTextComponent searchInputElement;
     private SimpleListComponent guestListElement;
-    private List<? extends IDepictable> guests;
 
-    public GuestSelectorComponent(final ReadonlyConfiguration config, List<? extends IDepictable> guests) {
+    public GuestSelectorComponent(final ReadonlyConfiguration config) {
         super("GuestSelectorComponent", config);
-        this.guests = guests;
         this.initUI();
     }
 
@@ -73,13 +84,18 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
                 }
                 case ADD_BUTTON_ELEMENT_ID -> {
                     if (guiEvent.getCmd() == ButtonElement.Commands.BUTTON_PRESSED) {
-                        this.fireGUIEvent(new GUIEvent(this, Commands.ADD_GUEST_BUTTON_PRESSED));
+                        this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_ADD_GUEST));
                     }
                 }
                 case GUEST_LIST_ELEMENT_ID -> {
                     if (guiEvent.getCmd() == SimpleListComponent.Commands.ELEMENT_SELECTED) {
                         final var guest = (IDepictable) guiEvent.getData();
-                        this.fireGUIEvent(new GUIEvent(this, Commands.GUEST_SELECTED, guest));
+
+                        if (guest == null) {
+                            return;
+                        }
+
+                        this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_GUEST_SELECTED, guest));
                     }
                 }
             }
@@ -89,9 +105,27 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
     @Override
     @SuppressWarnings("unchecked")
     public void processUpdateEvent(final UpdateEvent updateEvent) {
-        if (updateEvent.getCmd() == Commands.UPDATE_GUESTS) {
-            this.guests = (List<? extends IDepictable>) updateEvent.getData();
-            this.guestListElement.setListElements(this.guests);
+        if (updateEvent.getCmd() instanceof Commands command) {
+            switch (command) {
+                case UPDATE_GUESTS -> {
+                    this.guests = (List<? extends IDepictable>) updateEvent.getData();
+                    this.guestListElement.setListElements(this.guests);
+                    final var text = this.searchInputElement.getText();
+                    if (!text.isEmpty()) {
+                        this.fireGUIEvent(new GUIEvent(
+                                this,
+                                Commands.SEARCH_INPUT_CHANGED,
+                                new SearchInputChangedPayload(text, this.guests)
+                        ));
+                    }
+                }
+                case SELECT_GUEST -> this.fireGUIEvent(new GUIEvent(
+                        this,
+                        Commands.BUTTON_PRESSED_GUEST_SELECTED,
+                        updateEvent.getData()
+                ));
+                default -> throw new IllegalArgumentException(String.valueOf(updateEvent));
+            }
         }
     }
 
@@ -137,11 +171,7 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
         this.guestListElement.setBackground(this.config.getBackgroundColor());
         this.guestListElement.setForeground(this.config.getTextColor());
         this.guestListElement.addObserver(this);
-        this.guestListElement.setListElements(this.guests);
 
         this.add(this.guestListElement, BorderLayout.CENTER);
-    }
-
-    public record SearchInputChangedPayload(String text, List<? extends IDepictable> guests) {
     }
 }

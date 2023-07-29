@@ -225,6 +225,7 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
         }
     }
 
+    @SuppressWarnings("unused")
     public void removeStoerung(final Stoerung stoerung) {
         Validator.getInstance().validateNotNull(stoerung);
         this.stoerungen.remove(stoerung);

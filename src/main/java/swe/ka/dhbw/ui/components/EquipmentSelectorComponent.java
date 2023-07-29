@@ -41,6 +41,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
         }
     }
 
+    // UI IDs
     private static final String DESCRIPTION_ELEMENT_ID = "EquipmentSelectorComponent::DESCRIPTION_ELEMENT_ID";
     private static final String AMOUNT_ELEMENT_ID = "EquipmentSelectorComponent::AMOUNT_ELEMENT_ID";
     private static final String WIDTH_ELEMENT_ID = "EquipmentSelectorComponent::WIDTH_ELEMENT_ID";
@@ -50,15 +51,18 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
     private static final String CANCEL_BUTTON_ELEMENT_ID = "EquipmentSelectorComponent::CANCEL_BUTTON_ELEMENT_ID";
     private static final String SAVE_BUTTON_ELEMENT_ID = "EquipmentSelectorComponent::SAVE_BUTTON_ELEMENT_ID";
 
+    // Data
+    private final List<?> vehicleTypes;
+
+    // Components
     private AttributeElement descriptionElement;
     private AttributeElement amountElement;
     private AttributeElement widthElement;
     private AttributeElement heightElement;
     private AttributeElement licensePlateElement;
     private AttributeElement vehicleTypElement;
-    private List<? extends Object> vehicleTypes;
 
-    public EquipmentSelectorComponent(final ReadonlyConfiguration config, final List<? extends Object> vehicleTypes) {
+    public EquipmentSelectorComponent(final ReadonlyConfiguration config, final List<?> vehicleTypes) {
         super("EquipmentSelectorComponent", config);
         this.vehicleTypes = vehicleTypes;
         this.initUI();

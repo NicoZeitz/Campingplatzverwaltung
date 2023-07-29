@@ -105,15 +105,15 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
                         this,
                         Integer.class,
                         this.ausruestungID,
-                        this.ausruestungID,
+                        0,
                         false,
                         false,
                         false,
                         true),
-                new Attribute(Attributes.BEZEICHNUNG.name(), this, String.class, this.bezeichnung, this.bezeichnung, true),
-                new Attribute(Attributes.ANZAHL.name(), this, Integer.class, this.anzahl, this.anzahl, true),
-                new Attribute(Attributes.BREITE.name(), this, Double.class, this.breite, this.breite, true),
-                new Attribute(Attributes.HOEHE.name(), this, Double.class, this.hoehe, this.hoehe, true)
+                new Attribute(Attributes.BEZEICHNUNG.name(), this, String.class, this.bezeichnung, "", true),
+                new Attribute(Attributes.ANZAHL.name(), this, Integer.class, this.anzahl, 1, true),
+                new Attribute(Attributes.BREITE.name(), this, Double.class, this.breite, 0, true),
+                new Attribute(Attributes.HOEHE.name(), this, Double.class, this.hoehe, 0, true)
         };
     }
 
@@ -161,6 +161,11 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
     }
 
     @Override
+    public String getVisibleText() {
+        return this.getAnzahl() + "x " + this.getBezeichnung() + " (" + this.getBreite() + "x" + this.getHoehe() + ")";
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(this.getBezeichnung(), this.getAnzahl(), this.getBreite(), this.getHoehe());
     }
@@ -192,10 +197,10 @@ public class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
     @Override
     public String toString() {
         return "Ausruestung{" +
-                "bezeichnung='" + bezeichnung + '\'' +
-                ", anzahl=" + anzahl +
-                ", breite=" + breite +
-                ", hoehe=" + hoehe +
+                "bezeichnung='" + this.getBezeichnung() + '\'' +
+                ", anzahl=" + this.getAnzahl() +
+                ", breite=" + this.getBreite() +
+                ", hoehe=" + this.getHoehe() +
                 '}';
     }
 }

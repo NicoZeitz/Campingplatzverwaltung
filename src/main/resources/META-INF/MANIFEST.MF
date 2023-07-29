@@ -1,3 +1,2 @@
 Manifest-Version: 1.0
-Main-Class: swe.ka.dhbw.control.StellplatzSelectorApp
-
+Main-Class: swe.ka.dhbw.control.Campingplatzverwaltung
