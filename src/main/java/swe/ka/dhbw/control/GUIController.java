@@ -57,6 +57,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         public final Class<?> payloadType;
         public final String cmdText;
 
+        @SuppressWarnings("SameParameterValue")
         Commands(final String cmdText, final Class<?> payloadType) {
             this.cmdText = cmdText;
             this.payloadType = payloadType;
@@ -148,15 +149,17 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     }
                     return entries.entrySet().stream();
                 })
-                .<Map<LocalDate, List<IDepictable>>>collect(HashMap::new, (map, entry) -> {
-                    map.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
-                }, (hashMap1, hashMap2) -> {
-                    for (final var entry : hashMap2.entrySet()) {
-                        final var list = hashMap1.getOrDefault(entry.getKey(), new ArrayList<>());
-                        list.addAll(entry.getValue());
-                        hashMap1.put(entry.getKey(), list);
-                    }
-                });
+                .collect(
+                        HashMap::new,
+                        (map, entry) -> map.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue()),
+                        (hashMap1, hashMap2) -> {
+                            for (final var entry : hashMap2.entrySet()) {
+                                final var list = hashMap1.getOrDefault(entry.getKey(), new ArrayList<>());
+                                list.addAll(entry.getValue());
+                                hashMap1.put(entry.getKey(), list);
+                            }
+                        }
+                );
     }
 
     private List<? extends IDepictable> getBookingsAsDisplayableList() {
@@ -209,6 +212,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.updateEventObservers.add(eventListener);
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
     public void processUpdateEvent(final UpdateEvent updateEvent) {
         // react to own events and fire additional companion events

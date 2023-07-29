@@ -16,10 +16,10 @@ public abstract class Anlage implements IDepictable, IPersistable {
     }
 
     protected final int anlageId;
+    protected final Set<Foto> fotos = new LinkedHashSet<>();
     protected GPSPosition lage;
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     protected Optional<Bereich> bereich = Optional.empty();
-    protected Set<Foto> fotos = new LinkedHashSet<>();
 
     public Anlage(final int anlageId, final GPSPosition lage) {
         Validator.getInstance().validateGreaterThanEqual(anlageId, 0);

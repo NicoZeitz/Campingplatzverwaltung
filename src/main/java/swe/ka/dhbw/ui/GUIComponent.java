@@ -121,8 +121,7 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
 
     protected JLabel createErrorLabel() {
         final var label = new JLabel();
-        final var attributes = new HashMap<TextAttribute, Object>();
-        attributes.putAll(this.config.getFont().getAttributes());
+        final var attributes = new HashMap<TextAttribute, Object>(this.config.getFont().getAttributes());
         attributes.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
 
         label.setVerticalAlignment(SwingConstants.CENTER);
