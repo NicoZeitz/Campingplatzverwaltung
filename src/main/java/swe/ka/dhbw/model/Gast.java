@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable {
+public final class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable, Comparable<Gast> {
     public enum Attributes {
         VORNAME,
         NACHNAME,
@@ -80,6 +80,11 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
 
     public List<Buchung> getBuchungen() {
         return this.buchungen;
+    }
+
+    @Override
+    public int compareTo(final Gast that) {
+        return Integer.compare(this.getKundennummer(), that.getKundennummer());
     }
 
     @Override
