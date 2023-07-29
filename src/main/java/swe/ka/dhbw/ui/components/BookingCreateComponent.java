@@ -271,11 +271,12 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 // guest selection
                 case ADD_ASSOCIATED_GUEST -> {
                     ((List<IDepictable>) this.associatedGuests).add((IDepictable) updateEvent.getData());
+                    this.associatedGuests = this.associatedGuests.stream().sorted().collect(Collectors.toList());
                     this.buildGuestTable();
                 }
                 case SET_ASSOCIATED_GUESTS -> {
                     final var payload = (Payload.GuestList) updateEvent.getData();
-                    this.associatedGuests = payload.guests();
+                    this.associatedGuests = payload.guests().stream().sorted().collect(Collectors.toList());
                     this.responsibleGuest = payload.responsibleGuest();
                     this.buildGuestTable();
                 }
