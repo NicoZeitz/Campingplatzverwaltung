@@ -1159,6 +1159,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.windowConfiguration.removeObserver(this.windowConfigurationObserver);
         this.removeObserver(this.windowConfiguration);
         this.windowConfigurationObserver = null;
+        this.app.setConfig(this.configurationBuilder.build());
         this.app.getConfig().setWindowLocation("Window::Main", WindowLocation.from(configWindow));
         configWindow.dispose();
 
