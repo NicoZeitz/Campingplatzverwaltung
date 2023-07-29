@@ -39,6 +39,7 @@ public class EntityFactory {
         this.database = database;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public IPersistable createElement(final Class<?> c, final String[] csvData) {
         Validator.getInstance().validateNotNull(c);
         Validator.getInstance().validateNotNull(csvData);
@@ -133,9 +134,9 @@ public class EntityFactory {
         // @formatter:off
         this.missingReferences.keySet().forEach(clazz ->
                 this.missingReferences.get(clazz).keySet().forEach(primaryKey ->
-                        this.missingReferences.get(clazz).get(primaryKey).forEach(consumer -> {
-                            AppLogger.getInstance().warning("EntityFactory::loadAllEntities: Could not resolve reference for " + clazz.getSimpleName() + " with primary key " + primaryKey);
-                        })
+                        this.missingReferences.get(clazz).get(primaryKey).forEach(consumer ->
+                            AppLogger.getInstance().warning("EntityFactory::loadAllEntities: Could not resolve reference for " + clazz.getSimpleName() + " with primary key " + primaryKey)
+                        )
                 )
         );
         // @formatter:on

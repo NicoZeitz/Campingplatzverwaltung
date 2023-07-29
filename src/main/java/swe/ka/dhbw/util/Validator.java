@@ -19,27 +19,6 @@ public class Validator {
         return instance;
     }
 
-    public void validateNotNull(final Object object) throws NullPointerException {
-        if (object == null) {
-            throw new IllegalArgumentException("Validator::validateNotNull: Argument cannot be null!");
-        }
-    }
-
-    public void validateNotEmpty(final String string) throws IllegalArgumentException {
-        this.validateNotNull(string);
-        if (string.isEmpty()) {
-            throw new IllegalArgumentException("Validator::validateNotEmpty: String cannot be empty!");
-        }
-    }
-
-    public void validatePhoneNumber(final String phoneNumber) {
-        this.validateNotNull(phoneNumber);
-        var validPhoneNumber = PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches();
-        if (!validPhoneNumber) {
-            throw new IllegalArgumentException("Validator::validatePhoneNumber: " + phoneNumber + " is not a valid phone number!");
-        }
-    }
-
     public void validateEmail(final String email) {
         this.validateNotEmpty(email);
         var validEmail = EMAIL_PATTERN.matcher(email).matches();
@@ -49,6 +28,13 @@ public class Validator {
     }
 
     public void validateGreaterThan(final long value, final long min) {
+        if (value < min) {
+            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void validateGreaterThan(final double value, final double min) {
         if (value < min) {
             throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
         }
@@ -66,36 +52,7 @@ public class Validator {
         }
     }
 
-    public void validateGreaterThan(final double value, final double min) {
-        if (value < min) {
-            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
-        }
-    }
-
-    public void validateLessThan(final long value, final long min) {
-        if (value < min) {
-            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
-        }
-    }
-
-    public void validateLessThan(final double value, final double min) {
-        if (value < min) {
-            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
-        }
-    }
-
-    public void validateLessThanEqual(final long value, final long min) {
-        if (value <= min) {
-            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
-        }
-    }
-
-    public void validateLessThanEqual(final double value, final double min) {
-        if (value <= min) {
-            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
-        }
-    }
-
+    @SuppressWarnings("unused")
     public void validateInRange(final long value, final long min, final long max) {
         if (value <= min || value >= max) {
             throw new IllegalArgumentException("Validator::validateInRange: " + value + " is not in range of " + min + " and " + max + "!");
@@ -105,6 +62,55 @@ public class Validator {
     public void validateInRange(final double value, final double min, final double max) {
         if (value <= min || value >= max) {
             throw new IllegalArgumentException("Validator::validateInRange: " + value + " is not in range of " + min + " and " + max + "!");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void validateLessThan(final long value, final long min) {
+        if (value < min) {
+            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void validateLessThan(final double value, final double min) {
+        if (value < min) {
+            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void validateLessThanEqual(final long value, final long min) {
+        if (value <= min) {
+            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void validateLessThanEqual(final double value, final double min) {
+        if (value <= min) {
+            throw new IllegalArgumentException("Validator::validateGreaterThan: " + value + " is not greater than " + min + "!");
+        }
+    }
+
+    public void validateNotEmpty(final String string) throws IllegalArgumentException {
+        this.validateNotNull(string);
+        if (string.isEmpty()) {
+            throw new IllegalArgumentException("Validator::validateNotEmpty: String cannot be empty!");
+        }
+    }
+
+    public void validateNotNull(final Object object) throws NullPointerException {
+        if (object == null) {
+            throw new IllegalArgumentException("Validator::validateNotNull: Argument cannot be null!");
+        }
+    }
+
+    public void validatePhoneNumber(final String phoneNumber) {
+        this.validateNotNull(phoneNumber);
+        var validPhoneNumber = PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches();
+        if (!validPhoneNumber) {
+            throw new IllegalArgumentException("Validator::validatePhoneNumber: " + phoneNumber + " is not a valid phone number!");
         }
     }
 }

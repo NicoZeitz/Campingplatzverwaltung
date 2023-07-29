@@ -1,13 +1,18 @@
 package swe.ka.dhbw.database;
 
 import de.dhbwka.swe.utils.model.ICSVPersistable;
+import de.dhbwka.swe.utils.model.IPersistable;
+import de.dhbwka.swe.utils.util.AppLogger;
 import de.dhbwka.swe.utils.util.CSVReader;
 import de.dhbwka.swe.utils.util.CSVWriter;
 import de.dhbwka.swe.utils.util.FileEncoding;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -80,6 +85,32 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
     }
 
     @Override
+    @SuppressWarnings({"resource", "ResultOfMethodCallIgnored"})
+    public void transaction(final CheckedFunction transaction) throws IOException {
+        final var tempDirectory = Files.createTempDirectory("campingplatzTransaction");
+        for (final var source : Files.walk(this.directory).toList()) {
+            final var destination = Paths.get(tempDirectory.toString(), source.toString().substring(this.directory.toString().length()));
+            Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        try {
+            transaction.run();
+        } catch (Exception e) {
+            AppLogger.getInstance().warning("CSVDatenbasis Transaction failed");
+            AppLogger.getInstance().error(e);
+            for (final var destination : Files.walk(this.directory).toList()) {
+                final var source = Paths.get(tempDirectory.toString(), destination.toString().substring(this.directory.toString().length()));
+                Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING);
+            }
+            throw e;
+        } finally {
+            try {
+                new File(tempDirectory.toString()).delete();
+            } catch (Exception e) { /* Ignore errors as it is a temp directory anyway */ }
+        }
+    }
+
+    @Override
     public void update(final Class<?> c, final ICSVPersistable data) throws IOException {
         if (!this.isInitialized(c)) {
             return;
@@ -106,12 +137,12 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
             return;
         }
 
-        if (this.read(c).indexOf(data) == -1) {
-            this.create(c, data);
+        if (EntityManager.getInstance().contains((IPersistable) data)) {
+            this.update(c, data);
             return;
         }
 
-        this.update(c, data);
+        this.create(c, data);
     }
 
     public void init() throws IOException {
@@ -142,6 +173,7 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         return writer;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isInitialized(final Class<?> c) throws IOException {
         final var filePath = this.directory.resolve(c.getSimpleName() + ".csv");
         if (!Files.exists(filePath)) {
@@ -151,9 +183,12 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         return Files.size(filePath) > 0;
     }
 
-    private void write(final Class<?> c,
-                       final List<ICSVPersistable> entities,
-                       final Optional<String[]> header) throws IOException {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private void write(
+            final Class<?> c,
+            final List<ICSVPersistable> entities,
+            final Optional<String[]> header
+    ) throws IOException {
         final var writer = this.getWriter(c);
         final var lines = entities.stream()
                 .map(ICSVPersistable::getCSVData)

@@ -38,8 +38,8 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
     private String beschreibung;
     private LocalDateTime letzteWartung;
     private List<Oeffnungstag> oeffnungstage = new ArrayList<>();
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<Fremdfirma> zustaendigeFirma = Optional.empty();
-    ;
 
     public Einrichtung(final int anlageId,
                        final GPSPosition lage,
@@ -83,6 +83,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         return this.oeffnungstage;
     }
 
+    @SuppressWarnings("unused")
     public void setOeffnungstage(final List<Oeffnungstag> oeffnungstage) {
         Validator.getInstance().validateNotNull(oeffnungstage);
         if (oeffnungstage.size() > 7) {
@@ -100,7 +101,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         this.setZustaendigeFirma(Optional.ofNullable(zustaendigeFirma));
     }
 
-    public void setZustaendigeFirma(final Optional<Fremdfirma> zustaendigeFirma) {
+    public void setZustaendigeFirma(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Fremdfirma> zustaendigeFirma) {
         Validator.getInstance().validateNotNull(zustaendigeFirma);
         this.zustaendigeFirma = zustaendigeFirma;
         if (zustaendigeFirma.isPresent() && !zustaendigeFirma.get().getEinrichtungen().contains(this)) {
@@ -251,6 +252,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         this.oeffnungstage.add(oeffnungstag);
     }
 
+    @SuppressWarnings("unused")
     public void removeOeffnungstag(final Oeffnungstag oeffnungstag) {
         this.oeffnungstage.remove(oeffnungstag);
     }

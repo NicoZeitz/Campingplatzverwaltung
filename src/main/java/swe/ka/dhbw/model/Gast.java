@@ -215,6 +215,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
         }
     }
 
+    @SuppressWarnings("unused")
     public void removeBuchung(final Buchung buchung) {
         Validator.getInstance().validateNotNull(buchung);
         this.buchungen.remove(buchung);

@@ -48,12 +48,12 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
     // UI IDs
     private static final String BOOKING_SIMPLE_TABLE_COMPONENT_ID = "BookingListComponent::BOOKING_SIMPLE_TABLE_COMPONENT_ID";
 
+    // Data
+    private final Map<ImageElement, ImageIcon> cachedImages = new HashMap<>();
+    private List<? extends IDepictable> bookings = new ArrayList<>();
+
     // Components
     private SimpleTableComponent tableComponent;
-
-    // Data
-    private List<? extends IDepictable> bookings = new ArrayList<>();
-    private Map<ImageElement, ImageIcon> cachedImages = new HashMap<>();
 
     public BookingListComponent(final ReadonlyConfiguration config) {
         super("BookingListComponent", config);
@@ -124,6 +124,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
                 .cellRenderer(this, List.class)
                 .build();
         super.colorizeTable(this.tableComponent);
+        this.tableComponent.setData(this.bookings.toArray(new IDepictable[0]), new String[0]);
         this.tableComponent.addObserver(this);
         this.add(this.tableComponent, BorderLayout.CENTER);
     }

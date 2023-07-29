@@ -39,8 +39,9 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
     private String auftragsnummer;
     private String rechnungsnummer;
     private BigDecimal kosten;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<Fremdfirma> zustaendigeFirma = Optional.empty();
-    ;
+
     private Anlage anlage;
 
     public Wartung(final int wartungsnummer,
@@ -115,7 +116,7 @@ public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
         this.setZustaendigeFirma(Optional.ofNullable(zustaendigeFirma));
     }
 
-    public void setZustaendigeFirma(final Optional<Fremdfirma> zustaendigeFirma) {
+    public void setZustaendigeFirma(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Fremdfirma> zustaendigeFirma) {
         Validator.getInstance().validateNotNull(zustaendigeFirma);
         this.zustaendigeFirma = zustaendigeFirma;
     }

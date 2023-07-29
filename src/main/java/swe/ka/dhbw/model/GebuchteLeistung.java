@@ -7,6 +7,8 @@ import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Objects;
 
 public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPersistable {
@@ -133,6 +135,14 @@ public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPe
     @Override
     public Object getPrimaryKey() {
         return this.getGebuchteLeistungId();
+    }
+
+    @Override
+    public String getVisibleText() {
+        final var startDate = this.getBuchungStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
+        final var endDate = this.getBuchungsEnde().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
+        final var description = this.getLeistungsbeschreibung().getBeschreibung();
+        return startDate + " - " + endDate + " " + description;
     }
 
     @Override

@@ -6,6 +6,7 @@ import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.*;
 import de.dhbwka.swe.utils.model.IDepictable;
+import swe.ka.dhbw.control.Payload;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.ui.GUIComponent;
 
@@ -13,18 +14,28 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 public class ServiceSelectorComponent extends GUIComponent implements IGUIEventListener {
-    // Commands
+    public enum Mode {
+        EDIT,
+        CREATE
+    }
+
     public enum Commands implements EventCommand {
         // outgoing gui events
-        DATE_PICKER_START_DATE("ServiceSelectorComponent::DATE_PICKER_START_DATE", LocalDate.class),
-        DATE_PICKER_END_DATE("ServiceSelectorComponent::DATE_PICKER_END_DATE", LocalDate.class),
-        CANCEL("ServiceSelectorComponent::CANCEL"),
-        SAVE("ServiceSelectorComponent::SAVE", SavePayload.class);
+        BUTTON_PRESSED_SELECT_START_DATE("ServiceSelectorComponent::BUTTON_PRESSED_SELECT_START_DATE", LocalDate.class),
+        BUTTON_PRESSED_SELECT_END_DATE("ServiceSelectorComponent::BUTTON_PRESSED_SELECT_END_DATE", LocalDate.class),
+        BUTTON_PRESSED_SAVE("ServiceSelectorComponent::BUTTON_PRESSED_SAVE", Payload.ServiceCreation.class),
+        BUTTON_PRESSED_CANCEL("ServiceSelectorComponent::BUTTON_PRESSED_CANCEL"),
+        // incoming update events
+        UPDATE_SERVICE_TYPES("ServiceSelectorComponent::UPDATE_SERVICE_TYPES", List.class),
+        SET_START_DATE("ServiceSelectorComponent::SET_START_DATE", LocalDate.class),
+        SET_END_DATE("ServiceSelectorComponent::SET_END_DATE", LocalDate.class),
+        SET_SELECTED_SERVICE_TYPE("ServiceSelectorComponent::SET_SELECTED_SERVICE_TYPE", Object.class),
+        SET_MODE("ServiceSelectorComponent::SET_MODE", Mode.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -50,32 +61,24 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
     }
 
     // UI IDs
-    private static final String SERVICE_TYPE_ELEMENT_ID = "ServiceSelectorComponent::SERVICE_TYPE_ELEMENT_ID";
     private static final String START_DATE_ELEMENT_ID = "ServiceSelectorComponent::START_DATE_ELEMENT_ID";
     private static final String END_DATE_ELEMENT_ID = "ServiceSelectorComponent::END_DATE_ELEMENT_ID";
     private static final String CANCEL_BUTTON_ELEMENT_ID = "ServiceSelectorComponent::CANCEL_BUTTON_ELEMENT_ID";
     private static final String SAVE_BUTTON_ELEMENT_ID = "ServiceSelectorComponent::SAVE_BUTTON_ELEMENT_ID";
 
+    // Data
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
+    private List<? extends IDepictable> serviceTypes = new ArrayList<>();
+    private Mode mode = Mode.CREATE;
+
     // Components
+    private ButtonComponent container;
     private AttributeElement serviceTypeElement;
     private AttributeElement startDateElement;
     private AttributeElement endDateElement;
 
-    // Data
-    private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
-    private List<? extends IDepictable> serviceTypes;
-
-    public ServiceSelectorComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> serviceTypes, final EditPayload payload) {
-        // edit mode
+    public ServiceSelectorComponent(final ReadonlyConfiguration config) {
         super("ServiceSelectorComponent", config);
-        this.serviceTypes = serviceTypes;
-        this.initUI(payload);
-    }
-
-    public ServiceSelectorComponent(final ReadonlyConfiguration config, final List<? extends IDepictable> serviceTypes) {
-        // creation mode
-        super("ServiceSelectorComponent", config);
-        this.serviceTypes = serviceTypes;
         this.initUI();
     }
 
@@ -84,56 +87,67 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
         if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
-                case SERVICE_TYPE_ELEMENT_ID -> {
-                }
                 case START_DATE_ELEMENT_ID -> {
                     if (guiEvent.getCmd() == AttributeElement.Commands.BUTTON_PRESSED) {
                         final var startDate = tryOptional(() -> LocalDate.parse(this.startDateElement.getValueAsString(), this.dateTimeFormatter));
-                        this.fireGUIEvent(new GUIEvent(this, Commands.DATE_PICKER_START_DATE, startDate));
+                        this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_SELECT_START_DATE, startDate));
                     }
                 }
                 case END_DATE_ELEMENT_ID -> {
                     if (guiEvent.getCmd() == AttributeElement.Commands.BUTTON_PRESSED) {
                         final var endDate = tryOptional(() -> LocalDate.parse(this.endDateElement.getValueAsString(), this.dateTimeFormatter));
-                        this.fireGUIEvent(new GUIEvent(this, Commands.DATE_PICKER_END_DATE, endDate));
+                        this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_SELECT_END_DATE, endDate));
                     }
                 }
-                case CANCEL_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.CANCEL));
+                case CANCEL_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_CANCEL));
                 case SAVE_BUTTON_ELEMENT_ID -> {
                     final var startDate = tryOptional(() -> LocalDate.parse(this.startDateElement.getValueAsString(), this.dateTimeFormatter));
                     final var endDate = tryOptional(() -> LocalDate.parse(this.endDateElement.getValueAsString(), this.dateTimeFormatter));
 
-                    final var payload = new SavePayload(
+                    final var payload = new Payload.ServiceCreation(
                             (IDepictable) this.serviceTypeElement.getValue(),
                             startDate,
                             endDate
                     );
-                    this.fireGUIEvent(new GUIEvent(this, Commands.SAVE, payload));
+                    this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_SAVE, payload));
                 }
             }
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void processUpdateEvent(final UpdateEvent updateEvent) {
-        if (updateEvent.getCmdText().equals(Commands.DATE_PICKER_START_DATE.getCmdText())) {
-            this.startDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
-        } else if (updateEvent.getCmdText().equals(Commands.DATE_PICKER_END_DATE.getCmdText())) {
-            this.endDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
+        if (updateEvent.getCmd() instanceof Commands command) {
+            switch (command) {
+                case UPDATE_SERVICE_TYPES -> {
+                    this.serviceTypes = (List<? extends IDepictable>) updateEvent.getData();
+                    this.serviceTypeElement.setData(this.serviceTypes.toArray(new IDepictable[0]));
+                }
+                case SET_START_DATE -> this.startDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
+                case SET_END_DATE -> this.endDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
+                case SET_SELECTED_SERVICE_TYPE -> {
+                    this.serviceTypeElement.setValue(updateEvent.getData());
+                }
+                case SET_MODE -> {
+                    this.mode = (Mode) updateEvent.getData();
+                    this.serviceTypeElement.setEnabled(this.mode == Mode.CREATE);
+
+                    final var border = BorderFactory.createTitledBorder(this.mode == Mode.CREATE ? "Leistung hinzufügen" : "Leistung bearbeiten");
+                    border.setTitleColor(this.config.getTextColor());
+                    border.setTitleFont(this.config.getHeaderFont());
+                    this.container.setBorder(border);
+
+                }
+                default -> throw new IllegalArgumentException(String.valueOf(updateEvent));
+            }
         }
     }
 
-    private void initUI(final EditPayload payload) {
-        this.initUI();
-        this.serviceTypeElement.setEnabled(false);
-        this.serviceTypeElement.setValue(payload.selectedServiceType);
-        this.startDateElement.setValue(payload.startDate.format(this.dateTimeFormatter));
-        this.endDateElement.setValue(payload.endDate.format(this.dateTimeFormatter));
-    }
-
     private void initUI() {
+        UIManager.put("ComboBox.disabledForeground", this.config.getTextColor());
         this.serviceTypeElement = AttributeElement
-                .builder(SERVICE_TYPE_ELEMENT_ID)
+                .builder(super.generateRandomID())
                 .labelName("Art der Leistung")
                 .toolTip("Angabe des konkreten Leistungstyps")
                 // label
@@ -239,30 +253,24 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .build();
         saveButton.addObserver(this);
 
-        final var container = ButtonComponent.builder(super.generateRandomID())
+        this.container = ButtonComponent.builder(super.generateRandomID())
                 .embeddedComponent(servicePanel)
                 .buttonElements(new ButtonElement[] {cancelButton, saveButton})
                 .position(ButtonComponent.Position.SOUTH)
                 .orientation(ButtonComponent.Orientation.RIGHT)
                 .build();
-        container.setForeground(this.config.getTextColor());
-        container.setBackground(this.config.getBackgroundColor());
-        container.getComponent(1).setBackground(this.config.getBackgroundColor());
-        container.getComponent(1).setForeground(this.config.getTextColor());
+        this.container.setForeground(this.config.getTextColor());
+        this.container.setBackground(this.config.getBackgroundColor());
+        this.container.getComponent(1).setBackground(this.config.getBackgroundColor());
+        this.container.getComponent(1).setForeground(this.config.getTextColor());
         final var border = BorderFactory.createTitledBorder("Leistung hinzufügen");
         border.setTitleColor(this.config.getTextColor());
         border.setTitleFont(this.config.getHeaderFont());
-        container.setBorder(border);
+        this.container.setBorder(border);
 
         this.setLayout(new GridLayout(1, 1));
-        this.add(container);
+        this.add(this.container);
         this.setOpaque(true);
 
-    }
-
-    public record EditPayload(IDepictable selectedServiceType, LocalDate startDate, LocalDate endDate) {
-    }
-
-    public record SavePayload(IDepictable selectedServiceType, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
     }
 }

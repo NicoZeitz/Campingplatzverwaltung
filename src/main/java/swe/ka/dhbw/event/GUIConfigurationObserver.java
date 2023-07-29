@@ -11,16 +11,15 @@ import java.awt.*;
 public class GUIConfigurationObserver implements IGUIEventListener {
     @Override
     public void processGUIEvent(GUIEvent guiEvent) {
-        if (guiEvent.getCmd() == GUIConfiguration.Commands.OPEN_MAIN_GUI) {
-            SwingUtilities.invokeLater(() -> GUIController.getInstance().openWindowMain());
-        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.EXIT_APPLICATION) {
-            GUIController.getInstance().exitApplication();
-        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.CONFIGURATION_ACCENT_COLOR) {
-            GUIController.getInstance().handleWindowConfigurationSetAccentColor((Color) guiEvent.getData());
-        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.CONFIGURATION_DARK_MODE) {
-            GUIController.getInstance().handleWindowConfigurationSetDarkMode((Boolean) guiEvent.getData());
-        } else if (guiEvent.getCmd() == GUIConfiguration.Commands.CONFIGURATION_TEXT_FONT) {
-            GUIController.getInstance().handleWindowConfigurationSetTextFont((Font) guiEvent.getData());
+        final var controller = GUIController.getInstance();
+        if (guiEvent.getCmd() instanceof GUIConfiguration.Commands command) {
+            switch (command) {
+                case OPEN_MAIN_GUI -> SwingUtilities.invokeLater(() -> controller.openWindowMain());
+                case EXIT_APPLICATION -> controller.exitApplication();
+                case CONFIGURATION_ACCENT_COLOR -> controller.handleWindowConfigurationSetAccentColor((Color) guiEvent.getData());
+                case CONFIGURATION_DARK_MODE -> controller.handleWindowConfigurationSetDarkMode((Boolean) guiEvent.getData());
+                case CONFIGURATION_TEXT_FONT -> controller.handleWindowConfigurationSetTextFont((Font) guiEvent.getData());
+            }
         }
     }
 }

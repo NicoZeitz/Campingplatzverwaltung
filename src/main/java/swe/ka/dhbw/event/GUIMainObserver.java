@@ -8,22 +8,17 @@ import swe.ka.dhbw.ui.GUIMain;
 public final class GUIMainObserver implements IGUIEventListener {
     @Override
     public void processGUIEvent(final GUIEvent guiEvent) {
-        if (guiEvent.getCmd() == GUIMain.Commands.BOOKING_MANAGEMENT) {
-            GUIController.getInstance().handleWindowMainOpenBookingManagement();
-        } else if (guiEvent.getCmd() == GUIMain.Commands.PITCH_MANAGEMENT) {
-            GUIController.getInstance().openWindowPitch();
-        } else if (guiEvent.getCmd() == GUIMain.Commands.GUEST_MANAGEMENT) {
-            GUIController.getInstance().openWindowGuest();
-        } else if (guiEvent.getCmd() == GUIMain.Commands.FACILITY_MANAGEMENT) {
-            GUIController.getInstance().openWindowFacility();
-        } else if (guiEvent.getCmd() == GUIMain.Commands.PERSONNEL_MANAGEMENT) {
-            GUIController.getInstance().openWindowStaff();
-        } else if (guiEvent.getCmd() == GUIMain.Commands.CREATE_BOOKING) {
-            GUIController.getInstance().handleWindowMainCreateBooking();
-        } else if (guiEvent.getCmd() == GUIMain.Commands.CHECK_IN_CHECK_OUT) {
-            GUIController.getInstance().openWindowCheckInCheckOut();
-        } else {
-            LogObserver.logGUIEvent(guiEvent);
+        final var controller = GUIController.getInstance();
+        if (guiEvent.getCmd() instanceof GUIMain.Commands command) {
+            switch (command) {
+                case BOOKING_MANAGEMENT -> controller.handleWindowMainOpenBookingManagement();
+                case PITCH_MANAGEMENT -> controller.openWindowPitch();
+                case GUEST_MANAGEMENT -> controller.openWindowGuest();
+                case FACILITY_MANAGEMENT -> controller.openWindowFacility();
+                case PERSONNEL_MANAGEMENT -> controller.openWindowStaff();
+                case CREATE_BOOKING -> controller.handleWindowMainCreateBooking();
+                case CHECK_IN_CHECK_OUT -> controller.openWindowCheckInCheckOut();
+            }
         }
     }
 }

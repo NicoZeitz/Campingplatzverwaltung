@@ -17,6 +17,7 @@ public abstract class Anlage implements IDepictable, IPersistable {
 
     protected final int anlageId;
     protected GPSPosition lage;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     protected Optional<Bereich> bereich = Optional.empty();
     protected Set<Foto> fotos = new LinkedHashSet<>();
 
@@ -47,7 +48,7 @@ public abstract class Anlage implements IDepictable, IPersistable {
         this.setBereich(Optional.ofNullable(bereich));
     }
 
-    public void setBereich(final Optional<Bereich> bereich) {
+    public void setBereich(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Bereich> bereich) {
         Validator.getInstance().validateNotNull(bereich);
         this.bereich = bereich;
         if (bereich.isPresent() && !bereich.get().getAnlagen().contains(this)) {
@@ -145,6 +146,7 @@ public abstract class Anlage implements IDepictable, IPersistable {
         this.fotos.add(foto);
     }
 
+    @SuppressWarnings("unused")
     public void removeFoto(final Foto foto) {
         this.fotos.remove(foto);
     }

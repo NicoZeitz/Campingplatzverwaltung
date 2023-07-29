@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class BookingOverviewComponent extends GUIComponent implements IGUIEventListener {
@@ -89,6 +90,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         return previousWeekLabel;
     }
 
+    @SuppressWarnings("unused")
     public void setPreviousWeekLabel(final String previousWeekLabel) {
         this.previousWeekLabel = previousWeekLabel;
     }
@@ -97,14 +99,15 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         return nextWeekLabel;
     }
 
+    @SuppressWarnings("unused")
     public void setNextWeekLabel(final String nextWeekLabel) {
         this.nextWeekLabel = nextWeekLabel;
     }
 
     private String getTimespanLabelText() {
         final var kw = this.getCurrentWeek().get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        final var startOfWeek = this.getCurrentWeek().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        final var endOfWeek = this.getCurrentWeek().plusDays(6).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        final var startOfWeek = this.getCurrentWeek().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
+        final var endOfWeek = this.getCurrentWeek().plusDays(6).format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
 
         return "KW %d (%s - %s)".formatted(kw, startOfWeek, endOfWeek);
     }
@@ -114,14 +117,8 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
         if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
-                case PREVIOUS_WEEK_BUTTON_ELEMENT_ID: {
-                    this.fireGUIEvent(new GUIEvent(this, Commands.PREVIOUS_WEEK, this.getCurrentWeek()));
-                    break;
-                }
-                case NEXT_WEEK_BUTTON_ELEMENT_ID: {
-                    this.fireGUIEvent(new GUIEvent(this, Commands.NEXT_WEEK, this.getCurrentWeek()));
-                    break;
-                }
+                case PREVIOUS_WEEK_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.PREVIOUS_WEEK, this.getCurrentWeek()));
+                case NEXT_WEEK_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.NEXT_WEEK, this.getCurrentWeek()));
             }
         }
     }
@@ -129,13 +126,18 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
     @Override
     @SuppressWarnings("unchecked")
     public void processUpdateEvent(final UpdateEvent updateEvent) {
-        if (updateEvent.getCmd() == Commands.UPDATE_WEEK) {
-            this.setCurrentWeek((LocalDate) updateEvent.getData());
-            this.timespanLabel.setText(this.getTimespanLabelText());
-            this.rebuildUI();
-        } else if (updateEvent.getCmd() == Commands.UPDATE_APPOINTMENTS) {
-            this.appointments = ((Map<LocalDate, List<? extends IDepictable>>) updateEvent.getData());
-            this.rebuildUI();
+        if (updateEvent.getCmd() instanceof Commands command) {
+            switch (command) {
+                case UPDATE_WEEK -> {
+                    this.setCurrentWeek((LocalDate) updateEvent.getData());
+                    this.timespanLabel.setText(this.getTimespanLabelText());
+                    this.rebuildUI();
+                }
+                case UPDATE_APPOINTMENTS -> {
+                    this.appointments = ((Map<LocalDate, List<? extends IDepictable>>) updateEvent.getData());
+                    this.rebuildUI();
+                }
+            }
         }
     }
 
@@ -146,7 +148,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
 
             // The day (MO - SO)
             final var header = new JLabel(day);
-            header.setToolTipText(this.getCurrentWeek().plusDays(i).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            header.setToolTipText(this.getCurrentWeek().plusDays(i).format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)));
             header.setFont(this.config.getLargeFont());
             header.setHorizontalAlignment(SwingConstants.CENTER);
             header.setBackground(this.config.getAccentColor());

@@ -46,8 +46,8 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
     private LocalDateTime behebungsdatum;
     private Status status;
     private Personal verantwortlicher;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<Stellplatzfunktion> stellplatzfunktion = Optional.empty();
-    ;
 
     public Stoerung(final int stoerungsnummer,
                     final String titel,
@@ -134,7 +134,7 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
         this.setStellplatzfunktion(Optional.ofNullable(stellplatzfunktion));
     }
 
-    public void setStellplatzfunktion(final Optional<Stellplatzfunktion> stellplatzfunktion) {
+    public void setStellplatzfunktion(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Stellplatzfunktion> stellplatzfunktion) {
         Validator.getInstance().validateNotNull(stellplatzfunktion);
         this.stellplatzfunktion = stellplatzfunktion;
     }
@@ -286,11 +286,13 @@ public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
                 '}';
     }
 
+    @SuppressWarnings("unused")
     public void addFoto(final Foto foto) {
         Validator.getInstance().validateNotNull(foto);
         this.fotos.add(foto);
     }
 
+    @SuppressWarnings("unused")
     public void removeFoto(final Foto foto) {
         this.fotos.remove(foto);
     }

@@ -75,18 +75,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.initUI();
     }
 
-    public BookingOverviewComponent getBookingOverview() {
-        return bookingOverview;
-    }
-
-    public BookingListComponent getBookingList() {
-        return bookingList;
-    }
-
-    public BookingCreateComponent getBookingCreate() {
-        return bookingCreate;
-    }
-
+    @SuppressWarnings("unused")
     private GUIComponent getSelectedTab() {
         final var selectedTab = (JComponent) this.tabs.getSelectedComponent();
         if (selectedTab instanceof GUIComponent component) {
