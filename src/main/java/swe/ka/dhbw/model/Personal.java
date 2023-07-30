@@ -142,12 +142,12 @@ public class Personal extends Person implements IDepictable, ICSVPersistable, IP
         csvData[CSVPosition.PERSONAL_ID.ordinal()] = String.valueOf(this.getNummer());
         csvData[CSVPosition.VORNAME.ordinal()] = this.getVorname();
         csvData[CSVPosition.NACHNAME.ordinal()] = this.getNachname();
-        csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().toString();
+        csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().name();
         csvData[CSVPosition.EMAIL.ordinal()] = this.getEmail();
         csvData[CSVPosition.TELEFONNUMMER.ordinal()] = this.getTelefonnummer();
         csvData[CSVPosition.PERSONALNUMMER.ordinal()] = String.valueOf(this.getNummer());
         csvData[CSVPosition.GEBURTSTAG.ordinal()] = this.getGeburtstag().toString();
-        csvData[CSVPosition.ROLLE.ordinal()] = this.getBenutzerrolle().toString();
+        csvData[CSVPosition.ROLLE.ordinal()] = this.getBenutzerrolle().name();
         csvData[CSVPosition.STOERUNGEN_IDS.ordinal()] = this.getStoerungen()
                 .stream()
                 .map(Stoerung::getPrimaryKey)

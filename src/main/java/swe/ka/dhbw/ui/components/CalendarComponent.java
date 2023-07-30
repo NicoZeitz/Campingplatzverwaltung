@@ -23,6 +23,7 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         public final Class<?> payloadType;
         public final String cmdText;
 
+        @SuppressWarnings("SameParameterValue")
         Commands(final String cmdText, final Class<?> payloadType) {
             this.cmdText = cmdText;
             this.payloadType = payloadType;

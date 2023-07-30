@@ -95,7 +95,7 @@ public final class Fahrzeug extends Ausruestung {
     public String[] getCSVData() {
         final var csvData = super.getCSVData();
         csvData[CSVPosition.KENNZEICHEN.ordinal()] = this.getKennzeichen();
-        csvData[CSVPosition.FAHRZEUGTYP.ordinal()] = this.getTyp().toString();
+        csvData[CSVPosition.FAHRZEUGTYP.ordinal()] = this.getTyp().name();
         return csvData;
     }
 

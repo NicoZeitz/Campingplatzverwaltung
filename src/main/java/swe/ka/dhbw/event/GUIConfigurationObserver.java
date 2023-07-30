@@ -14,7 +14,7 @@ public class GUIConfigurationObserver implements IGUIEventListener {
         final var controller = GUIController.getInstance();
         if (guiEvent.getCmd() instanceof GUIConfiguration.Commands command) {
             switch (command) {
-                case OPEN_MAIN_GUI -> SwingUtilities.invokeLater(() -> controller.openWindowMain());
+                case OPEN_MAIN_GUI -> SwingUtilities.invokeLater(controller::openWindowMain);
                 case EXIT_APPLICATION -> controller.exitApplication();
                 case CONFIGURATION_ACCENT_COLOR -> controller.handleWindowConfigurationSetAccentColor((Color) guiEvent.getData());
                 case CONFIGURATION_DARK_MODE -> controller.handleWindowConfigurationSetDarkMode((Boolean) guiEvent.getData());

@@ -40,6 +40,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
         public final Class<?> payloadType;
         public final String cmdText;
 
+        @SuppressWarnings("SameParameterValue")
         Commands(final String cmdText) {
             this(cmdText, Void.class);
         }
@@ -126,9 +127,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 }
                 case SET_START_DATE -> this.startDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
                 case SET_END_DATE -> this.endDateElement.setValue(((LocalDate) updateEvent.getData()).format(this.dateTimeFormatter));
-                case SET_SELECTED_SERVICE_TYPE -> {
-                    this.serviceTypeElement.setValue(updateEvent.getData());
-                }
+                case SET_SELECTED_SERVICE_TYPE -> this.serviceTypeElement.setValue(updateEvent.getData());
                 case SET_MODE -> {
                     this.mode = (Mode) updateEvent.getData();
                     this.serviceTypeElement.setEnabled(this.mode == Mode.CREATE);

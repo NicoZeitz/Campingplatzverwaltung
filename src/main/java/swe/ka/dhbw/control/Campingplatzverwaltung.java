@@ -65,14 +65,14 @@ public final class Campingplatzverwaltung {
         final var database = new CSVDatenbasis(dbPath);
 
         AppLogger.getInstance().setSeverity(IAppLogger.Severity.INFO);
-        
+
         entityFactory.setDatabase(database);
         entityFactory.setEntityManager(entityManager);
         entityFactory.loadAllEntities();
         controller.setDatabase(database);
         controller.setEntityManager(entityManager);
         controller.setApp(this);
-
+        
         if (arguments.skipConfiguration()) {
             controller.openWindowMain(propManager);
         } else {

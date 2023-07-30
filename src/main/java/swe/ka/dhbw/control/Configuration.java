@@ -11,6 +11,152 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Configuration implements ReadonlyConfiguration {
+    public static final class Builder {
+        private final Map<String, WindowLocation> windowLocations = new HashMap<>();
+        private int fontSize = DEFAULT_FONT_SIZE;
+        private String fontFamily = DEFAULT_FONT_FAMILY;
+        private Color textColor = DEFAULT_TEXT_COLOR;
+        private Color backgroundColor = DEFAULT_BACKGROUND_COLOR;
+        private Color secondaryBackgroundColor = DEFAULT_SECONDARY_BACKGROUND_COLOR;
+        private Color accentColor = DEFAULT_ACCENT_COLOR;
+        private Color successColor = DEFAULT_SUCCESS_COLOR;
+        private Color failureColor = DEFAULT_FAILURE_COLOR;
+        private IPropertyManager propertyManager = new PropertyManager(System.getProperty("user.home") + File.separator + "configuration.properties",
+                Configuration.class,
+                "/configuration.properties");
+
+        private Builder() throws Exception {
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder accentColor(final Color color) {
+            this.accentColor = color;
+            return this;
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder addProperties(Properties properties) {
+            if (properties.containsKey("windows")) {
+                final var serializedLocations = properties.getProperty("windows");
+                for (final var serializedLocation : serializedLocations.split(";")) {
+                    if (serializedLocation.isEmpty()) {
+                        continue;
+                    }
+
+                    final var windowName = serializedLocation.split("\\.")[0];
+                    final var windowLocation = WindowLocation.fromSerialized(serializedLocation.split("\\.")[1]);
+                    this.windowLocations.put(windowName, windowLocation);
+                }
+            }
+            return this;
+        }
+
+        public Builder backgroundColor(final Color color) {
+            this.backgroundColor = color;
+            return this;
+        }
+
+        public Configuration build() {
+            return new Configuration(
+                    this.fontSize,
+                    this.fontFamily,
+                    this.windowLocations,
+                    this.textColor,
+                    this.backgroundColor,
+                    this.secondaryBackgroundColor,
+                    this.accentColor,
+                    this.successColor,
+                    this.failureColor,
+                    this.propertyManager
+            );
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder darkMode() {
+            return this
+                    .textColor(DARK_DEFAULT_TEXT_COLOR)
+                    .secondaryBackgroundColor(DARK_DEFAULT_SECONDARY_BACKGROUND_COLOR)
+                    .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR);
+        }
+
+        @SuppressWarnings("unused")
+        public Builder failureColor(final Color color) {
+            this.failureColor = color;
+            return this;
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder font(final Font font) {
+            this.fontFamily = font.getFamily();
+            this.fontSize = font.getSize();
+            return this;
+        }
+
+        @SuppressWarnings("unused")
+        public Builder fontFamily(final String family) {
+            this.fontFamily = family;
+            return this;
+        }
+
+        @SuppressWarnings("unused")
+        public Builder fontSize(final int size) {
+            if (size <= 0) {
+                throw new IllegalArgumentException("Configuration with a font size of '" + size + "' is not allowed as it is not greater than 0");
+            }
+            this.fontSize = size;
+            return this;
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder lightMode() {
+            return this
+                    .textColor(DEFAULT_TEXT_COLOR)
+                    .secondaryBackgroundColor(DEFAULT_SECONDARY_BACKGROUND_COLOR)
+                    .backgroundColor(DEFAULT_BACKGROUND_COLOR);
+        }
+
+        public Builder propertyManager(final PropertyManager propertyManager) {
+            this.propertyManager = propertyManager;
+            this.addProperties(propertyManager.getAllProperties());
+            return this;
+        }
+
+        public Builder secondaryBackgroundColor(final Color color) {
+            this.secondaryBackgroundColor = color;
+            return this;
+        }
+
+        @SuppressWarnings("unused")
+        public Builder successColor(final Color color) {
+            this.successColor = color;
+            return this;
+        }
+
+        public Builder textColor(final Color color) {
+            this.textColor = color;
+            return this;
+        }
+
+        @SuppressWarnings("unused")
+        public Builder windowLocation(final String windowName, final WindowLocation windowLocation) {
+            if (windowLocation.x() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window x of '" + windowLocation.x() + "' is not allowed as it is not greater than 0");
+            }
+            if (windowLocation.y() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window y of '" + windowLocation.y() + "' is not allowed as it is not greater than 0");
+            }
+            if (windowLocation.width() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window width of '" + windowLocation.width() + "' is not allowed as it is not greater than 0");
+            }
+            if (windowLocation.height() <= 0) {
+                throw new IllegalArgumentException("Configuration with a window height of '" + windowLocation.height() + "' is not allowed as it is not greater than 0");
+            }
+
+            this.windowLocations.put(windowName, windowLocation);
+            return this;
+        }
+    }
+
     private final IPropertyManager propertyManager;
     private final Map<String, WindowLocation> windowLocations;
     private int fontSize;
@@ -242,150 +388,5 @@ public class Configuration implements ReadonlyConfiguration {
 
     public void setWindowLocation(final String windowName, final WindowLocation windowLocation) {
         this.windowLocations.put(windowName, windowLocation);
-    }
-
-    public static final class Builder {
-        private final Map<String, WindowLocation> windowLocations = new HashMap<>();
-        private int fontSize = DEFAULT_FONT_SIZE;
-        private String fontFamily = DEFAULT_FONT_FAMILY;
-        private Color textColor = DEFAULT_TEXT_COLOR;
-        private Color backgroundColor = DEFAULT_BACKGROUND_COLOR;
-        private Color secondaryBackgroundColor = DEFAULT_SECONDARY_BACKGROUND_COLOR;
-        private Color accentColor = DEFAULT_ACCENT_COLOR;
-        private Color successColor = DEFAULT_SUCCESS_COLOR;
-        private Color failureColor = DEFAULT_FAILURE_COLOR;
-        private IPropertyManager propertyManager = new PropertyManager(System.getProperty("user.home") + File.separator + "configuration.properties",
-                Configuration.class,
-                "/configuration.properties");
-
-        private Builder() throws Exception {
-        }
-
-        @SuppressWarnings("UnusedReturnValue")
-        public Builder accentColor(final Color color) {
-            this.accentColor = color;
-            return this;
-        }
-
-        @SuppressWarnings("UnusedReturnValue")
-        public Builder addProperties(Properties properties) {
-            if (properties.containsKey("windows")) {
-                final var serializedLocations = properties.getProperty("windows");
-                for (final var serializedLocation : serializedLocations.split(";")) {
-                    if (serializedLocation.isEmpty()) {
-                        continue;
-                    }
-
-                    final var windowName = serializedLocation.split("\\.")[0];
-                    final var windowLocation = WindowLocation.fromSerialized(serializedLocation.split("\\.")[1]);
-                    this.windowLocations.put(windowName, windowLocation);
-                }
-            }
-            return this;
-        }
-
-        public Builder backgroundColor(final Color color) {
-            this.backgroundColor = color;
-            return this;
-        }
-
-        public Configuration build() {
-            return new Configuration(
-                    this.fontSize,
-                    this.fontFamily,
-                    this.windowLocations,
-                    this.textColor,
-                    this.backgroundColor,
-                    this.secondaryBackgroundColor,
-                    this.accentColor,
-                    this.successColor,
-                    this.failureColor,
-                    this.propertyManager
-            );
-        }
-
-        @SuppressWarnings("UnusedReturnValue")
-        public Builder darkMode() {
-            return this
-                    .textColor(DARK_DEFAULT_TEXT_COLOR)
-                    .secondaryBackgroundColor(DARK_DEFAULT_SECONDARY_BACKGROUND_COLOR)
-                    .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR);
-        }
-
-        @SuppressWarnings("unused")
-        public Builder failureColor(final Color color) {
-            this.failureColor = color;
-            return this;
-        }
-
-        public Builder font(final Font font) {
-            this.fontFamily = font.getFamily();
-            this.fontSize = font.getSize();
-            return this;
-        }
-
-        @SuppressWarnings("unused")
-        public Builder fontFamily(final String family) {
-            this.fontFamily = family;
-            return this;
-        }
-
-        @SuppressWarnings("unused")
-        public Builder fontSize(final int size) {
-            if (size <= 0) {
-                throw new IllegalArgumentException("Configuration with a font size of '" + size + "' is not allowed as it is not greater than 0");
-            }
-            this.fontSize = size;
-            return this;
-        }
-
-        @SuppressWarnings("UnusedReturnValue")
-        public Builder lightMode() {
-            return this
-                    .textColor(DEFAULT_TEXT_COLOR)
-                    .secondaryBackgroundColor(DEFAULT_SECONDARY_BACKGROUND_COLOR)
-                    .backgroundColor(DEFAULT_BACKGROUND_COLOR);
-        }
-
-        public Builder propertyManager(final PropertyManager propertyManager) {
-            this.propertyManager = propertyManager;
-            this.addProperties(propertyManager.getAllProperties());
-            return this;
-        }
-
-        public Builder secondaryBackgroundColor(final Color color) {
-            this.secondaryBackgroundColor = color;
-            return this;
-        }
-
-        @SuppressWarnings("unused")
-        public Builder successColor(final Color color) {
-            this.successColor = color;
-            return this;
-        }
-
-        public Builder textColor(final Color color) {
-            this.textColor = color;
-            return this;
-        }
-
-        @SuppressWarnings("unused")
-        public Builder windowLocation(final String windowName, final WindowLocation windowLocation) {
-            if (windowLocation.x() <= 0) {
-                throw new IllegalArgumentException("Configuration with a window x of '" + windowLocation.x() + "' is not allowed as it is not greater than 0");
-            }
-            if (windowLocation.y() <= 0) {
-                throw new IllegalArgumentException("Configuration with a window y of '" + windowLocation.y() + "' is not allowed as it is not greater than 0");
-            }
-            if (windowLocation.width() <= 0) {
-                throw new IllegalArgumentException("Configuration with a window width of '" + windowLocation.width() + "' is not allowed as it is not greater than 0");
-            }
-            if (windowLocation.height() <= 0) {
-                throw new IllegalArgumentException("Configuration with a window height of '" + windowLocation.height() + "' is not allowed as it is not greater than 0");
-            }
-
-            this.windowLocations.put(windowName, windowLocation);
-            return this;
-        }
     }
 }

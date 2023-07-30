@@ -191,7 +191,7 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
         csvData[CSVPosition.ZUSATZ.ordinal()] = this.getZusatz().orElse("");
         csvData[CSVPosition.ORT.ordinal()] = this.getOrt();
         csvData[CSVPosition.PLZ.ordinal()] = this.getPLZ();
-        csvData[CSVPosition.LAND.ordinal()] = this.getLand().toString();
+        csvData[CSVPosition.LAND.ordinal()] = this.getLand().name();
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }

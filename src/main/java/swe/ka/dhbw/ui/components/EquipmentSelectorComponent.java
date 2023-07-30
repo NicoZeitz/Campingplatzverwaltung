@@ -14,6 +14,15 @@ import java.util.List;
 import java.util.Optional;
 
 public class EquipmentSelectorComponent extends GUIComponent implements IGUIEventListener {
+    public record SavePayload(
+            Optional<String> description,
+            Integer amount,
+            Optional<Double> width,
+            Optional<Double> height,
+            Optional<String> licensePlate,
+            Object vehicleTyp) {
+    }
+
     public enum Commands implements EventCommand {
         CANCEL("ServiceSelectorComponent::CANCEL"),
         SAVE("ServiceSelectorComponent::SAVE", SavePayload.class);
@@ -21,6 +30,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
         public final Class<?> payloadType;
         public final String cmdText;
 
+        @SuppressWarnings("SameParameterValue")
         Commands(final String cmdText) {
             this(cmdText, Void.class);
         }
@@ -40,7 +50,6 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
             return this.payloadType;
         }
     }
-
     // UI IDs
     private static final String DESCRIPTION_ELEMENT_ID = "EquipmentSelectorComponent::DESCRIPTION_ELEMENT_ID";
     private static final String AMOUNT_ELEMENT_ID = "EquipmentSelectorComponent::AMOUNT_ELEMENT_ID";
@@ -50,10 +59,8 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
     private static final String VEHICLE_TYP_ELEMENT_ID = "EquipmentSelectorComponent::VEHICLE_TYP_ELEMENT_ID";
     private static final String CANCEL_BUTTON_ELEMENT_ID = "EquipmentSelectorComponent::CANCEL_BUTTON_ELEMENT_ID";
     private static final String SAVE_BUTTON_ELEMENT_ID = "EquipmentSelectorComponent::SAVE_BUTTON_ELEMENT_ID";
-
     // Data
     private final List<?> vehicleTypes;
-
     // Components
     private AttributeElement descriptionElement;
     private AttributeElement amountElement;
@@ -262,14 +269,5 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
         this.setLayout(new GridLayout(1, 1));
         this.add(container);
         this.setOpaque(true);
-    }
-
-    public record SavePayload(
-            Optional<String> description,
-            Integer amount,
-            Optional<Double> width,
-            Optional<Double> height,
-            Optional<String> licensePlate,
-            Object vehicleTyp) {
     }
 }
