@@ -172,6 +172,7 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
         this.guestListElement.setBackground(this.config.getBackgroundColor());
         this.guestListElement.setForeground(this.config.getTextColor());
         this.guestListElement.addObserver(this);
+        super.colorizeSimpleListComponent(this.guestListElement);
 
         this.add(this.guestListElement, BorderLayout.CENTER);
     }

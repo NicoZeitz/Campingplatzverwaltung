@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// TODO: disable chipkart selector if only "" is in it
 public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
     public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedGuest) {
     }
@@ -787,7 +788,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .formatter(dateTimeFormatter)
                 .allowedChars(AttributeElement.FormatType.DATETIME.getAllowedCharacterSet())
                 // action button
-                .data("Datum auswählen")
+                .data("Kalenderauswahl")
                 .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())
@@ -812,7 +813,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .formatter(dateTimeFormatter)
                 .allowedChars(AttributeElement.FormatType.DATETIME.getAllowedCharacterSet())
                 // action button
-                .data("Datum auswählen")
+                .data("Kalenderauswahl")
                 .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())

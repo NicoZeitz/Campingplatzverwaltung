@@ -40,6 +40,28 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         }
     }
 
+    protected void colorizeSimpleListComponent(final SimpleListComponent simpleListComponent) {
+        final var scrollPane = (JScrollPane) simpleListComponent.getComponent(0);
+        final var viewPort = (JViewport) scrollPane.getViewport();
+        final var list = (JList<?>) viewPort.getComponent(0);
+
+        list.setBackground(this.config.getBackgroundColor());
+        list.setForeground(this.config.getTextColor());
+        list.setFont(this.config.getFont());
+        list.setOpaque(true);
+
+        scrollPane.setBackground(this.config.getBackgroundColor());
+        scrollPane.setForeground(this.config.getTextColor());
+        scrollPane.setFont(this.config.getFont());
+        scrollPane.setOpaque(true);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        viewPort.setBackground(this.config.getBackgroundColor());
+        viewPort.setForeground(this.config.getTextColor());
+        viewPort.setFont(this.config.getFont());
+        viewPort.setOpaque(true);
+    }
+
     protected void colorizeTable(final SimpleTableComponent table) {
         table.setBackground(this.config.getBackgroundColor());
         table.setForeground(this.config.getTextColor());

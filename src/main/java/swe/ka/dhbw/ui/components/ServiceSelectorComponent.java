@@ -186,7 +186,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .formatter(AttributeElement.FormatType.DATE.getFormatter())
                 .allowedChars(AttributeElement.FormatType.DATE.getAllowedCharacterSet())
                 // action button
-                .data("Datum auswählen")
+                .data("Kalenderauswahl")
                 .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())
@@ -211,7 +211,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .formatter(AttributeElement.FormatType.DATE.getFormatter())
                 .allowedChars(AttributeElement.FormatType.DATE.getAllowedCharacterSet())
                 // action button
-                .data("Datum auswählen")
+                .data("Kalenderauswahl")
                 .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())
