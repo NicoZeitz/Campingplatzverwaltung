@@ -107,7 +107,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
         return instance;
     }
-
+    
     private Map<LocalDate, List<IDepictable>> getAppointments() {
         return this.entityManager.find(Buchung.class).stream()
                 .sorted(Buchung::compareTo)
@@ -115,7 +115,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     final var arrivalDate = booking.getAnreise().toLocalDate();
                     final var departureDate = booking.getAbreise().toLocalDate();
                     final var entries = new HashMap<LocalDate, IDepictable>();
-                    for (var date = arrivalDate; date.isBefore(departureDate); date = date.plusDays(1)) {
+                    for (var date = arrivalDate; date.isBefore(departureDate) || date.equals(departureDate); date = date.plusDays(1)) {
                         final var finalDate = date;
                         entries.put(finalDate, new IDepictable() {
                             @Override
