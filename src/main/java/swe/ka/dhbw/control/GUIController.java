@@ -1115,7 +1115,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.windowConfiguration.addObserver(this.windowConfigurationObserver);
         this.addObserver(this.windowConfiguration);
         // Main GUI and Configuration GUI have the same window location
-        this.openInWindow(this.windowConfiguration, "Konfiguration", "Window::Main", event -> {
+        final var windowLocation = this.configurationBuilder.build().getWindowLocation("Window::Main");
+        this.openInWindow(this.windowConfiguration, "Konfiguration", windowLocation, (event) -> {
+            final var window = event.getWindow();
+            this.configurationBuilder.build().setWindowLocation("Window::Main", WindowLocation.from(window));
             this.exitApplication();
             return true;
         });
@@ -1153,7 +1156,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
         this.initialize();
 
-        this.openInWindow(this.windowMain, "Campingplatzverwaltung", "Window::Main", event -> {
+        final var windowLocation = this.app.getConfig().getWindowLocation("Window::Main");
+        this.openInWindow(this.windowMain, "Campingplatzverwaltung", windowLocation, (event) -> {
+            final var window = event.getWindow();
+            this.app.getConfig().setWindowLocation("Window::Main", WindowLocation.from(window));
             this.exitApplication();
             return true;
         });
@@ -1165,12 +1171,15 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.removeObserver(this.windowConfiguration);
         this.windowConfigurationObserver = null;
         this.app.setConfig(this.configurationBuilder.build());
-        this.app.getConfig().setWindowLocation("Window::Main", WindowLocation.from(configWindow));
+        final var windowLocation = WindowLocation.from(configWindow);
+        this.app.getConfig().setWindowLocation("Window::Main", windowLocation);
         configWindow.dispose();
 
         this.initialize();
 
-        this.openInWindow(this.windowMain, "Campingplatzverwaltung", "Window::Main", event -> {
+        this.openInWindow(this.windowMain, "Campingplatzverwaltung", windowLocation, (event) -> {
+            final var window = event.getWindow();
+            this.app.getConfig().setWindowLocation("Window::Main", WindowLocation.from(window));
             this.exitApplication();
             return true;
         });

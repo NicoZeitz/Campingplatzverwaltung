@@ -20,3 +20,17 @@ Stoerung daten mit zeit
 Anlage zu abstrakter Klasse gemacht
 GUIObserver zu abstrakter Klasse gemacht
 Attribute in Person, ... protected gemacht
+
+# Weiterer Plan
+
+Fabian:
+Aktion abbrechen -> Antworten YES / NO (JOptionPane) global -> guiCont openMain
+Fahrzeugtyp sollte Leerfeld besitzen
+Bedienungsanleitung-Start
+
+Nico:
+Konfig-Fenster macht was es will (bleibt nicht an der Stelle, an der es sein soll)
+Ausrüstung wird nicht gespeichert
+
+WICHTIG:
+CONFIG-PROP löschen vor MEISTERÜBERGABE!
