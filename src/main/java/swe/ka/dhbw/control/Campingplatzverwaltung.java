@@ -6,15 +6,11 @@ import de.dhbwka.swe.utils.util.PropertyManager;
 import swe.ka.dhbw.database.CSVDatenbasis;
 import swe.ka.dhbw.database.EntityFactory;
 import swe.ka.dhbw.database.EntityManager;
-import swe.ka.dhbw.model.Buchung;
-import swe.ka.dhbw.model.Gast;
 import swe.ka.dhbw.util.ArgumentParseException;
 import swe.ka.dhbw.util.ArgumentParser;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public final class Campingplatzverwaltung {
     public static final String VERSION = "1.0.0";
@@ -76,21 +72,7 @@ public final class Campingplatzverwaltung {
         controller.setDatabase(database);
         controller.setEntityManager(entityManager);
         controller.setApp(this);
-
-        final var wiederkehrer = entityManager.findOne(Gast.class, 17);
-
-        for(int i = )
-
-
-        final var anreise = LocalDateTime.of(2023, 8,4, 0, 0);
-        final var abreise = anreise.plusDays(1).plusHours(23).plusMinutes(59);
-
-        final var buchung = new Buchung(
-                entityManager.generateNextPrimaryKey(Buchung.class),
-                anreise,
-                abreise
-        );
-
+        
         if (arguments.skipConfiguration()) {
             controller.openWindowMain(propManager);
         } else {
