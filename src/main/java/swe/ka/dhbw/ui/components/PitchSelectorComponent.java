@@ -18,6 +18,30 @@ import java.util.List;
 import java.util.*;
 
 public class PitchSelectorComponent extends GUIComponent {
+    public record Pitch(double x, double y, Optional<Image> image, IDepictable pitch) {
+        private static final Map<Pitch, Optional<Image>> cache = new HashMap<>();
+
+        public Optional<Image> resizedImage() {
+            return Pitch.cache.computeIfAbsent(this, p ->
+                    p.image.map(i -> i.getScaledInstance(50, 50, Image.SCALE_SMOOTH))
+            );
+        }
+    }
+
+    private static final class ImagePanel extends JPanel {
+        private final BufferedImage image;
+
+        public ImagePanel(final BufferedImage image) {
+            this.image = image;
+        }
+
+        @Override
+        protected void paintComponent(final Graphics g) {
+            super.paintComponent(g);
+            g.drawImage(this.image, 0, 0, getWidth(), getHeight(), this);
+        }
+    }
+
     // Commands
     public enum Commands implements EventCommand {
         // outgoing gui events
@@ -43,10 +67,8 @@ public class PitchSelectorComponent extends GUIComponent {
             return this.payloadType;
         }
     }
-
     // Components
     private JPanel mapComponent;
-
     // Data
     private List<Pitch> pitches = new ArrayList<>();
     private Dimension dimension = new Dimension(0, 0);
@@ -111,6 +133,7 @@ public class PitchSelectorComponent extends GUIComponent {
             pitchButton.addActionListener(e -> this.fireGUIEvent(new GUIEvent(PitchSelectorComponent.this, Commands.PITCH_SELECTED, pitch.pitch)));
             this.mapComponent.add(pitchButton);
         }
+        this.repaint();
     }
 
     private void initUI() {
@@ -126,29 +149,5 @@ public class PitchSelectorComponent extends GUIComponent {
 
         this.setLayout(new BorderLayout());
         this.add(this.mapComponent, BorderLayout.CENTER);
-    }
-
-    public record Pitch(double x, double y, Optional<Image> image, IDepictable pitch) {
-        private static final Map<Pitch, Optional<Image>> cache = new HashMap<>();
-
-        public Optional<Image> resizedImage() {
-            return Pitch.cache.computeIfAbsent(this, p ->
-                    p.image.map(i -> i.getScaledInstance(50, 50, Image.SCALE_SMOOTH))
-            );
-        }
-    }
-
-    private static final class ImagePanel extends JPanel {
-        private final BufferedImage image;
-
-        public ImagePanel(final BufferedImage image) {
-            this.image = image;
-        }
-
-        @Override
-        protected void paintComponent(final Graphics g) {
-            super.paintComponent(g);
-            g.drawImage(this.image, 0, 0, getWidth(), getHeight(), this);
-        }
     }
 }
