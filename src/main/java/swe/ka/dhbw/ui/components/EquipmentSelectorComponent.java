@@ -50,6 +50,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
             return this.payloadType;
         }
     }
+
     // UI IDs
     private static final String DESCRIPTION_ELEMENT_ID = "EquipmentSelectorComponent::DESCRIPTION_ELEMENT_ID";
     private static final String AMOUNT_ELEMENT_ID = "EquipmentSelectorComponent::AMOUNT_ELEMENT_ID";
@@ -207,12 +208,12 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .actionType(AttributeElement.ActionType.COMBOBOX)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         vehicleTypElement.addObserver(this);
 
-        final var servicePanel = AttributeComponent.builder(super.generateRandomID())
+        final var equipmentPanel = AttributeComponent.builder(super.generateRandomID())
                 .attributeElements(new AttributeElement[] {
                         this.descriptionElement,
                         this.amountElement,
@@ -222,13 +223,14 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                         this.vehicleTypElement
                 })
                 .build();
-        servicePanel.setBackground(this.config.getBackgroundColor());
-        servicePanel.setForeground(this.config.getTextColor());
-        servicePanel.setFont(this.config.getFont());
-        servicePanel.getComponent(0).setBackground(this.config.getBackgroundColor());
-        servicePanel.getComponent(0).setForeground(this.config.getTextColor());
-        servicePanel.getComponent(0).setFont(this.config.getFont());
-        servicePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        equipmentPanel.setBackground(this.config.getBackgroundColor());
+        equipmentPanel.setForeground(this.config.getTextColor());
+        equipmentPanel.setFont(this.config.getFont());
+        equipmentPanel.getComponent(0).setBackground(this.config.getBackgroundColor());
+        equipmentPanel.getComponent(0).setForeground(this.config.getTextColor());
+        equipmentPanel.getComponent(0).setFont(this.config.getFont());
+        equipmentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        super.colorizeAttributeComponent(equipmentPanel);
 
         // Button component
         final var cancelButton = ButtonElement.builder(CANCEL_BUTTON_ELEMENT_ID)
@@ -252,7 +254,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
         saveButton.addObserver(this);
 
         final var container = ButtonComponent.builder(super.generateRandomID())
-                .embeddedComponent(servicePanel)
+                .embeddedComponent(equipmentPanel)
                 .buttonElements(new ButtonElement[] {cancelButton, saveButton})
                 .position(ButtonComponent.Position.SOUTH)
                 .orientation(ButtonComponent.Orientation.RIGHT)

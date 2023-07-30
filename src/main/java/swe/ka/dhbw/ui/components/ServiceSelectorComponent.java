@@ -145,6 +145,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
 
     private void initUI() {
         UIManager.put("ComboBox.disabledForeground", this.config.getTextColor());
+        UIManager.put("ComboBox.disabledBackground", this.config.getBackgroundColor());
         this.serviceTypeElement = AttributeElement
                 .builder(super.generateRandomID())
                 .labelName("Art der Leistung")
@@ -165,7 +166,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .actionType(AttributeElement.ActionType.COMBOBOX)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         serviceTypeElement.addObserver(this);
@@ -190,7 +191,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         this.startDateElement.addObserver(this);
@@ -215,7 +216,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         this.endDateElement.addObserver(this);
@@ -230,6 +231,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
         servicePanel.getComponent(0).setForeground(this.config.getTextColor());
         servicePanel.getComponent(0).setFont(this.config.getFont());
         servicePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        super.colorizeAttributeComponent(servicePanel);
 
         // Button component
         final var cancelButton = ButtonElement.builder(CANCEL_BUTTON_ELEMENT_ID)
