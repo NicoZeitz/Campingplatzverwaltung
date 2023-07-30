@@ -126,7 +126,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
         final var csvData = new String[CSVPosition.values().length];
         csvData[CSVPosition.VORNAME.ordinal()] = this.getVorname();
         csvData[CSVPosition.NACHNAME.ordinal()] = this.getNachname();
-        csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().toString();
+        csvData[CSVPosition.GESCHLECHT.ordinal()] = this.getGeschlecht().name();
         csvData[CSVPosition.EMAIL.ordinal()] = this.getEmail();
         csvData[CSVPosition.TELEFONNUMMER.ordinal()] = this.getTelefonnummer();
         csvData[CSVPosition.KUNDENNUMMER.ordinal()] = Integer.toString(this.getKundennummer());
