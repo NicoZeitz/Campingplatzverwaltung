@@ -27,6 +27,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         VERANTWORTLICHER_GAST_ID,
         ZUGEHOERIGE_GAESTE_IDS,
         GEBUCHTE_LEISTUNGEN_IDS,
+        // TODO: ADD AUSRUESTUNG
         DUMMY_DATA
     }
 

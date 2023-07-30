@@ -34,6 +34,12 @@ import java.util.stream.Collectors;
 // TODO:HANDLER: look that all handlers treat collections as immutable, don't get as payload, check before fire update
 // TODO:DIALOG: GUI DIalogs dont pass data in constructor but in processUpdateEvent
 // TODO: für Buchung bearbeiten auch einen buchung löschen button
+// Weitere TODO:
+//gebuchte leistungen sortieren
+//        ausrüstung sortieren
+//        BuchungsIDS bei gast werden nicht aktualisiert
+//        Buchungsliste sortieren
+//        ausrüstung wird nicht in csv gespeichert (Bei Buchung)
 public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public enum Commands implements EventCommand {
         UPDATE_ADDRESSES("GUIController::UPDATE_ADDRESSES", List.class),
@@ -107,7 +113,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
         return instance;
     }
-    
+
     private Map<LocalDate, List<IDepictable>> getAppointments() {
         return this.entityManager.find(Buchung.class).stream()
                 .sorted(Buchung::compareTo)
@@ -748,7 +754,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 if (payload.description().isEmpty()) {
                     JOptionPane.showMessageDialog(
                             parentComponent,
-                            "Bitte geben Sie eine Beschreibung an.",
+                            "Bitte geben Sie eine Bezeichnung an.",
                             "Fehler",
                             JOptionPane.ERROR_MESSAGE
                     );

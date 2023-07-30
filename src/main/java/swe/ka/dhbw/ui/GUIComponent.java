@@ -27,6 +27,41 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         this.config = config;
     }
 
+    protected void colorizeAttributeComponent(final AttributeComponent attributeComponent) {
+        final var attributeElements = ((JComponent) attributeComponent.getComponent(0)).getComponents();
+        for (final var element : attributeElements) {
+            final var component = ((AttributeElement) element).getComponent(1);
+            if (component instanceof JTextField textField) {
+                textField.setBackground(this.config.getSecondaryBackgroundColor());
+                textField.setForeground(this.config.getTextColor());
+                textField.setFont(this.config.getFont());
+                textField.setOpaque(true);
+            }
+        }
+    }
+
+    protected void colorizeSimpleListComponent(final SimpleListComponent simpleListComponent) {
+        final var scrollPane = (JScrollPane) simpleListComponent.getComponent(0);
+        final var viewPort = (JViewport) scrollPane.getViewport();
+        final var list = (JList<?>) viewPort.getComponent(0);
+
+        list.setBackground(this.config.getBackgroundColor());
+        list.setForeground(this.config.getTextColor());
+        list.setFont(this.config.getFont());
+        list.setOpaque(true);
+
+        scrollPane.setBackground(this.config.getBackgroundColor());
+        scrollPane.setForeground(this.config.getTextColor());
+        scrollPane.setFont(this.config.getFont());
+        scrollPane.setOpaque(true);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        viewPort.setBackground(this.config.getBackgroundColor());
+        viewPort.setForeground(this.config.getTextColor());
+        viewPort.setFont(this.config.getFont());
+        viewPort.setOpaque(true);
+    }
+
     protected void colorizeTable(final SimpleTableComponent table) {
         table.setBackground(this.config.getBackgroundColor());
         table.setForeground(this.config.getTextColor());

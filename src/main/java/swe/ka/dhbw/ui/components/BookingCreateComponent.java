@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// TODO: disable chipkart selector if only "" is in it
 public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
     public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedGuest) {
     }
@@ -787,12 +788,12 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .formatter(dateTimeFormatter)
                 .allowedChars(AttributeElement.FormatType.DATETIME.getAllowedCharacterSet())
                 // action button
-                .data("Datum auswählen")
+                .data("Kalenderauswahl")
                 .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         this.arrivalDateComponent.addObserver(this);
@@ -812,12 +813,12 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .formatter(dateTimeFormatter)
                 .allowedChars(AttributeElement.FormatType.DATETIME.getAllowedCharacterSet())
                 // action button
-                .data("Datum auswählen")
+                .data("Kalenderauswahl")
                 .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .actionType(AttributeElement.ActionType.BUTTON)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         this.departureDateComponent.addObserver(this);
@@ -831,6 +832,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         attributeComponent.getComponent(0).setBackground(this.config.getBackgroundColor());
         attributeComponent.getComponent(0).setForeground(this.config.getTextColor());
         attributeComponent.getComponent(0).setFont(this.config.getFont());
+        super.colorizeAttributeComponent(attributeComponent);
 
         this.startDateErrorComponent = super.createErrorLabel();
         this.endDateErrorComponent = super.createErrorLabel();
@@ -866,7 +868,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .actionType(AttributeElement.ActionType.COMBOBOX)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         this.chipCardSelector.addObserver(this);
@@ -881,6 +883,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         selectorComponent.getComponent(0).setBackground(this.config.getBackgroundColor());
         selectorComponent.getComponent(0).setForeground(this.config.getTextColor());
         selectorComponent.getComponent(0).setFont(this.config.getFont());
+        super.colorizeAttributeComponent(selectorComponent);
         panel.add(selectorComponent,
                 new GridBagConstraints(0, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
 
@@ -956,7 +959,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .actionType(AttributeElement.ActionType.COMBOBOX)
                 .actionElementFont(this.config.getFont())
                 .actionElementTextColor(this.config.getTextColor())
-                .actionElementBackgroundColor(this.config.getBackgroundColor())
+                .actionElementBackgroundColor(this.config.getSecondaryBackgroundColor())
                 .actionElementInsets(new Insets(0, 0, 0, 0))
                 .build();
         this.pitchSelector.addObserver(this);
@@ -971,6 +974,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         selectorComponent.getComponent(0).setBackground(this.config.getBackgroundColor());
         selectorComponent.getComponent(0).setForeground(this.config.getTextColor());
         selectorComponent.getComponent(0).setFont(this.config.getFont());
+        super.colorizeAttributeComponent(selectorComponent);
         panel.add(selectorComponent,
                 new GridBagConstraints(0, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
 
