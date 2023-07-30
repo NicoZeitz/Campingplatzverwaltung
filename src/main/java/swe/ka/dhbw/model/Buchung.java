@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class Buchung implements IPersistable, ICSVPersistable, IDepictable {
+public final class Buchung implements IPersistable, ICSVPersistable, IDepictable, Comparable<Buchung> {
     public enum Attributes {
         BUCHUNGSNUMMER,
         ANREISE,
@@ -120,6 +120,15 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
 
     public List<GebuchteLeistung> getGebuchteLeistungen() {
         return this.gebuchteLeistungen;
+    }
+
+    @Override
+    public int compareTo(final Buchung that) {
+        final var res = this.getAnreise().compareTo(that.getAnreise());
+        if (res == 0) {
+            return this.getAbreise().compareTo(that.getAbreise());
+        }
+        return res;
     }
 
     @Override

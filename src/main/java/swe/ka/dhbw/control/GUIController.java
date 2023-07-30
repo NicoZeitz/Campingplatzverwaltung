@@ -43,6 +43,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         UPDATE_CHIPCARDS("GUIController::UPDATE_CHIPCARDS", List.class),
         UPDATE_FACILITIES("GUIController::UPDATE_FACILITIES", List.class),
         UPDATE_CONTRACTORS("GUIController::UPDATE_CONTRACTORS", List.class),
+        UPDATE_GUESTS("GUIController::UPDATE_GUESTS", List.class),
         UPDATE_BOOKED_SERVICES("GUIController::UPDATE_BOOKED_SERVICES", List.class),
         UPDATE_SERVICES("GUIController::UPDATE_SERVICES", List.class),
         UPDATE_OPENING_DAYS("GUIController::UPDATE_OPENING_DAYS", List.class),
@@ -109,23 +110,17 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
     private Map<LocalDate, List<IDepictable>> getAppointments() {
         return this.entityManager.find(Buchung.class).stream()
-                .sorted((buchung1, buchung2) -> {
-                    final var res = buchung1.getAnreise().compareTo(buchung2.getAnreise());
-                    if (res == 0) {
-                        return buchung1.getAbreise().compareTo(buchung2.getAbreise());
-                    }
-                    return res;
-                })
-                .flatMap(buchung -> {
-                    final var anreise = buchung.getAnreise().toLocalDate();
-                    final var abreise = buchung.getAbreise().toLocalDate();
+                .sorted(Buchung::compareTo)
+                .flatMap(booking -> {
+                    final var arrivalDate = booking.getAnreise().toLocalDate();
+                    final var departureDate = booking.getAbreise().toLocalDate();
                     final var entries = new HashMap<LocalDate, IDepictable>();
-                    for (var date = anreise; date.isBefore(abreise); date = date.plusDays(1)) {
+                    for (var date = arrivalDate; date.isBefore(departureDate); date = date.plusDays(1)) {
                         final var finalDate = date;
                         entries.put(finalDate, new IDepictable() {
                             @Override
                             public Attribute[] getAttributeArray() {
-                                final var array = buchung.getAttributeArray();
+                                final var array = booking.getAttributeArray();
                                 try {
                                     array[Buchung.Attributes.ANREISE.ordinal()].setValue(finalDate);
                                 } catch (Exception e) { /* Ignore Exception as it will not occur */ }
@@ -134,16 +129,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
                             @Override
                             public String getElementID() {
-                                return buchung.getElementID();
+                                return booking.getElementID();
                             }
 
                             @Override
                             public String toString() {
-                                final var gastName = buchung.getVerantwortlicherGast().getName();
-                                final var stellplatzName = buchung.getGebuchterStellplatz().getStellplatz();
-                                final var anreise = buchung.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
-                                final var abreise = buchung.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
-                                return gastName + "\n" + stellplatzName + "\n" + anreise + " - " + abreise;
+                                final var guestName = booking.getVerantwortlicherGast().getName();
+                                final var pitchName = booking.getGebuchterStellplatz().getStellplatz();
+                                final var arrivalDate = booking.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
+                                final var depatureDate = booking.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY));
+                                return guestName + "\n" + pitchName + "\n" + arrivalDate + " - " + depatureDate;
                             }
                         });
                     }
@@ -1204,11 +1199,21 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     private void doEntityUpdate() {
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_ADDRESSES, this.entityManager.find(Adresse.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PITCHES, this.entityManager.find(Bereich.class)));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKINGS, this.entityManager.find(Buchung.class)));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_CHIPCARDS, this.entityManager.find(Chipkarte.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_AREAS, this.entityManager.find(Bereich.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKINGS, this.entityManager.find(Buchung.class)
+                .stream()
+                .sorted(Buchung::compareTo)
+                .collect(Collectors.toList())));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_CHIPCARDS, this.entityManager.find(Chipkarte.class)
+                .stream()
+                .sorted(Chipkarte::compareTo)
+                .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_FACILITIES, this.entityManager.find(Einrichtung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_CONTRACTORS, this.entityManager.find(Fremdfirma.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_GUESTS, this.entityManager.find(Gast.class)
+                .stream()
+                .sorted(Gast::compareTo)
+                .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKED_SERVICES, this.entityManager.find(GebuchteLeistung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_SERVICES, this.entityManager.find(Leistungsbeschreibung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_OPENING_DAYS, this.entityManager.find(Oeffnungstag.class)));
@@ -1216,7 +1221,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PERSONS, this.entityManager.find(Person.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_STAFF, this.entityManager.find(Personal.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_INVOICES, this.entityManager.find(Rechnung.class)));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PITCHES, this.entityManager.find(Stellplatz.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_PITCHES, this.entityManager.find(Stellplatz.class)
+                .stream()
+                .sorted(Stellplatz::compareTo)
+                .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_DISTURBANCES, this.entityManager.find(Stoerung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_MAINTENANCE, this.entityManager.find(Wartung.class)));
     }

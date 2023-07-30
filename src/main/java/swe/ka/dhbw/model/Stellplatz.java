@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class Stellplatz extends Anlage implements ICSVPersistable, IPersistable, IDepictable {
+public final class Stellplatz extends Anlage implements ICSVPersistable, IPersistable, IDepictable, Comparable<Stellplatz> {
     public enum Attributes {
         ANLAGE_ID,
         LAGE_LATITUDE,
@@ -133,6 +133,36 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
 
     public List<Stellplatzfunktion> getVerfuegbareFunktionen() {
         return this.verfuegbareFunktionen;
+    }
+
+    @Override
+    public int compareTo(final Stellplatz that) {
+        final var thisLetter = Character.toUpperCase(this.getStellplatz().charAt(0));
+        final var thatLetter = Character.toUpperCase(that.getStellplatz().charAt(0));
+
+        if (thisLetter == thatLetter) {
+            final var thisNumber = Integer.parseInt(this.getStellplatz().substring(1));
+            final var thatNumber = Integer.parseInt(that.getStellplatz().substring(1));
+            return Integer.compare(thisNumber, thatNumber);
+        }
+
+        if (thisLetter == 'N' || thatLetter == 'S') {
+            return -1;
+        }
+
+        if (thatLetter == 'N' || thisLetter == 'S') {
+            return 1;
+        }
+
+        if (thisLetter == 'W' || thatLetter == 'O') {
+            return -1;
+        }
+
+        if (thatLetter == 'W' || thisLetter == 'O') {
+            return 1;
+        }
+
+        return 0;
     }
 
     @Override
