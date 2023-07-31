@@ -39,7 +39,7 @@ Nico:
     - [x] Dialog: don't pass data in constructor but in processUpdateEvent (CalendarComponent is impossible as Lutz does
       not allow setting the date after creating the dialog)
 - [x] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
-- [ ] GUIConfiguration: The window location is not always saved
+- [x] GUIConfiguration: The window location is not always saved
 - [ ] BookingCreateComponent
     - [x] GUI: Disable chip card selector iff "" is the only entry
     - [x] GUI: Sort Booked Services by Time
