@@ -589,12 +589,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             final EventCommand eventToEmit,
             final Optional<LocalDate> optionalDate
     ) {
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::CalendarComponent").withWidth(300).withHeight(300);
+        // create dialog
         final var calendarComponent = new CalendarComponent(this.getConfig(), optionalDate);
+
+        // set window properties
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::CalendarComponent").withWidth(300).withHeight(300);
         final var parentWindow = this.getNearestWindow(parentComponent);
 
+        // react to changes in dialog
         calendarComponent.addObserver((IGUIEventListener) guiEvent -> {
-            if (guiEvent.getCmd() != CalendarComponent.Commands.DATE_SELECTED) {
+            if (guiEvent.getCmd() != CalendarComponent.Commands.BUTTON_PRESSED_DATE_SELECTED) {
                 return;
             }
             final var dialog = SwingUtilities.getWindowAncestor(calendarComponent);
@@ -606,6 +610,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             ));
         });
 
+        // open Dialog
         this.openInDialog(calendarComponent, parentWindow, "Datum auswählen", windowLocation, (e) -> {
             final var window = e.getWindow();
             this.app.getConfig().setWindowLocation("Dialog::CalendarComponent", WindowLocation.from(window));
@@ -641,6 +646,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .withWidth(440)
                 .withHeight(240);
 
+        // react to changes in dialog
         serviceSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_START_DATE) {
                 this.openDialogDatePicker(
@@ -744,16 +750,24 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             final GUIComponent parentComponent,
             final EventCommand eventToEmit
     ) {
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(440);
+        // create dialog
+        final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig());
+        this.addObserver(equipmentSelectorComponent);
+
+        // create data for dialog
         final var vehicleTypes = Arrays.stream(Fahrzeug.Typ.values()).toList();
-        final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig(), vehicleTypes);
+        this.fireUpdateEvent(new UpdateEvent(this, EquipmentSelectorComponent.Commands.SET_VEHICLE_TYPES, vehicleTypes));
+
+        // set window properties
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(440);
         final var parentWindow = this.getNearestWindow(parentComponent);
 
+        // react to changes in dialog
         equipmentSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
-            if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.CANCEL) {
+            if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-            } else if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.SAVE) {
+            } else if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
                 final var payload = (EquipmentSelectorComponent.SavePayload) guiEvent.getData();
                 if (payload.description().isEmpty()) {
                     JOptionPane.showMessageDialog(
@@ -792,6 +806,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 );
 
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
+                this.removeObserver(equipmentSelectorComponent);
                 dialog.dispose();
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
@@ -801,6 +816,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
         });
 
+        // open Dialog
         this.openInDialog(equipmentSelectorComponent, parentWindow, "Ausrüstung auswählen", windowLocation, (e) -> {
             final var decision = JOptionPane.showConfirmDialog(
                     null,
@@ -811,6 +827,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
             final var close = decision == JOptionPane.YES_OPTION;
             if (close) {
+                this.removeObserver(equipmentSelectorComponent);
                 final var window = e.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::EquipmentSelector", WindowLocation.from(window));
             }
@@ -875,6 +892,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var guest = (Gast) guiEvent.getData();
 
                 final var dialog = SwingUtilities.getWindowAncestor(guestSelectorComponent);
+                this.removeObserver(guestSelectorComponent);
                 dialog.dispose();
 
                 this.fireUpdateEvent(new UpdateEvent(
@@ -896,6 +914,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
             final var close = decision == JOptionPane.YES_OPTION;
             if (close) {
+                this.removeObserver(guestSelectorComponent);
                 final var window = event.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::GuestSelector", WindowLocation.from(window));
             }

@@ -50,7 +50,8 @@ Nico:
 - [ ] GUIController
     - [ ] Handlers: look that all handlers treat collections as immutable, don't get as payload, check before
       fire update
-    - [ ] Dialog: don't pass data in constructor but in processUpdateEvent (EquipmentSelector, ...)
+    - [x] Dialog: don't pass data in constructor but in processUpdateEvent (CalendarComponent is impossible as Lutz does
+      not allow setting the date after creating the dialog)
 - [ ] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
 - [ ] Documentation: What was changed in the implementation
     - Stoerung daten mit Zeit
