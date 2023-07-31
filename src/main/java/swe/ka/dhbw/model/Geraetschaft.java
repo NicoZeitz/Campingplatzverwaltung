@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
 
-public class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
+public final class Geraetschaft extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
     public enum Attributes {
         LEISTUNGSBESCHREIBUNG_ID,
         GEBUEHR,

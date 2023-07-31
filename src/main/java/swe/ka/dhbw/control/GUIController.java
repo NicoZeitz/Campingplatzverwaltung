@@ -31,15 +31,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// TODO:HANDLER: look that all handlers treat collections as immutable, don't get as payload, check before fire update
-// TODO:DIALOG: GUI DIalogs dont pass data in constructor but in processUpdateEvent
-// TODO: für Buchung bearbeiten auch einen buchung löschen button
-// Weitere TODO:
-//gebuchte leistungen sortieren
-//        ausrüstung sortieren
-//        BuchungsIDS bei gast werden nicht aktualisiert
-//        Buchungsliste sortieren
-//        ausrüstung wird nicht in csv gespeichert (Bei Buchung)
 public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public enum Commands implements EventCommand {
         UPDATE_ADDRESSES("GUIController::UPDATE_ADDRESSES", List.class),
@@ -114,6 +105,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return instance;
     }
 
+    // get tranformed data
+
     private Map<LocalDate, List<IDepictable>> getAppointments() {
         return this.entityManager.find(Buchung.class).stream()
                 .sorted(Buchung::compareTo)
@@ -167,6 +160,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.entityManager
                 .find(Buchung.class)
                 .stream()
+                .sorted(Buchung::compareTo)
                 .map(b -> new IDepictable() {
                     @Override
                     public Attribute[] getAttributeArray() {
@@ -196,6 +190,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .toList();
     }
 
+    // setters
+
     public void setEntityManager(final EntityManager entityManager) {
         this.entityManager = entityManager;
     }
@@ -207,6 +203,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public void setDatabase(final Datenbasis<ICSVPersistable> database) {
         this.database = database;
     }
+
+    // observer pattern
 
     @Override
     public boolean addObserver(final EventListener eventListener) {
@@ -232,24 +230,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.updateEventObservers.remove(eventListener);
     }
 
-    public void bookingCreateSelectChipkarte(final Chipkarte newlySelectedChipkarte) {
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                BookingCreateComponent.Commands.ADD_SELECTED_CHIPCARD,
-                newlySelectedChipkarte
-        ));
-    }
-
-    public void bookingRemoveChipkarte(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
-        selectedChipCards.remove(deletedChipCard);
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
-                selectedChipCards
-        ));
-    }
-
-    // Event Handlers
+    // general methods
 
     public void exitApplication() {
         if (this.app.getConfig() == null) {
@@ -258,6 +239,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.app.exitApplication();
     }
 
+    // oberver pattern
+
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
         for (final var eventListener : this.updateEventObservers) {
             if (eventListener instanceof IUpdateEventListener updateListener) {
@@ -265,6 +248,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
         }
     }
+
+    // event Handlers
 
     public void handleWindowBookingAppointmentOverviewNextWeek(final LocalDate currentWeek) {
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, currentWeek.plusWeeks(1)));
@@ -507,6 +492,15 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         ));
     }
 
+    public void handleWindowBookingCreateRemoveChipCard(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
+        selectedChipCards.remove(deletedChipCard);
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
+                selectedChipCards
+        ));
+    }
+
     public void handleWindowBookingCreateResponsibleGuestSelected(final BookingCreateComponent.ResponsibleGuestSelectedPayload payload) {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
@@ -515,6 +509,14 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         payload.selectedGuests(),
                         Optional.of(payload.selectedGuest())
                 )
+        ));
+    }
+
+    public void handleWindowBookingCreateSelectChipCard(final Chipkarte newlySelectedChipkarte) {
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.ADD_SELECTED_CHIPCARD,
+                newlySelectedChipkarte
         ));
     }
 
@@ -552,7 +554,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.APPOINTMENT_OVERVIEW));
     }
 
-    // Dialogs
+    // Initialization
 
     public void initialize() {
         this.addObserver(this);
@@ -583,18 +585,24 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         UIManager.put("OptionPane.noButtonText", "Nein");
     }
 
+    // Dialogs
+
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public void openDialogDatePicker(
             final GUIComponent parentComponent,
             final EventCommand eventToEmit,
             final Optional<LocalDate> optionalDate
     ) {
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::CalendarComponent").withWidth(300).withHeight(300);
+        // create dialog
         final var calendarComponent = new CalendarComponent(this.getConfig(), optionalDate);
+
+        // set window properties
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::CalendarComponent").withWidth(300).withHeight(300);
         final var parentWindow = this.getNearestWindow(parentComponent);
 
+        // react to changes in dialog
         calendarComponent.addObserver((IGUIEventListener) guiEvent -> {
-            if (guiEvent.getCmd() != CalendarComponent.Commands.DATE_SELECTED) {
+            if (guiEvent.getCmd() != CalendarComponent.Commands.BUTTON_PRESSED_DATE_SELECTED) {
                 return;
             }
             final var dialog = SwingUtilities.getWindowAncestor(calendarComponent);
@@ -606,6 +614,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             ));
         });
 
+        // open Dialog
         this.openInDialog(calendarComponent, parentWindow, "Datum auswählen", windowLocation, (e) -> {
             final var window = e.getWindow();
             this.app.getConfig().setWindowLocation("Dialog::CalendarComponent", WindowLocation.from(window));
@@ -641,6 +650,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .withWidth(440)
                 .withHeight(240);
 
+        // react to changes in dialog
         serviceSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_START_DATE) {
                 this.openDialogDatePicker(
@@ -744,16 +754,24 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             final GUIComponent parentComponent,
             final EventCommand eventToEmit
     ) {
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(440);
+        // create dialog
+        final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig());
+        this.addObserver(equipmentSelectorComponent);
+
+        // create data for dialog
         final var vehicleTypes = Arrays.stream(Fahrzeug.Typ.values()).toList();
-        final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig(), vehicleTypes);
+        this.fireUpdateEvent(new UpdateEvent(this, EquipmentSelectorComponent.Commands.SET_VEHICLE_TYPES, vehicleTypes));
+
+        // set window properties
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(440);
         final var parentWindow = this.getNearestWindow(parentComponent);
 
+        // react to changes in dialog
         equipmentSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
-            if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.CANCEL) {
+            if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-            } else if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.SAVE) {
+            } else if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
                 final var payload = (EquipmentSelectorComponent.SavePayload) guiEvent.getData();
                 if (payload.description().isEmpty()) {
                     JOptionPane.showMessageDialog(
@@ -802,6 +820,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 );
 
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
+                this.removeObserver(equipmentSelectorComponent);
                 dialog.dispose();
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
@@ -811,6 +830,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
         });
 
+        // open Dialog
         this.openInDialog(equipmentSelectorComponent, parentWindow, "Ausrüstung auswählen", windowLocation, (e) -> {
             final var decision = JOptionPane.showConfirmDialog(
                     null,
@@ -821,6 +841,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
             final var close = decision == JOptionPane.YES_OPTION;
             if (close) {
+                this.removeObserver(equipmentSelectorComponent);
                 final var window = e.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::EquipmentSelector", WindowLocation.from(window));
             }
@@ -885,6 +906,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var guest = (Gast) guiEvent.getData();
 
                 final var dialog = SwingUtilities.getWindowAncestor(guestSelectorComponent);
+                this.removeObserver(guestSelectorComponent);
                 dialog.dispose();
 
                 this.fireUpdateEvent(new UpdateEvent(
@@ -906,6 +928,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
             final var close = decision == JOptionPane.YES_OPTION;
             if (close) {
+                this.removeObserver(guestSelectorComponent);
                 final var window = event.getWindow();
                 this.app.getConfig().setWindowLocation("Dialog::GuestSelector", WindowLocation.from(window));
             }
@@ -1094,6 +1117,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
+    // Windows
+
     public void openWindowBooking() {
         if (this.windowBooking.isDisplayable()) {
             this.windowBooking.grabFocus();
@@ -1106,8 +1131,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             return true;
         });
     }
-
-    // Windows
 
     public void openWindowCheckInCheckOut() {
         if (this.windowCheckInCheckOut.isDisplayable()) {
@@ -1225,9 +1248,14 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
+    // General methods
+
     private void doEntityUpdate() {
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_ADDRESSES, this.entityManager.find(Adresse.class)));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)
+                .stream()
+                .sorted(Ausruestung::compareTo)
+                .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_AREAS, this.entityManager.find(Bereich.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKINGS, this.entityManager.find(Buchung.class)
                 .stream()
@@ -1243,7 +1271,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .stream()
                 .sorted(Gast::compareTo)
                 .collect(Collectors.toList())));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKED_SERVICES, this.entityManager.find(GebuchteLeistung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKED_SERVICES, this.entityManager.find(GebuchteLeistung.class)
+                .stream()
+                .sorted(GebuchteLeistung::compareTo)
+                .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_SERVICES, this.entityManager.find(Leistungsbeschreibung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_OPENING_DAYS, this.entityManager.find(Oeffnungstag.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_OPENING_HOURS, this.entityManager.find(Oeffnungszeit.class)));

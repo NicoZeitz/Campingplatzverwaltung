@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable {
+public final class Oeffnungstag implements ICSVPersistable, IPersistable, IDepictable {
     public enum Wochentag {
         MO, DI, MI, DO, FR, SA, SO
     }

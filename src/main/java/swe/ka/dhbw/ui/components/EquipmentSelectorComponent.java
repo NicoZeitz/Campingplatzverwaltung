@@ -10,6 +10,7 @@ import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -25,8 +26,11 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
     }
 
     public enum Commands implements EventCommand {
-        CANCEL("ServiceSelectorComponent::CANCEL"),
-        SAVE("ServiceSelectorComponent::SAVE", SavePayload.class);
+        // outgoing gui events
+        BUTTON_PRESSED_CANCEL("ServiceSelectorComponent::BUTTON_PRESSED_CANCEL"),
+        BUTTON_PRESSED_SAVE("ServiceSelectorComponent::BUTTON_PRESSED_SAVE", SavePayload.class),
+        // incoming update events
+        SET_VEHICLE_TYPES("ServiceSelectorComponent::SET_VEHICLE_TYPES", List.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -62,7 +66,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
     private static final String CANCEL_BUTTON_ELEMENT_ID = "EquipmentSelectorComponent::CANCEL_BUTTON_ELEMENT_ID";
     private static final String SAVE_BUTTON_ELEMENT_ID = "EquipmentSelectorComponent::SAVE_BUTTON_ELEMENT_ID";
     // Data
-    private final List<?> vehicleTypes;
+    private List<?> vehicleTypes = new ArrayList<>();
     // Components
     private AttributeElement descriptionElement;
     private AttributeElement amountElement;
@@ -71,9 +75,8 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
     private AttributeElement licensePlateElement;
     private AttributeElement vehicleTypElement;
 
-    public EquipmentSelectorComponent(final ReadonlyConfiguration config, final List<?> vehicleTypes) {
+    public EquipmentSelectorComponent(final ReadonlyConfiguration config) {
         super("EquipmentSelectorComponent", config);
-        this.vehicleTypes = vehicleTypes;
         this.initUI();
     }
 
@@ -82,7 +85,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
         if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
-                case CANCEL_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.CANCEL));
+                case CANCEL_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_CANCEL));
                 case SAVE_BUTTON_ELEMENT_ID -> {
                     this.widthElement.getValue();
                     final var description = Optional.of((String) this.descriptionElement.getValue()).filter(s -> !s.isBlank());
@@ -93,7 +96,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                     final var vehicleTyp = Optional.of(this.vehicleTypElement.getValue()).filter(s -> !s.equals(""));
 
                     final var payload = new SavePayload(description, amount, width, height, licensePlate, vehicleTyp);
-                    this.fireGUIEvent(new GUIEvent(this, Commands.SAVE, payload));
+                    this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_SAVE, payload));
                 }
             }
         }
@@ -101,7 +104,10 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
 
     @Override
     public void processUpdateEvent(final UpdateEvent updateEvent) {
-        // nothing to process here
+        if (updateEvent.getCmd() == Commands.SET_VEHICLE_TYPES) {
+            this.vehicleTypes = (List<?>) updateEvent.getData();
+            this.vehicleTypElement.setData(this.vehicleTypes.toArray());
+        }
     }
 
     private void initUI() {

@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class Anlage implements IDepictable, IPersistable {
+public sealed abstract class Anlage implements IDepictable, IPersistable permits Bereich, Einrichtung, Stellplatz {
     public enum Attributes {
         ANLAGE_ID,
         LAGE_LATITUDE,

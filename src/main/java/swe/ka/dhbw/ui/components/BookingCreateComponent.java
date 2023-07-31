@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// TODO: disable chipkart selector if only "" is in it
 public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
     public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedGuest) {
     }
@@ -166,6 +165,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     // Data
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMANY);
     private List<? extends IDepictable> availablePitches = new ArrayList<>();
+    private List<? extends IDepictable> allChipCards = new ArrayList<>();
     private List<? extends IDepictable> availableChipCards = new ArrayList<>();
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<? extends IDepictable> responsibleGuest = Optional.empty();
@@ -257,12 +257,14 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     this.pitchSelector.setData(this.availablePitches.toArray(new IDepictable[0]));
                 }
                 case UPDATE_CHIPCARDS -> {
+                    this.allChipCards = ((List<? extends IDepictable>) updateEvent.getData());
                     // available chip cards is just a derived attribute
-                    this.availableChipCards = ((List<? extends IDepictable>) updateEvent.getData()).stream()
+                    this.availableChipCards = this.allChipCards.stream()
                             .filter(c -> !this.selectedChipCards.contains(c))
                             .sorted()
                             .collect(Collectors.toList());
                     this.chipCardSelector.setData(Stream.concat(Stream.of(""), this.availableChipCards.stream()).toArray(Object[]::new));
+                    this.chipCardSelector.setEnabled(this.availableChipCards.size() > 0);
                 }
             }
         }
@@ -284,19 +286,27 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 // service selection
                 case ADD_BOOKED_SERVICE -> {
                     ((List<IDepictable>) this.bookedServices).add((IDepictable) updateEvent.getData());
+                    this.bookedServices = this.bookedServices.stream().sorted().collect(Collectors.toList());
                     this.buildServiceTable();
                 }
                 case SET_BOOKED_SERVICES -> {
-                    this.bookedServices = (List<? extends IDepictable>) updateEvent.getData();
+                    this.bookedServices = ((List<? extends IDepictable>) updateEvent.getData())
+                            .stream()
+                            .sorted()
+                            .collect(Collectors.toList());
                     this.buildServiceTable();
                 }
                 // equipment selection
                 case ADD_RENTED_EQUIPMENT -> {
                     ((List<IDepictable>) this.rentedEquipment).add((IDepictable) updateEvent.getData());
+                    this.rentedEquipment = this.rentedEquipment.stream().sorted().collect(Collectors.toList());
                     this.buildEquipmentTable();
                 }
                 case SET_RENTED_EQUIPMENT -> {
-                    this.rentedEquipment = (List<? extends IDepictable>) updateEvent.getData();
+                    this.rentedEquipment = ((List<? extends IDepictable>) updateEvent.getData())
+                            .stream()
+                            .sorted()
+                            .collect(Collectors.toList());
                     this.buildEquipmentTable();
                 }
                 // date selection
@@ -323,21 +333,23 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     ((List<IDepictable>) this.selectedChipCards).add((IDepictable) updateEvent.getData());
                     this.selectedChipCards = this.selectedChipCards.stream().sorted().collect(Collectors.toList());
                     // update derived attribute
-                    this.availableChipCards = this.availableChipCards.stream()
+                    this.availableChipCards = this.allChipCards.stream()
                             .filter(c -> !this.selectedChipCards.contains(c))
                             .sorted()
                             .collect(Collectors.toList());
                     this.chipCardSelector.setData(Stream.concat(Stream.of(""), this.availableChipCards.stream()).toArray(Object[]::new));
+                    this.chipCardSelector.setEnabled(this.availableChipCards.size() > 0);
                     this.buildChipCardTable();
                 }
                 case SET_SELECTED_CHIPCARDS -> {
                     this.selectedChipCards = (List<IDepictable>) updateEvent.getData();
                     // update derived attribute
-                    this.availableChipCards = this.availableChipCards.stream()
+                    this.availableChipCards = this.allChipCards.stream()
                             .filter(c -> !this.selectedChipCards.contains(c))
                             .sorted()
                             .collect(Collectors.toList());
                     this.chipCardSelector.setData(Stream.concat(Stream.of(""), this.availableChipCards.stream()).toArray(Object[]::new));
+                    this.chipCardSelector.setEnabled(this.availableChipCards.size() > 0);
                     this.buildChipCardTable();
                 }
                 // errors

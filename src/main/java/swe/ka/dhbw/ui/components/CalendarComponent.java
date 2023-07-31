@@ -18,7 +18,8 @@ import java.util.Optional;
 
 public class CalendarComponent extends GUIComponent implements IGUIEventListener {
     public enum Commands implements EventCommand {
-        DATE_SELECTED("CalendarComponent::DATE_SELECTED", LocalDate.class);
+        // outgoing gui events
+        BUTTON_PRESSED_DATE_SELECTED("CalendarComponent::BUTTON_PRESSED_DATE_SELECTED", LocalDate.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -50,7 +51,7 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
     public void processGUIEvent(final GUIEvent guiEvent) {
         if (guiEvent.getCmd() == de.dhbwka.swe.utils.gui.CalendarComponent.Commands.DATE_SELECTED) {
             final var date = (LocalDate) guiEvent.getData();
-            this.fireGUIEvent(new GUIEvent(this, Commands.DATE_SELECTED, date));
+            this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_DATE_SELECTED, date));
         }
     }
 

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class Personal extends Person implements IDepictable, ICSVPersistable, IPersistable {
+public final class Personal extends Person implements IDepictable, ICSVPersistable, IPersistable {
     public enum Rolle {
         ADMINISTRATOR,
         PLATZWART,

@@ -136,10 +136,10 @@ public class GUIBuchungObserver implements IGUIEventListener {
                         BookingCreateComponent.Commands.SET_PITCH
                 );
                 // chip card
-                case BUTTON_PRESSED_SELECT_CHIPCARD -> controller.bookingCreateSelectChipkarte((Chipkarte) guiEvent.getData());
+                case BUTTON_PRESSED_SELECT_CHIPCARD -> controller.handleWindowBookingCreateSelectChipCard((Chipkarte) guiEvent.getData());
                 case BUTTON_PRESSED_DELETE_CHIPCARD -> {
                     final var payload = (BookingCreateComponent.ChipcardDeletePayload) guiEvent.getData();
-                    controller.bookingRemoveChipkarte(
+                    controller.handleWindowBookingCreateRemoveChipCard(
                             (List<Chipkarte>) payload.selectedChipCards(),
                             (Chipkarte) payload.chipCardToDelete()
                     );
