@@ -236,7 +236,9 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
                 .textColor(this.config.getTextColor())
                 .buttonText(this.getPreviousWeekLabel())
                 .build();
-        previousWeek.addObserver(this); // cannot add in builder as this adds the observer two times
+        // BUG:SWE-UTILS: one cannot add the observer with the .observer() build method as this adds the observer 2 times
+        // once in the ButtonElement::buildUI method that is called in the constructor and once in the ButtonElement.BEBuilder::build method
+        previousWeek.addObserver(this);
         this.add(previousWeek, BorderLayout.WEST);
 
         // Navigation to next week
@@ -248,7 +250,7 @@ public class BookingOverviewComponent extends GUIComponent implements IGUIEventL
                 .textColor(this.config.getTextColor())
                 .buttonText(this.getNextWeekLabel())
                 .build();
-        nextWeek.addObserver(this); // cannot add in builder as this adds the observer two times
+        nextWeek.addObserver(this);
         this.add(nextWeek, BorderLayout.EAST);
 
         // Main Calendar

@@ -315,8 +315,29 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     public void addZugehoerigerGast(final Gast gast) {
         Validator.getInstance().validateNotNull(gast);
         this.zugehoerigeGaeste.add(gast);
-        if (!gast.getBuchungen().contains(this)) {
-            gast.addBuchung(this);
+    }
+
+    public void removeAllAusgehaendigteChipkarten() {
+        for (final var ausgehaendigteChipkarte : this.getAusgehaendigteChipkarten().stream().toList()) {
+            this.removeAusgehaendigteChipkarte(ausgehaendigteChipkarte);
+        }
+    }
+
+    public void removeAllGebuchteLeistungen() {
+        for (final var gebuchteLeistung : this.getGebuchteLeistungen().stream().toList()) {
+            this.removeGebuchteLeistung(gebuchteLeistung);
+        }
+    }
+
+    public void removeAllMitgebrachteAusruestungen() {
+        for (final var mitgebrachteAusruestung : this.getMitgebrachteAusruestung().stream().toList()) {
+            this.removeMitgebrachteAusruestung(mitgebrachteAusruestung);
+        }
+    }
+
+    public void removeAllZugehoerigerGaeste() {
+        for (final var zugehoerigerGast : this.getZugehoerigeGaeste().stream().toList()) {
+            this.removeZugehoerigerGast(zugehoerigerGast);
         }
     }
 

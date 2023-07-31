@@ -170,7 +170,7 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         return label;
     }
 
-    protected JPanel createErrorWrapper(final Component... errorLabels) {
+    protected JComponent createErrorWrapper(final Component... errorLabels) {
         final var panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBackground(this.config.getBackgroundColor());

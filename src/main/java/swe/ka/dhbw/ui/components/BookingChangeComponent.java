@@ -8,6 +8,7 @@ import de.dhbwka.swe.utils.gui.*;
 import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.GUIController;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
+import swe.ka.dhbw.ui.GUIBuchung;
 import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
@@ -25,8 +26,23 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
-    public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedResponsibleGuest) {
+public class BookingChangeComponent extends GUIComponent implements IGUIEventListener {
+    // discriminated union for mode
+    public sealed interface Mode permits Mode.CREATE, Mode.EDIT {
+        record CREATE() implements Mode {
+        }
+
+        record EDIT(IDepictable data) implements Mode {
+        }
+
+        Mode CREATE = new Mode.CREATE();
+
+        static Mode EDIT(IDepictable data) {
+            return new EDIT(data);
+        }
+    }
+
+    public record ResponsibleGuestSelectPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedResponsibleGuest) {
     }
 
     public record GuestDeletePayload(
@@ -48,10 +64,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     public record EquipmentDeletePayload(List<? extends IDepictable> rentedEquipment, IDepictable equipmentToDelete) {
     }
 
-    public record ChipcardDeletePayload(List<? extends IDepictable> selectedChipCards, IDepictable chipCardToDelete) {
+    public record ChipCardDeletePayload(List<? extends IDepictable> selectedChipCards, IDepictable chipCardToDelete) {
     }
 
-    public record BookingCreatePayload(
+    public record SavePayload(
             Optional<LocalDateTime> arrivalDate,
             Optional<LocalDateTime> departureDate,
             List<? extends IDepictable> associatedGuests,
@@ -59,9 +75,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
             List<? extends IDepictable> bookedServices,
             List<? extends IDepictable> rentedEquipment,
             IDepictable bookedPitch,
-            List<? extends IDepictable> chipCards
+            List<? extends IDepictable> chipCards,
+            Mode mode
     ) {
-        public static BookingCreatePayload create(final BookingCreateComponent component) {
+        public static SavePayload create(final BookingChangeComponent component) {
             final var arrivalDate = component.tryOptional(() -> LocalDateTime.parse(
                     component.arrivalDateComponent.getValueAsString(),
                     component.dateTimeFormatter
@@ -71,7 +88,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     component.dateTimeFormatter
             ));
 
-            return new BookingCreatePayload(
+            return new SavePayload(
                     arrivalDate,
                     departureDate,
                     component.associatedGuests.stream().filter(g -> !g.equals(component.responsibleGuest.orElse(null))).collect(Collectors.toList()),
@@ -79,7 +96,8 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     component.bookedServices,
                     component.rentedEquipment,
                     (IDepictable) component.pitchSelector.getValue(),
-                    component.selectedChipCards
+                    component.selectedChipCards,
+                    component.mode
             );
         }
     }
@@ -87,53 +105,49 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     public record GuestListPayload(List<? extends IDepictable> guests, Optional<? extends IDepictable> responsibleGuest) {
     }
 
-    public enum Mode {
-        CREATE,
-        EDIT
-    }
-
 
     public enum Commands implements EventCommand {
         // outgoing gui events
-        BUTTON_PRESSED_ADD_GUEST("BookingCreateComponent::BUTTON_PRESSED_ADD_GUEST", GuestListPayload.class),
-        RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST("BookingCreateComponent::RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST",
-                ResponsibleGuestSelectedPayload.class),
-        BUTTON_PRESSED_DELETE_GUEST("BookingCreateComponent::BUTTON_PRESSED_DELETE_GUEST", GuestDeletePayload.class),
-        BUTTON_PRESSED_ADD_SERVICE("BookingCreateComponent::ADD_SERVICE", List.class),
-        BUTTON_PRESSED_EDIT_SERVICE("BookingCreateComponent::BUTTON_PRESSED_EDIT_SERVICE", ServiceEditPayload.class),
-        BUTTON_PRESSED_DELETE_SERVICE("BookingCreateComponent::BUTTON_PRESSED_DELETE_SERVICE", ServiceDeletePayload.class),
-        BUTTON_PRESSED_ADD_EQUIPMENT("BookingCreateComponent::ADD_EQUIPMENT"),
-        BUTTON_PRESSED_INCREMENT_EQUIPMENT_COUNT("BookingCreateComponent::BUTTON_PRESSED_INCREMENT_EQUIPMENT_COUNT", EquipmentEditPayload.class),
-        BUTTON_PRESSED_DECREMENT_EQUIPMENT_COUNT("BookingCreateComponent::BUTTON_PRESSED_DECREMENT_EQUIPMENT_COUNT", EquipmentEditPayload.class),
-        BUTTON_PRESSED_DELETE_EQUIPMENT("BookingCreateComponent::BUTTON_PRESSED_DELETE_EQUIPMENT", IDepictable.class),
-        BUTTON_PRESSED_SELECT_START_DATE("BookingCreateComponent::BUTTON_PRESSED_SELECT_START_DATE", Optional.class),
-        BUTTON_PRESSED_SELECT_END_DATE("BookingCreateComponent::SELECT_END_DATE", Optional.class),
-        BUTTON_PRESSED_SELECT_PITCH("BookingCreateComponent::BUTTON_PRESSED_SELECT_PITCH"),
-        BUTTON_PRESSED_SELECT_CHIPCARD("BookingCreateComponent::BUTTON_PRESSED_SELECT_CHIPCARD", IDepictable.class),
-        BUTTON_PRESSED_DELETE_CHIPCARD("BookingCreateComponent::BUTTON_PRESSED_DELETE_CHIPCARD", ChipcardDeletePayload.class),
-        BUTTON_PRESSED_CREATE_BOOKING("BookingCreateComponent::BUTTON_PRESSED_CREATE_BOOKING"),
-        BUTTON_PRESSED_CANCEL("BookingCreateComponent::BUTTON_PRESSED_CANCEL"),
+        BUTTON_PRESSED_ADD_GUEST("BookingChangeComponent::BUTTON_PRESSED_ADD_GUEST", GuestListPayload.class),
+        RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST("BookingChangeComponent::RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST",
+                ResponsibleGuestSelectPayload.class),
+        BUTTON_PRESSED_DELETE_GUEST("BookingChangeComponent::BUTTON_PRESSED_DELETE_GUEST", GuestDeletePayload.class),
+        BUTTON_PRESSED_ADD_SERVICE("BookingChangeComponent::ADD_SERVICE", List.class),
+        BUTTON_PRESSED_EDIT_SERVICE("BookingChangeComponent::BUTTON_PRESSED_EDIT_SERVICE", ServiceEditPayload.class),
+        BUTTON_PRESSED_DELETE_SERVICE("BookingChangeComponent::BUTTON_PRESSED_DELETE_SERVICE", ServiceDeletePayload.class),
+        BUTTON_PRESSED_ADD_EQUIPMENT("BookingChangeComponent::ADD_EQUIPMENT"),
+        BUTTON_PRESSED_INCREMENT_EQUIPMENT_COUNT("BookingChangeComponent::BUTTON_PRESSED_INCREMENT_EQUIPMENT_COUNT", EquipmentEditPayload.class),
+        BUTTON_PRESSED_DECREMENT_EQUIPMENT_COUNT("BookingChangeComponent::BUTTON_PRESSED_DECREMENT_EQUIPMENT_COUNT", EquipmentEditPayload.class),
+        BUTTON_PRESSED_DELETE_EQUIPMENT("BookingChangeComponent::BUTTON_PRESSED_DELETE_EQUIPMENT", IDepictable.class),
+        BUTTON_PRESSED_SELECT_START_DATE("BookingChangeComponent::BUTTON_PRESSED_SELECT_START_DATE", Optional.class),
+        BUTTON_PRESSED_SELECT_END_DATE("BookingChangeComponent::SELECT_END_DATE", Optional.class),
+        BUTTON_PRESSED_SELECT_PITCH("BookingChangeComponent::BUTTON_PRESSED_SELECT_PITCH"),
+        BUTTON_PRESSED_SELECT_CHIPCARD("BookingChangeComponent::BUTTON_PRESSED_SELECT_CHIPCARD", IDepictable.class),
+        BUTTON_PRESSED_DELETE_CHIPCARD("BookingChangeComponent::BUTTON_PRESSED_DELETE_CHIPCARD", ChipCardDeletePayload.class),
+        BUTTON_PRESSED_DELETE_BOOKING("BookingChangeComponent::BUTTON_PRESSED_DELETE_BOOKING", IDepictable.class),
+        BUTTON_PRESSED_SAVE_BOOKING("BookingChangeComponent::BUTTON_PRESSED_SAVE_BOOKING", SavePayload.class),
+        BUTTON_PRESSED_CANCEL("BookingChangeComponent::BUTTON_PRESSED_CANCEL"),
         // incoming update events
-        SET_MODE("BookingCreateComponent::SET_MODE", Mode.class),
-        SET_START_DATE("BookingCreateComponent::SET_START_DATE", Temporal.class),
-        SET_END_DATE("BookingCreateComponent::SET_END_DATE", Temporal.class),
-        SET_PITCH("BookingCreateComponent::SET_PITCH", IDepictable.class),
-        ADD_ASSOCIATED_GUEST("BookingCreateComponent::ADD_ASSOCIATED_GUEST", IDepictable.class),
-        SET_ASSOCIATED_GUESTS("BookingCreateComponent::SET_ASSOCIATED_GUESTS", GuestListPayload.class),
-        ADD_BOOKED_SERVICE("BookingCreateComponent::ADD_BOOKED_SERVICE", IDepictable.class),
-        SET_BOOKED_SERVICES("BookingCreateComponent::SET_BOOKED_SERVICES", List.class),
-        ADD_RENTED_EQUIPMENT("BookingCreateComponent::ADD_RENTED_EQUIPMENT", IDepictable.class),
-        SET_RENTED_EQUIPMENT("BookingCreateComponent::SET_RENTED_EQUIPMENT", List.class),
-        ADD_SELECTED_CHIPCARD("BookingCreateComponent::ADD_SELECTED_CHIPCARD", IDepictable.class),
-        SET_SELECTED_CHIPCARDS("BookingCreateComponent::SET_SELECTED_CHIPCARDS", List.class),
-        RESET_INPUT("BookingCreateComponent::RESET_INPUT"),
+        SET_MODE("BookingChangeComponent::SET_MODE", Mode.class),
+        SET_START_DATE("BookingChangeComponent::SET_START_DATE", Temporal.class),
+        SET_END_DATE("BookingChangeComponent::SET_END_DATE", Temporal.class),
+        SET_PITCH("BookingChangeComponent::SET_PITCH", IDepictable.class),
+        ADD_ASSOCIATED_GUEST("BookingChangeComponent::ADD_ASSOCIATED_GUEST", IDepictable.class),
+        SET_ASSOCIATED_GUESTS("BookingChangeComponent::SET_ASSOCIATED_GUESTS", GuestListPayload.class),
+        ADD_BOOKED_SERVICE("BookingChangeComponent::ADD_BOOKED_SERVICE", IDepictable.class),
+        SET_BOOKED_SERVICES("BookingChangeComponent::SET_BOOKED_SERVICES", List.class),
+        ADD_RENTED_EQUIPMENT("BookingChangeComponent::ADD_RENTED_EQUIPMENT", IDepictable.class),
+        SET_RENTED_EQUIPMENT("BookingChangeComponent::SET_RENTED_EQUIPMENT", List.class),
+        ADD_SELECTED_CHIPCARD("BookingChangeComponent::ADD_SELECTED_CHIPCARD", IDepictable.class),
+        SET_SELECTED_CHIPCARDS("BookingChangeComponent::SET_SELECTED_CHIPCARDS", List.class),
+        RESET_INPUT("BookingChangeComponent::RESET_INPUT"),
         // incoming update events to manage errors
-        ERRORS_SHOW_START_DATE("BookingCreateComponent::ERRORS_SHOW_START_DATE", String.class),
-        ERRORS_SHOW_END_DATE("BookingCreateComponent::ERRORS_SHOW_END_DATE", String.class),
-        ERRORS_SHOW_PITCH("BookingCreateComponent::ERRORS_SHOW_PITCH", String.class),
-        ERRORS_SHOW_GUEST("BookingCreateComponent::ERRORS_SHOW_GUEST", String.class),
-        ERRORS_SHOW_SERVICES("BookingCreateComponent::ERRORS_SHOW_SERVICES", String.class),
-        ERRORS_RESET("BookingCreateComponent::ERRORS_RESET");
+        ERRORS_SHOW_START_DATE("BookingChangeComponent::ERRORS_SHOW_START_DATE", String.class),
+        ERRORS_SHOW_END_DATE("BookingChangeComponent::ERRORS_SHOW_END_DATE", String.class),
+        ERRORS_SHOW_PITCH("BookingChangeComponent::ERRORS_SHOW_PITCH", String.class),
+        ERRORS_SHOW_GUEST("BookingChangeComponent::ERRORS_SHOW_GUEST", String.class),
+        ERRORS_SHOW_SERVICES("BookingChangeComponent::ERRORS_SHOW_SERVICES", String.class),
+        ERRORS_RESET("BookingChangeComponent::ERRORS_RESET");
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -158,17 +172,18 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         }
     }
 
-    private static final String BUTTON_COMPONENT_ID = "BookingCreateComponent::BUTTON_COMPONENT_ID";
-    private static final String CREATE_BOOKING_BUTTON_ELEMENT_ID = "BookingCreateComponent::CREATE_BOOKING_BUTTON_ELEMENT_ID";
-    private static final String CANCEL_CREATE_BOOKING_BUTTON_ELEMENT_ID = "BookingCreateComponent::CANCEL_CREATE_BOOKING_BUTTON_ELEMENT_ID";
-    private static final String ADD_GUEST_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_GUEST_BUTTON_ELEMENT_ID";
-    private static final String ADD_SERVICE_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_SERVICE_BUTTON_ELEMENT_ID";
-    private static final String ADD_EQUIPMENT_BUTTON_ELEMENT_ID = "BookingCreateComponent::ADD_EQUIPMENT_BUTTON_ELEMENT_ID";
-    private static final String BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID";
-    private static final String BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID";
-    private static final String CHIPCARD_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::CHIPCARD_ATTRIBUTE_ELEMENT_ID";
-    private static final String PITCH_ATTRIBUTE_ELEMENT_ID = "BookingCreateComponent::PITCH_ATTRIBUTE_ELEMENT_ID";
-    private static final String SELECT_PITCH_BUTTON_ELEMENT_ID = "BookingCreateComponent::SELECT_PITCH_BUTTON_ELEMENT_ID";
+    private static final String BUTTON_COMPONENT_ID = "BookingChangeComponent::BUTTON_COMPONENT_ID";
+    private static final String DELETE_BOOKING_BUTTON_ELEMENT_ID = "BookingChangeComponent::DELETE_BOOKING_BUTTON_ELEMENT_ID";
+    private static final String SAVE_BOOKING_BUTTON_ELEMENT_ID = "BookingChangeComponent::SAVE_BOOKING_BUTTON_ELEMENT_ID";
+    private static final String CANCEL_BUTTON_ELEMENT_ID = "BookingChangeComponent::CANCEL_BUTTON_ELEMENT_ID";
+    private static final String ADD_GUEST_BUTTON_ELEMENT_ID = "BookingChangeComponent::ADD_GUEST_BUTTON_ELEMENT_ID";
+    private static final String ADD_SERVICE_BUTTON_ELEMENT_ID = "BookingChangeComponent::ADD_SERVICE_BUTTON_ELEMENT_ID";
+    private static final String ADD_EQUIPMENT_BUTTON_ELEMENT_ID = "BookingChangeComponent::ADD_EQUIPMENT_BUTTON_ELEMENT_ID";
+    private static final String BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID = "BookingChangeComponent::BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID";
+    private static final String BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID = "BookingChangeComponent::BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID";
+    private static final String CHIPCARD_ATTRIBUTE_ELEMENT_ID = "BookingChangeComponent::CHIPCARD_ATTRIBUTE_ELEMENT_ID";
+    private static final String PITCH_ATTRIBUTE_ELEMENT_ID = "BookingChangeComponent::PITCH_ATTRIBUTE_ELEMENT_ID";
+    private static final String SELECT_PITCH_BUTTON_ELEMENT_ID = "BookingChangeComponent::SELECT_PITCH_BUTTON_ELEMENT_ID";
 
     // Data
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMANY);
@@ -192,6 +207,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     private JPanel serviceTable;
     private JPanel chipCardTable;
     private JPanel equipmentTable;
+    private ButtonElement deleteBookingButton;
+    private ButtonElement cancelBookingButton;
+    private ButtonElement saveBookingButton;
+    private ButtonComponent buttonComponent;
     // Error Components
     private JLabel startDateErrorComponent;
     private JLabel endDateErrorComponent;
@@ -200,15 +219,21 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     private JLabel serviceErrorComponent;
 
 
-    public BookingCreateComponent(
+    public BookingChangeComponent(
             final ReadonlyConfiguration config
     ) {
-        super("BookingCreateComponent", config);
+        super("BookingChangeComponent", config);
         this.initUI();
     }
 
     @Override
     public void processGUIEvent(final GUIEvent guiEvent) {
+        // Component in tab and tab is closed
+        if (guiEvent.getSource() instanceof GUIBuchung && guiEvent.getCmd() == GUIBuchung.Commands.BUTTON_PRESSED_TAB_CLOSING) {
+            this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_CANCEL, this.mode));
+            return;
+        }
+
         if (guiEvent.getSource() instanceof ObservableComponent component) {
             final var id = component.getID();
             switch (id) {
@@ -247,9 +272,17 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
 
                     this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_SELECT_CHIPCARD, value));
                 }
-                case CREATE_BOOKING_BUTTON_ELEMENT_ID ->
-                        this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_CREATE_BOOKING, BookingCreatePayload.create(this)));
-                case CANCEL_CREATE_BOOKING_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_CANCEL));
+                case SAVE_BOOKING_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(
+                        this,
+                        Commands.BUTTON_PRESSED_SAVE_BOOKING,
+                        SavePayload.create(this))
+                );
+                case CANCEL_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_CANCEL, this.mode));
+                case DELETE_BOOKING_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(
+                        this,
+                        Commands.BUTTON_PRESSED_DELETE_BOOKING,
+                        ((Mode.EDIT) this.mode).data())
+                );
                 case SELECT_PITCH_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_SELECT_PITCH));
             }
         }
@@ -388,7 +421,13 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 }
                 // other
                 case SET_MODE -> {
-                    this.mode = (Mode) updateEvent.getData();
+                    final var newMode = (Mode) updateEvent.getData();
+                    if (this.mode == newMode) {
+                        return;
+                    }
+
+                    this.mode = newMode;
+                    this.buildButtonComponentButtons();
                     this.resetInput();
                 }
                 case RESET_INPUT -> this.resetInput();
@@ -416,6 +455,38 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         this.buildChipCardTable();
         this.resetErrors();
         this.repaint();
+    }
+
+    private void buildButtonComponentButtons() {
+        if (this.mode instanceof Mode.CREATE) {
+            this.cancelBookingButton.setButtonText("Erstellen abbrechen");
+            this.saveBookingButton.setButtonText("Buchung erstellen");
+            this.saveBookingButton.setToolTipText("Erstellt die neue Buchung mit den eingegebenen Daten");
+            this.buttonComponent.replaceButtons(new ButtonElement[] {
+                    this.cancelBookingButton,
+                    this.saveBookingButton
+            });
+        } else {
+            this.cancelBookingButton.setButtonText("Bearbeiten abbrechen");
+            this.saveBookingButton.setButtonText("Buchung aktualisieren");
+            this.saveBookingButton.setToolTipText("Aktualisiert die Buchung mit den neuen eingegebenen Daten");
+            this.buttonComponent.replaceButtons(new ButtonElement[] {
+                    this.deleteBookingButton,
+                    this.cancelBookingButton,
+                    this.saveBookingButton
+            });
+        }
+        final var border = BorderFactory.createTitledBorder(this.mode instanceof Mode.CREATE ? "Neue Buchung anlegen" : "Buchung bearbeiten");
+        border.setTitleColor(this.config.getTextColor());
+        border.setTitleFont(this.config.getHeaderFont());
+        this.buttonComponent.setBorder(border);
+        this.buttonComponent.setForeground(this.config.getTextColor());
+        this.buttonComponent.setBackground(this.config.getBackgroundColor());
+        this.buttonComponent.getComponent(0).setBackground(this.config.getBackgroundColor());
+        this.buttonComponent.getComponent(0).setForeground(this.config.getTextColor());
+        this.buttonComponent.getComponent(1).setBackground(this.config.getBackgroundColor());
+        this.buttonComponent.getComponent(1).setForeground(this.config.getTextColor());
+        this.revalidate();
     }
 
     private void buildChipCardTable() {
@@ -490,7 +561,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
             deleteButton.addActionListener(e -> this.fireGUIEvent(new GUIEvent(
                     this,
                     Commands.BUTTON_PRESSED_DELETE_CHIPCARD,
-                    new ChipcardDeletePayload(this.selectedChipCards, chipCard)
+                    new ChipCardDeletePayload(this.selectedChipCards, chipCard)
             )));
             deleteButton.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(this.config.getTextColor(), 1),
@@ -672,7 +743,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
             radioButton.addActionListener(e -> this.fireGUIEvent(new GUIEvent(
                     this,
                     Commands.RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST,
-                    new ResponsibleGuestSelectedPayload(this.associatedGuests, guest)
+                    new ResponsibleGuestSelectPayload(this.associatedGuests, guest)
             )));
 
             final var radioButtonPanel = new JPanel();
@@ -1088,7 +1159,17 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         rightPanel.add(super.createFillComponent(),                                              new GridBagConstraints(1, 4, 1, 1, 1d, 1d, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
         // @formatter:on
 
-        final var cancelButton = ButtonElement.builder(CANCEL_CREATE_BOOKING_BUTTON_ELEMENT_ID)
+        this.deleteBookingButton = ButtonElement.builder(DELETE_BOOKING_BUTTON_ELEMENT_ID)
+                .buttonText("Buchung löschen")
+                .font(this.config.getFont())
+                .backgroundColor(this.config.getFailureColor())
+                .textColor(this.config.getTextColor())
+                .componentSize(new Dimension(150, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
+                .toolTip("Löscht die Buchung")
+                .build();
+        this.deleteBookingButton.addObserver(this);
+
+        this.cancelBookingButton = ButtonElement.builder(CANCEL_BUTTON_ELEMENT_ID)
                 .buttonText("Erstellen abbrechen")
                 .font(this.config.getFont())
                 .backgroundColor(this.config.getBackgroundColor())
@@ -1096,37 +1177,27 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 .componentSize(new Dimension(150, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .toolTip("Bricht den Vorgang ab")
                 .build();
-        cancelButton.addObserver(this);
+        this.cancelBookingButton.addObserver(this);
 
-        final var createButton = ButtonElement.builder(CREATE_BOOKING_BUTTON_ELEMENT_ID)
+        this.saveBookingButton = ButtonElement.builder(SAVE_BOOKING_BUTTON_ELEMENT_ID)
                 .buttonText("Buchung erstellen")
                 .font(this.config.getFont())
                 .backgroundColor(this.config.getAccentColor())
                 .textColor(this.config.getTextColor())
                 .componentSize(new Dimension(150, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
-                .toolTip("Erstellt die neue Buchung mit den eingegebenen Daten")
                 .build();
-        createButton.addObserver(this);
+        this.saveBookingButton.addObserver(this);
 
-        final var buttonComponent = ButtonComponent.builder(BUTTON_COMPONENT_ID)
+        this.buttonComponent = ButtonComponent.builder(BUTTON_COMPONENT_ID)
                 .embeddedComponent(mainPanel)
-                .buttonElements(new ButtonElement[] {cancelButton, createButton})
+                .buttonElements(new ButtonElement[] {this.cancelBookingButton, this.saveBookingButton})
                 .position(ButtonComponent.Position.SOUTH)
                 .orientation(ButtonComponent.Orientation.RIGHT)
                 .build();
 
-        final var border = BorderFactory.createTitledBorder("Neue Buchung anlegen");
-        border.setTitleColor(this.config.getTextColor());
-        border.setTitleFont(this.config.getHeaderFont());
-        buttonComponent.setForeground(this.config.getTextColor());
-        buttonComponent.setBackground(this.config.getBackgroundColor());
-        buttonComponent.getComponent(0).setBackground(this.config.getBackgroundColor());
-        buttonComponent.getComponent(0).setForeground(this.config.getTextColor());
-        buttonComponent.getComponent(1).setBackground(this.config.getBackgroundColor());
-        buttonComponent.getComponent(1).setForeground(this.config.getTextColor());
-        buttonComponent.setBorder(border);
+        this.buildButtonComponentButtons();
 
-        this.add(buttonComponent);
+        this.add(this.buttonComponent);
     }
 
     private void resetErrors() {

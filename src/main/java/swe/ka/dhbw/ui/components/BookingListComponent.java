@@ -12,6 +12,7 @@ import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -145,6 +146,10 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
     @Override
     public void processGUIEvent(final GUIEvent guiEvent) {
         if (guiEvent.getCmd() == SimpleTableComponent.Commands.ROW_SELECTED) {
+            final var scrollPane = (JScrollPane) this.tableComponent.getComponent(0);
+            final var viewport = (JViewport) scrollPane.getComponent(0);
+            final var table = (JTable) viewport.getComponent(0);
+            table.getSelectionModel().clearSelection();
             this.fireGUIEvent(new GUIEvent(
                     this,
                     Commands.BOOKING_SELECTED,
@@ -168,6 +173,23 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
                     .toList()
                     .toArray(new String[0]);
             this.tableComponent.setData(this.bookings.toArray(new IDepictable[0]), columnNames);
+
+            // BUG:SWE-UTILS: The SimpleTableComponent adds a new listener every time the data is set. This results in +1 events per update
+            // This happens because the SimpleTableComponent::setData method calls SimpleTableComponent::initTable which adds a new listener
+            // The following code removes the listener and adds it again to avoid this
+            final var scrollPane = (JScrollPane) this.tableComponent.getComponent(0);
+            final var viewport = (JViewport) scrollPane.getComponent(0);
+            final var table = (JTable) viewport.getComponent(0);
+            final var selectionMode = (DefaultListSelectionModel) table.getSelectionModel();
+            final var listeners = selectionMode.getListSelectionListeners();
+            var listenerToAddAgain = (ListSelectionListener) null;
+            for (final var listener : listeners) {
+                if (listener.getClass().getEnclosingClass() == SimpleTableComponent.class) {
+                    selectionMode.removeListSelectionListener(listener);
+                    listenerToAddAgain = listener;
+                }
+            }
+            selectionMode.addListSelectionListener(listenerToAddAgain);
         }
     }
 

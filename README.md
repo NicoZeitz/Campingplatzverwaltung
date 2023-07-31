@@ -21,7 +21,7 @@ DUMMY_DATA NULL
 Beide
 
 - [ ] Ausrüstungsdialog anschauen (kann sein, dass da noch ein Bug ist)
-- [ ] Validierung von Stellplatzfunktion
+
 - [ ] Benötigte Java Version in der Bedinungsanleitung/Doku eintragen
 - [ ] Test auf Linux
 - [ ] Löschen der Config-Datei vor Meisterübergabe
@@ -35,6 +35,7 @@ Fabian:
 
 Nico:
 
+- [x] Validierung von Stellplatzfunktion
 - [x] GUIController
     - [x] Handlers: look that all handlers treat collections as immutable, don't get as payload, check before
       fire update
@@ -42,12 +43,12 @@ Nico:
       not allow setting the date after creating the dialog)
 - [x] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
 - [x] GUIConfiguration: The window location is not always saved
-- [ ] BookingCreateComponent
+- [x] BookingCreateComponent
     - [x] GUI: Disable chip card selector iff "" is the only entry
     - [x] GUI: Sort Booked Services by Time
     - [x] GUI: Sort Equipment by ???
     - [x] BookingIds of Guest don't get updated
-    - [ ] BookingEditComponent: Modify BookingCreateComponent to allow editing
+    - [x] BookingEditComponent: Modify BookingCreateComponent to allow editing
         - add a new button to delete the booking
 - [ ] BookingListComponent
     - [x] Sort Bookings by Time
@@ -60,3 +61,7 @@ Nico:
     - Anlage zu abstrakter Klasse gemacht
     - GUIObserver zu abstrakter Klasse gemacht
     - Attribute in Person, ... protected gemacht
+- [ ] Document swe utils bugs (BUG:SWE_UTILS:)
+    - [ ] CalendarComponent null pointer exception
+    - [ ] SimpleTableComponent adds a new listener every time the data is updated
+    - [ ] builder methoden setzten bei .observer() 2 mal den observer einmal in der Methode und einmal beim build

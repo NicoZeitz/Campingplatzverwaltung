@@ -1,30 +1,45 @@
 package swe.ka.dhbw.ui;
 
-import de.dhbwka.swe.utils.event.EventCommand;
-import de.dhbwka.swe.utils.event.GUIEvent;
-import de.dhbwka.swe.utils.event.IGUIEventListener;
-import de.dhbwka.swe.utils.event.UpdateEvent;
+import de.dhbwka.swe.utils.event.*;
 import de.dhbwka.swe.utils.gui.ObservableComponent;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
-import swe.ka.dhbw.ui.components.BookingCreateComponent;
+import swe.ka.dhbw.ui.components.BookingChangeComponent;
 import swe.ka.dhbw.ui.components.BookingImportExportComponent;
 import swe.ka.dhbw.ui.components.BookingListComponent;
 import swe.ka.dhbw.ui.components.BookingOverviewComponent;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Optional;
 
 public class GUIBuchung extends GUIComponent implements IGUIEventListener {
+    public record TabPayload(String tabName, ObservableComponent component, String tooltip, Optional<Integer> index) {
+        public TabPayload(String tabName, ObservableComponent component, String tooltip) {
+            this(tabName, component, tooltip, Optional.empty());
+        }
+    }
+
+    public record SendEventToTabPayload(Object tab, UpdateEvent event) {
+    }
+
     public enum Commands implements EventCommand {
         OPEN_TAB("GUIBuchung::OPEN_TAB", TabPayload.class),
-        CLOSE_TAB("GUIBuchung::CLOSE_TAB", ObservableComponent.class),
-        SWITCH_TAB("GUIBuchung::SWITCH_TAB", Tabs.class);
+        CLOSE_TAB("GUIBuchung::CLOSE_TAB", Object.class),
+        SWITCH_TAB("GUIBuchung::SWITCH_TAB", Object.class),
+        BUTTON_PRESSED_TAB_CLOSING("GUIBuchung::BUTTON_PRESSED_TAB_CLOSING"),
+        SEND_EVENT_TO_TAB("GUIBuchung::SEND_EVENT_TO_TAB", SendEventToTabPayload.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
+
+        Commands(final String cmdText) {
+            this(cmdText, Void.class);
+        }
 
         Commands(final String cmdText, final Class<?> payloadType) {
             this.cmdText = cmdText;
@@ -67,7 +82,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
 
     private BookingOverviewComponent bookingOverview;
     private BookingListComponent bookingList;
-    private BookingCreateComponent bookingCreate;
+    private BookingChangeComponent bookingCreate;
     private JTabbedPane tabs;
 
     public GUIBuchung(final ReadonlyConfiguration config) {
@@ -92,40 +107,57 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
 
     @Override
     public void processUpdateEvent(UpdateEvent updateEvent) {
-        if (updateEvent.getCmd() == Commands.OPEN_TAB) {
-            final var payload = (TabPayload) updateEvent.getData();
+        if (updateEvent.getCmd() instanceof Commands command) {
+            switch (command) {
+                case OPEN_TAB -> {
+                    final var payload = (TabPayload) updateEvent.getData();
 
-            // Tab already exists, focus it
-            final var index = this.tabs.indexOfTabComponent(payload.component());
-            if (index != -1) {
-                this.tabs.setSelectedIndex(index);
-                this.tabs.setTitleAt(index, payload.tabName());
-                this.tabs.setToolTipTextAt(index, payload.tooltip());
-                return;
-            }
+                    // Tab already exists, focus it
+                    final var tabIndex = this.getTabIndex(payload.component);
+                    if (tabIndex.isPresent()) {
+                        this.tabs.setSelectedIndex(tabIndex.get());
+                        this.tabs.setTitleAt(tabIndex.get(), payload.tabName());
+                        this.tabs.setToolTipTextAt(tabIndex.get(), payload.tooltip());
+                        return;
+                    }
 
-            if (payload.index().isPresent()) {
-                this.tabs.insertTab(payload.tabName(), null, payload.component(), payload.tooltip(), payload.index().get());
-            } else {
-                this.tabs.addTab(payload.tabName(), null, payload.component(), payload.tooltip());
-            }
-            this.tabs.setSelectedIndex(payload.index().orElse(this.tabs.getTabCount() - 1));
-        } else if (updateEvent.getCmd() == Commands.CLOSE_TAB) {
-            // TODO: Alternativ falls es einfacher ist mit Titel: this.tabs.indexOfTab("Title")
-            final var index = this.tabs.indexOfTabComponent((ObservableComponent) updateEvent.getData());
-            if (index != -1) {
-                this.tabs.removeTabAt(index);
-            }
-        } else if (updateEvent.getCmd() == Commands.SWITCH_TAB) {
-            final var index = this.tabs.indexOfTab(((Tabs) updateEvent.getData()).getName());
-            if (index != -1) {
-                this.tabs.setSelectedIndex(index);
+                    final var index = (int) payload.index().orElse(this.tabs.getTabCount());
+
+                    this.tabs.insertTab(payload.tabName(), null, this.wrapInWrapper(payload.component()), payload.tooltip(), index);
+                    this.tabs.setTabComponentAt(index, this.createClosableTab(e -> {
+                        if (payload.component() instanceof IGUIEventListener listener) {
+                            listener.processGUIEvent(new GUIEvent(
+                                    this,
+                                    Commands.BUTTON_PRESSED_TAB_CLOSING
+                            ));
+                        }
+                    }));
+                    this.tabs.setSelectedIndex(index);
+                }
+                case CLOSE_TAB -> this.getTabIndex(updateEvent.getData()).ifPresent(this.tabs::removeTabAt);
+                case SWITCH_TAB -> this.getTabIndex(updateEvent.getData()).ifPresent(index -> {
+                    this.tabs.setSelectedIndex(index);
+                    this.revalidate();
+                    this.repaint();
+                });
+                case SEND_EVENT_TO_TAB -> {
+                    final var payload = (SendEventToTabPayload) updateEvent.getData();
+                    final var tabIndex = this.getTabIndex(payload.tab());
+                    if (tabIndex.isPresent()) {
+                        final var tab = (JComponent) this.tabs.getComponentAt(tabIndex.get());
+                        if (tab instanceof IUpdateEventListener component) {
+                            component.processUpdateEvent(payload.event());
+                        } else if (tab.getComponent(0) instanceof IUpdateEventListener component) {
+                            component.processUpdateEvent(payload.event());
+                        }
+                    }
+                }
             }
         }
         // send commands to specific tab
         else if (Arrays.stream(BookingOverviewComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingOverview.processUpdateEvent(updateEvent);
-        } else if (Arrays.stream(BookingCreateComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
+        } else if (Arrays.stream(BookingChangeComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingCreate.processUpdateEvent(updateEvent);
         } else if (Arrays.stream(BookingListComponent.Commands.values()).anyMatch(cmd -> cmd == updateEvent.getCmd())) {
             this.bookingList.processUpdateEvent(updateEvent);
@@ -138,6 +170,78 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         }
     }
 
+    private JComponent createClosableTab(ActionListener onCloseButtonClicked) {
+        final var panel = new JPanel();
+        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        panel.setOpaque(false);
+
+        final var label = new JLabel() {
+            @Override
+            public String getText() {
+                var i = GUIBuchung.this.tabs.indexOfTabComponent(panel);
+                if (i != -1) {
+                    return GUIBuchung.this.tabs.getTitleAt(i);
+                }
+                return null;
+            }
+
+            @Override
+            public String getToolTipText() {
+                var i = GUIBuchung.this.tabs.indexOfTabComponent(panel);
+                if (i != -1) {
+                    return GUIBuchung.this.tabs.getToolTipTextAt(i);
+                }
+                return null;
+            }
+        };
+        label.setFont(this.config.getFont());
+        label.setForeground(this.config.getTextColor());
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(final MouseEvent e) {
+                var i = GUIBuchung.this.tabs.indexOfTabComponent(panel);
+                if (i != -1) {
+                    GUIBuchung.this.tabs.setSelectedIndex(i);
+                }
+            }
+        });
+
+        final var button = new JButton("x");
+        button.setFont(this.config.getFont());
+        button.setForeground(this.config.getFailureColor());
+        button.setBackground(null);
+        button.setFocusable(false);
+        button.setContentAreaFilled(false);
+        button.setRolloverEnabled(true);
+        button.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        button.addActionListener(onCloseButtonClicked);
+        button.setToolTipText("Tab schließen");
+
+        panel.add(label);
+        panel.add(button);
+
+        return panel;
+    }
+
+    private Optional<Integer> getTabIndex(final Object data) {
+        if (data instanceof Tabs tab) {
+            return Optional.of(this.tabs.indexOfTab(tab.getName())).filter(index -> index != -1);
+        } else if (data instanceof Component component) {
+            // remove wrappers
+            while (component.getParent() != null && !(component.getParent() instanceof JTabbedPane)) {
+                component = component.getParent();
+            }
+            return Optional.of(this.tabs.indexOfComponent(component)).filter(index -> index != -1);
+        } else if (data instanceof String tabName) {
+            return Optional.of(this.tabs.indexOfTab(tabName)).filter(index -> index != -1);
+        } else if (data instanceof Integer index) {
+            return Optional.of(index);
+        }
+
+        return Optional.empty();
+    }
+
     private void initUI() {
         // create tab components
         this.bookingOverview = new BookingOverviewComponent(this.config);
@@ -146,7 +250,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.bookingList = new BookingListComponent(this.config);
         this.bookingList.addObserver(this);
 
-        this.bookingCreate = new BookingCreateComponent(this.config);
+        this.bookingCreate = new BookingChangeComponent(this.config);
         this.bookingCreate.addObserver(this);
 
         final var bookingImportExport = new BookingImportExportComponent(this.config);
@@ -162,6 +266,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         UIManager.put("TabbedPane.contentBorderInsets", new Insets(-1, -1, -1, -1));
 
         this.tabs = new JTabbedPane();
+        this.tabs.setFont(this.config.getFont());
         this.tabs.setBackground(this.config.getBackgroundColor());
         this.tabs.setForeground(this.config.getTextColor());
         this.tabs.setOpaque(true);
@@ -202,7 +307,7 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.add(this.tabs);
     }
 
-    private JPanel wrapInWrapper(final ObservableComponent component) {
+    private JComponent wrapInWrapper(final ObservableComponent component) {
         final var wrapper = new JPanel();
         wrapper.setLayout(new GridBagLayout());
         wrapper.setBackground(this.config.getBackgroundColor());
@@ -220,11 +325,5 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         wrapper.add(panel, new GridBagConstraints(1, 0, 1, 1, 1d, 0d, GridBagConstraints.NORTH, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
         // @formatter:on
         return wrapper;
-    }
-
-    public record TabPayload(String tabName, ObservableComponent component, String tooltip, Optional<Integer> index) {
-        public TabPayload(String tabName, ObservableComponent component, String tooltip) {
-            this(tabName, component, tooltip, Optional.empty());
-        }
     }
 }
