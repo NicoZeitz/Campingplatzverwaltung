@@ -37,7 +37,7 @@ Nico:
 - [ ] BookingCreateComponent
     - [x] GUI: Disable chip card selector iff "" is the only entry
     - [x] GUI: Sort Booked Services by Time
-    - [ ] GUI: Sort Equipment by ???
+    - [x] GUI: Sort Equipment by ???
     - [ ] BookingIds of Guest don't get updated
     - [ ] BookingEditComponent: Modify BookingCreateComponent to allow editing
         - add a new button to delete the booking

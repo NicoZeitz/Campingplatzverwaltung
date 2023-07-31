@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
-public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepictable permits Fahrzeug {
+public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepictable, Comparable<Ausruestung> permits Fahrzeug {
     public enum Attributes {
         AUSRUESTUNG_ID,
         BEZEICHNUNG,
@@ -86,6 +86,20 @@ public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepic
     public void setBreite(final double breite) {
         Validator.getInstance().validateGreaterThanEqual(breite, 0);
         this.breite = breite;
+    }
+
+    @Override
+    public int compareTo(final Ausruestung that) {
+        // sort Vehicle after all other Equipment
+        if (this instanceof Fahrzeug && !(that instanceof Fahrzeug)) {
+            return 1;
+        }
+
+        if (!(this instanceof Fahrzeug) && that instanceof Fahrzeug) {
+            return 1;
+        }
+
+        return String.CASE_INSENSITIVE_ORDER.compare(this.getBezeichnung(), that.getBezeichnung());
     }
 
     @Override

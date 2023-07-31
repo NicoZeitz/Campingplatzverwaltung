@@ -299,10 +299,14 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 // equipment selection
                 case ADD_RENTED_EQUIPMENT -> {
                     ((List<IDepictable>) this.rentedEquipment).add((IDepictable) updateEvent.getData());
+                    this.rentedEquipment = this.rentedEquipment.stream().sorted().collect(Collectors.toList());
                     this.buildEquipmentTable();
                 }
                 case SET_RENTED_EQUIPMENT -> {
-                    this.rentedEquipment = (List<? extends IDepictable>) updateEvent.getData();
+                    this.rentedEquipment = ((List<? extends IDepictable>) updateEvent.getData())
+                            .stream()
+                            .sorted()
+                            .collect(Collectors.toList());
                     this.buildEquipmentTable();
                 }
                 // date selection
