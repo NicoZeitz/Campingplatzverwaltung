@@ -286,10 +286,14 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 // service selection
                 case ADD_BOOKED_SERVICE -> {
                     ((List<IDepictable>) this.bookedServices).add((IDepictable) updateEvent.getData());
+                    this.bookedServices = this.bookedServices.stream().sorted().collect(Collectors.toList());
                     this.buildServiceTable();
                 }
                 case SET_BOOKED_SERVICES -> {
-                    this.bookedServices = (List<? extends IDepictable>) updateEvent.getData();
+                    this.bookedServices = ((List<? extends IDepictable>) updateEvent.getData())
+                            .stream()
+                            .sorted()
+                            .collect(Collectors.toList());
                     this.buildServiceTable();
                 }
                 // equipment selection

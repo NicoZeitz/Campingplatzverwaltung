@@ -36,7 +36,7 @@ Nico:
 - [ ] GUIConfiguration: The window location is not always saved
 - [ ] BookingCreateComponent
     - [x] GUI: Disable chip card selector iff "" is the only entry
-    - [ ] GUI: Sort Booked Services by Time
+    - [x] GUI: Sort Booked Services by Time
     - [ ] GUI: Sort Equipment by ???
     - [ ] BookingIds of Guest don't get updated
     - [ ] BookingEditComponent: Modify BookingCreateComponent to allow editing

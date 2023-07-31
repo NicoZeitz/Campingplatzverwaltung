@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Objects;
 
-public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPersistable {
+public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPersistable, Comparable<GebuchteLeistung> {
     public enum Attributes {
         GEBUCHTE_LEISTUNG_ID,
         BUCHUNG_START,
@@ -67,6 +67,15 @@ public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPe
     public void setLeistungsbeschreibung(final Leistungsbeschreibung leistungsbeschreibung) {
         Validator.getInstance().validateNotNull(leistungsbeschreibung);
         this.leistungsbeschreibung = leistungsbeschreibung;
+    }
+
+    @Override
+    public int compareTo(final GebuchteLeistung that) {
+        final var res = this.getBuchungStart().compareTo(that.getBuchungStart());
+        if (res == 0) {
+            return this.getBuchungsEnde().compareTo(that.getBuchungsEnde());
+        }
+        return res;
     }
 
     @Override
