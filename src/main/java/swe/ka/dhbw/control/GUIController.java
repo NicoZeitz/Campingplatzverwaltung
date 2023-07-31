@@ -422,6 +422,18 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
     }
 
+    public void handleWindowBookingCreateDeleteChipCard(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
+        final var newSelectedChipCards = new ArrayList<>(selectedChipCards);
+        newSelectedChipCards.remove(deletedChipCard);
+        if (newSelectedChipCards.size() != selectedChipCards.size()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
+                    newSelectedChipCards
+            ));
+        }
+    }
+
     public void handleWindowBookingCreateDeleteEquipment(final List<Ausruestung> rentedEquipment, final Ausruestung equipmentToDelete) {
         final var newRentedEquipment = new ArrayList<>(rentedEquipment);
         newRentedEquipment.remove(equipmentToDelete);
@@ -434,12 +446,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
     }
 
-    public void handleWindowBookingCreateDeleteService(final BookingCreateComponent.ServiceDeletePayload payload) {
-        final var newBookedServices = payload.selectedServices()
-                .stream()
-                .filter(s -> !s.equals(payload.serviceToDelete()))
-                .collect(Collectors.toList());
-        if (newBookedServices.size() != payload.selectedServices().size()) {
+    public void handleWindowBookingCreateDeleteService(final List<GebuchteLeistung> bookedServices, final GebuchteLeistung serviceToDelete) {
+        final var newBookedServices = new ArrayList<>(bookedServices);
+        newBookedServices.remove(serviceToDelete);
+        if (newBookedServices.size() != bookedServices.size()) {
             this.fireUpdateEvent(new UpdateEvent(
                     this,
                     BookingCreateComponent.Commands.SET_BOOKED_SERVICES,
@@ -451,17 +461,19 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public void handleWindowBookingCreateEditEquipment(final List<Ausruestung> rentedEquipment,
                                                        final Ausruestung equipmentToEdit,
                                                        final int countDelta) {
-        final var index = rentedEquipment.indexOf(equipmentToEdit);
+        final var newRentEquipment = new ArrayList<>(rentedEquipment);
+        final var index = newRentEquipment.indexOf(equipmentToEdit);
         if (index == -1) {
             return;
         }
 
         final var newCount = equipmentToEdit.getAnzahl() + countDelta;
         if (newCount <= 0) {
+            newRentEquipment.remove(equipmentToEdit);
             this.fireUpdateEvent(new UpdateEvent(
                     this,
                     BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
-                    rentedEquipment.stream().filter(e -> !e.equals(equipmentToEdit)).collect(Collectors.toList())
+                    rentedEquipment
             ));
         } else {
             rentedEquipment.get(index).setAnzahl(newCount);
@@ -475,14 +487,19 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     }
 
     @SuppressWarnings("unchecked")
-    public void handleWindowBookingCreateGuestDeleted(final BookingCreateComponent.GuestDeletePayload payload) {
-        final var newSelectedGuests = payload.selectedGuests()
-                .stream()
-                .filter(g -> !g.equals(payload.deletedGuest()))
-                .collect(Collectors.toList());
-        final var newResponsibleGuest = payload.deletedGuest().equals(payload.responsibleGuest().orElse(null))
-                ? Optional.<IDepictable>empty()
-                : (Optional<IDepictable>) payload.responsibleGuest();
+    public void handleWindowBookingCreateGuestDeleted(final List<Gast> selectedGuests,
+                                                      final Gast deletedGuest,
+                                                      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Gast> responsibleGuest) {
+        final var newSelectedGuests = new ArrayList<>(selectedGuests);
+        newSelectedGuests.remove(deletedGuest);
+
+        if (selectedGuests.size() == newSelectedGuests.size()) {
+            return;
+        }
+
+        final var newResponsibleGuest = responsibleGuest.isPresent() && responsibleGuest.get().equals(deletedGuest)
+                ? Optional.<Gast>empty()
+                : responsibleGuest;
 
         this.fireUpdateEvent(new UpdateEvent(
                 this,
@@ -491,22 +508,13 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         ));
     }
 
-    public void handleWindowBookingCreateRemoveChipCard(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
-        selectedChipCards.remove(deletedChipCard);
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
-                selectedChipCards
-        ));
-    }
-
-    public void handleWindowBookingCreateResponsibleGuestSelected(final BookingCreateComponent.ResponsibleGuestSelectedPayload payload) {
+    public void handleWindowBookingCreateResponsibleGuestSelected(final List<Gast> selectedGuests, final Gast responsibleGuest) {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
                 BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
                 new Payload.GuestList(
-                        payload.selectedGuests(),
-                        Optional.of(payload.selectedGuest())
+                        selectedGuests,
+                        Optional.of(responsibleGuest)
                 )
         ));
     }
