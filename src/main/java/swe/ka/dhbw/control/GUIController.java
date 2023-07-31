@@ -1214,12 +1214,15 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             return true;
         });
     }
-    
-    // general methods
+
+    // General methods
 
     private void doEntityUpdate() {
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_ADDRESSES, this.entityManager.find(Adresse.class)));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)
+                .stream()
+                .sorted(Ausruestung::compareTo)
+                .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_AREAS, this.entityManager.find(Bereich.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKINGS, this.entityManager.find(Buchung.class)
                 .stream()
@@ -1235,7 +1238,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .stream()
                 .sorted(Gast::compareTo)
                 .collect(Collectors.toList())));
-        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKED_SERVICES, this.entityManager.find(GebuchteLeistung.class)));
+        this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_BOOKED_SERVICES, this.entityManager.find(GebuchteLeistung.class)
+                .stream()
+                .sorted(GebuchteLeistung::compareTo)
+                .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_SERVICES, this.entityManager.find(Leistungsbeschreibung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_OPENING_DAYS, this.entityManager.find(Oeffnungstag.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_OPENING_HOURS, this.entityManager.find(Oeffnungszeit.class)));
