@@ -773,8 +773,18 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     );
                     return;
                 }
+                if ((payload.licensePlate().isEmpty() && payload.vehicleTyp().isPresent()) || (payload.licensePlate()
+                        .isPresent() && payload.vehicleTyp().isEmpty())) {
+                    JOptionPane.showMessageDialog(
+                            parentComponent,
+                            "Wenn Sie ein Fahrzeug erstellen möchten, muss sowohl Kennzeichen als auch Fahrzeugtyp angegeben werden.",
+                            "Fehler",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
 
-                final var equipment = payload.licensePlate().isPresent()
+                final var equipment = payload.licensePlate().isPresent() && payload.vehicleTyp().isPresent()
                         ? new Fahrzeug(
                         this.entityManager.generateNextPrimaryKey(Ausruestung.class),
                         payload.description().get(),
@@ -782,7 +792,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         payload.height().get(),
                         payload.width().get(),
                         payload.licensePlate().get(),
-                        (Fahrzeug.Typ) payload.vehicleTyp()
+                        (Fahrzeug.Typ) payload.vehicleTyp().get()
                 ) : new Ausruestung(
                         this.entityManager.generateNextPrimaryKey(Ausruestung.class),
                         payload.description().get(),
