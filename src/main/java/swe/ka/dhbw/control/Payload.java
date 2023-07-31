@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-// TODO: move inner classes somewhere else and delete
 public final class Payload {
     public record GuestList(List<? extends IDepictable> guests, Optional<? extends IDepictable> responsibleGuest) {
     }

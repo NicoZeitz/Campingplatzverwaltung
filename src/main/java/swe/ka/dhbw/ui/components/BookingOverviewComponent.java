@@ -20,11 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-// TODO: Buchungssuche
-//Buchungen werden über ihre Termindaten gesucht. Termindaten werden über einen
-//        Zeitraum gesucht (Start- und Enddatum im Format DD.MM.YYYY). Alle Termine, die im
-//        gesamten Zeitraum zwischen Start- und Enddatum mindestens einen gebuchten Tag
-//        beinhalten, werden beim Ergebnis angezeigt:
 public class BookingOverviewComponent extends GUIComponent implements IGUIEventListener {
     // Commands
     public enum Commands implements EventCommand {

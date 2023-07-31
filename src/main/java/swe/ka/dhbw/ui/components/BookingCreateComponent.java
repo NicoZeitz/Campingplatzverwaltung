@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// TODO: disable chipkart selector if only "" is in it
 public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
     public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedGuest) {
     }

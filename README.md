@@ -16,24 +16,44 @@ DUMMY_DATA NULL
 
 # Änderungen
 
-Stoerung daten mit zeit
-Anlage zu abstrakter Klasse gemacht
-GUIObserver zu abstrakter Klasse gemacht
-Attribute in Person, ... protected gemacht
-
 # Weiterer Plan
 
+Beide
+
+- [ ] Benötigte Java Version in der Bedinungsanleitung/Doku eintragen
+- [ ] Test auf Linux
+- [ ] Löschen der Config-Datei vor Meisterübergabe
+
 Fabian:
+
 - [ ] Aktion abbrechen -> Antworten YES / NO (JOptionPane) global -> guiCont openMain
 - [ ] Fahrzeugtyp sollte Leerfeld besitzen
 - [ ] Bedienungsanleitung-Start
-- [ ] Anforderungen durchlesen 
+- [ ] Anforderungen durchlesen
 
 Nico:
-- [ ] Konfig-Fenster macht was es will (bleibt nicht an der Stelle, an der es sein soll)
-- [ ] Ausrüstung wird nicht gespeichert
-- [ ] Dokument ergänzen, was bei Implementierung geändert wurde
-- [ ] Buchung bearbeiten
 
-WICHTIG:
-CONFIG-PROP löschen vor MEISTERÜBERGABE!
+- [ ] GUIConfiguration: The window location is not always saved
+- [ ] BookingCreateComponent
+    - [ ] GUI: Disable chip card selector iff "" is the only entry
+    - [ ] GUI: Sort Booked Services by Time
+    - [ ] GUI: Sort Equipment by ???
+    - [ ] BookingIds of Guest don't get updated
+    - [ ] BookingEditComponent: Modify BookingCreateComponent to allow editing
+        - add a new button to delete the booking
+- [ ] BookingListComponent
+    - [ ] Sort Bookings by Time
+    - [ ] Search Bookings (Buchungen werden über ihre Termindaten gesucht. Termindaten werden über
+      einen Zeitraum gesucht (Start- und Enddatum im Format DD.MM.YYYY). Alle Termine, die im gesamten Zeitraum zwischen
+      Start- und Enddatum mindestens einen gebuchten Tag beinhalten, werden beim Ergebnis angezeigt)
+- [ ] Payload: Move classes somewhere else
+- [ ] GUIController
+    - [ ] Handlers: look that all handlers treat collections as immutable, don't get as payload, check before
+      fire update
+    - [ ] Dialog: don't pass data in constructor but in processUpdateEvent (EquipmentSelector, ...)
+- [ ] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
+- [ ] Documentation: What was changed in the implementation
+    - Stoerung daten mit Zeit
+    - Anlage zu abstrakter Klasse gemacht
+    - GUIObserver zu abstrakter Klasse gemacht
+    - Attribute in Person, ... protected gemacht
