@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 //        BuchungsIDS bei gast werden nicht aktualisiert
 //        Buchungsliste sortieren
 //        ausrüstung wird nicht in csv gespeichert (Bei Buchung)
+// TODO: Bedingungsanleitung, Änderungen, ... Dokumente
+// TODO: Linux test
 public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public enum Commands implements EventCommand {
         UPDATE_ADDRESSES("GUIController::UPDATE_ADDRESSES", List.class),

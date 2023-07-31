@@ -46,51 +46,51 @@ public class EntityFactory {
 
         IPersistable persistable;
         if (c == Adresse.class) {
-            persistable = this.createAdresseFromCSVData(csvData);
+            persistable = this.createAddressFromCSVData(csvData);
         } else if (c == Anlage.class) {
             throw new IllegalArgumentException("EntityFactor::createElement: Anlage is abstract");
         } else if (c == Ausruestung.class || c == Fahrzeug.class) {
-            persistable = this.createAusruestungFromCSVData(csvData);
+            persistable = this.createEquipmentFromCSVData(csvData);
         } else if (c == Bereich.class) {
-            persistable = this.createBereichFromCSVData(csvData);
+            persistable = this.createAreaFromCSVData(csvData);
         } else if (c == Buchung.class) {
-            persistable = this.createBuchungFromCSVData(csvData);
+            persistable = this.createBookingFromCSVData(csvData);
         } else if (c == Chipkarte.class) {
-            persistable = this.createChipkarteFromCSVData(csvData);
+            persistable = this.createChipCardFromCSVData(csvData);
         } else if (c == Einrichtung.class) {
-            persistable = this.createEinrichtungFromCSVData(csvData);
+            persistable = this.createFacilityFromCSVData(csvData);
         } else if (c == Foto.class) {
-            persistable = this.createFotoFromCSVData(csvData);
+            persistable = this.createPhotoFromCSVData(csvData);
         } else if (c == Fremdfirma.class) {
-            persistable = this.createFremdfirmaFromCSVData(csvData);
+            persistable = this.createContractorFromCSVData(csvData);
         } else if (c == Gast.class) {
-            persistable = this.createGastFromCSVData(csvData);
+            persistable = this.createGuestFromCSVData(csvData);
         } else if (c == GebuchteLeistung.class) {
-            persistable = this.createGebuchteLeistungFromCSVData(csvData);
+            persistable = this.createBookedServiceFromCSVData(csvData);
         } else if (c == Geraetschaft.class) {
-            persistable = this.createGeraetschaftFromCSVData(csvData);
+            persistable = this.createToolFromCSVData(csvData);
         } else if (c == GPSPosition.class) {
             throw new IllegalArgumentException("EntityFactor::createElement: GPSPosition cannot be created by itself");
         } else if (c == Leistungsbeschreibung.class) {
             throw new IllegalArgumentException("EntityFactor::createElement: Leistungsbeschreibung is abstract");
         } else if (c == Oeffnungstag.class) {
-            persistable = this.createOeffnungstagFromCSVData(csvData);
+            persistable = this.createOpeningDayFromCSVData(csvData);
         } else if (c == Oeffnungszeit.class) {
-            persistable = this.createOeffnungszeitFromCSVData(csvData);
+            persistable = this.createOpeningHourFromCSVData(csvData);
         } else if (c == Person.class) {
             persistable = this.createPersonFromCSVData(csvData);
         } else if (c == Personal.class) {
             persistable = this.createPersonalFromCSVData(csvData);
         } else if (c == Rechnung.class) {
-            persistable = this.createRechnungFromCSVData(csvData);
+            persistable = this.createInvoiceFromCSVData(csvData);
         } else if (c == Stellplatz.class) {
-            persistable = this.createStellplatzFromCSVData(csvData);
+            persistable = this.createPitchFromCSVData(csvData);
         } else if (c == Stellplatzfunktion.class) {
-            persistable = this.createStellplatzfunktionFromCSVData(csvData);
+            persistable = this.createPitchFunctionFromCSVData(csvData);
         } else if (c == Stoerung.class) {
-            persistable = this.createStoerungFromCSVData(csvData);
+            persistable = this.createDisturbanceFromCSVData(csvData);
         } else if (c == Wartung.class) {
-            persistable = this.createWartungFromCSVData(csvData);
+            persistable = this.createMaintenanceFromCSVData(csvData);
         } else {
             throw new IllegalArgumentException("EntityFactor::createElement: Unknown class: " + c.getName());
         }
@@ -162,21 +162,148 @@ public class EntityFactory {
         }
     }
 
-    private IPersistable createAdresseFromCSVData(final String[] csvData) {
-        final var zusatz = csvData[Adresse.CSVPosition.ZUSATZ.ordinal()];
+    private IPersistable createAddressFromCSVData(final String[] csvData) {
+        final var addressSupplement = csvData[Adresse.CSVPosition.ZUSATZ.ordinal()];
         return new Adresse(
                 Integer.parseInt(csvData[Adresse.CSVPosition.ADRESSE_ID.ordinal()]),
                 csvData[Adresse.CSVPosition.STRASSE.ordinal()],
                 Integer.parseInt(csvData[Adresse.CSVPosition.HAUSNUMMER.ordinal()]),
-                zusatz.equals("") ? Optional.empty() : Optional.of(zusatz),
+                addressSupplement.equals("") ? Optional.empty() : Optional.of(addressSupplement),
                 csvData[Adresse.CSVPosition.ORT.ordinal()],
                 csvData[Adresse.CSVPosition.PLZ.ordinal()],
                 Adresse.Land.valueOf(csvData[Adresse.CSVPosition.LAND.ordinal()])
         );
     }
 
-    private IPersistable createAusruestungFromCSVData(final String[] csvData) {
-        // Ausruestung und Unterklassen sind als Single Table Inheritance implementiert
+    private IPersistable createAreaFromCSVData(final String[] csvData) {
+        final var area = new Bereich(
+                Integer.parseInt(csvData[Bereich.CSVPosition.ANLAGEID.ordinal()]),
+                new GPSPosition(
+                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LATITUDE.ordinal()]),
+                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LONGITUDE.ordinal()])
+                ),
+                csvData[Bereich.CSVPosition.KENNZEICHEN.ordinal()].charAt(0),
+                csvData[Bereich.CSVPosition.BESCHREIBUNG.ordinal()]
+        );
+
+        for (final var complexId : this.getListValues(csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()])) {
+            this.onReferenceFound(Anlage.class, Integer.parseInt(complexId), area::addAnlage);
+        }
+
+        final var areaId = csvData[Bereich.CSVPosition.BEREICH_ID.ordinal()];
+        if (!areaId.isEmpty()) {
+            this.onReferenceFound(Bereich.class, Integer.parseInt(areaId), area::setBereich);
+        }
+
+        for (final var photoId : this.getListValues(csvData[Bereich.CSVPosition.FOTO_IDS.ordinal()])) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(photoId), area::addFoto);
+        }
+
+        return area;
+    }
+
+    private IPersistable createBookedServiceFromCSVData(final String[] csvData) {
+        final var bookedService = new GebuchteLeistung(
+                Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.GEBUCHTE_LEISTUNG_ID.ordinal()]),
+                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNG_START.ordinal()]),
+                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNGS_ENDE.ordinal()])
+        );
+
+        final var serviceDescriptionId = Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]);
+        this.onReferenceFound(Leistungsbeschreibung.class, serviceDescriptionId, bookedService::setLeistungsbeschreibung);
+
+        return bookedService;
+    }
+
+    private IPersistable createBookingFromCSVData(final String[] csvData) {
+        final var booking = new Buchung(
+                Integer.parseInt(csvData[Buchung.CSVPosition.BUCHUNGSNUMMER.ordinal()]),
+                LocalDateTime.parse(csvData[Buchung.CSVPosition.ANREISE.ordinal()]),
+                LocalDateTime.parse(csvData[Buchung.CSVPosition.ABREISE.ordinal()])
+        );
+
+        final var pitchId = Integer.parseInt(csvData[Buchung.CSVPosition.GEBUCHTER_STELLPLATZ_ID.ordinal()]);
+        this.onReferenceFound(Stellplatz.class, pitchId, booking::setGebuchterStellplatz);
+
+        for (final var chipCardId : this.getListValues(csvData[Buchung.CSVPosition.AUSGEHAENDIGTE_CHIPKARTEN_IDS.ordinal()])) {
+            this.onReferenceFound(Chipkarte.class,
+                    Integer.parseInt(chipCardId),
+                    booking::addAusgehaendigteChipkarte);
+        }
+
+        final var invoiceId = csvData[Buchung.CSVPosition.RECHNUNG_ID.ordinal()];
+        if (!invoiceId.isEmpty()) {
+            this.onReferenceFound(Rechnung.class, Integer.parseInt(invoiceId), booking::setRechnung);
+        }
+
+        for (final var associatedGuestId : this.getListValues(csvData[Buchung.CSVPosition.ZUGEHOERIGE_GAESTE_IDS.ordinal()])) {
+            this.onReferenceFound(Gast.class, Integer.parseInt(associatedGuestId), booking::addZugehoerigerGast);
+        }
+
+        final var responsibleGuestId = Integer.parseInt(csvData[Buchung.CSVPosition.VERANTWORTLICHER_GAST_ID.ordinal()]);
+        this.onReferenceFound(Gast.class, responsibleGuestId, booking::setVerantwortlicherGast);
+
+        for (final var bookedServiceId : this.getListValues(csvData[Buchung.CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.ordinal()])) {
+            this.onReferenceFound(GebuchteLeistung.class, Integer.parseInt(bookedServiceId), booking::addGebuchteLeistung);
+        }
+
+        // TODO: equipment
+
+        return booking;
+    }
+
+    private IPersistable createChipCardFromCSVData(final String[] csvData) {
+        return new Chipkarte(
+                Integer.parseInt(csvData[Chipkarte.CSVPosition.NUMMER.ordinal()]),
+                Chipkarte.Status.valueOf(csvData[Chipkarte.CSVPosition.STATUS.ordinal()])
+        );
+    }
+
+    private IPersistable createContractorFromCSVData(final String[] csvData) {
+        final var contractor = new Fremdfirma(
+                Integer.parseInt(csvData[Fremdfirma.CSVPosition.FREMDFIRMA_ID.ordinal()]),
+                csvData[Fremdfirma.CSVPosition.NAME.ordinal()]
+        );
+
+        for (final var maintenanceId : this.getListValues(csvData[Fremdfirma.CSVPosition.WARTUNG_IDS.ordinal()])) {
+            this.onReferenceFound(Wartung.class, Integer.parseInt(maintenanceId), contractor::addWartung);
+        }
+
+        for (final var facilityId : this.getListValues(csvData[Fremdfirma.CSVPosition.EINRICHTUNG_IDS.ordinal()])) {
+            this.onReferenceFound(Einrichtung.class, Integer.parseInt(facilityId), contractor::addEinrichtung);
+        }
+
+        final var addressId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSCHRIFT_ID.ordinal()]);
+        this.onReferenceFound(Adresse.class, addressId, contractor::setAnschrift);
+
+        final var contactPersonId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSPRECHPERSON_ID.ordinal()]);
+        this.onReferenceFound(Person.class, contactPersonId, contractor::setAnsprechperson);
+
+        return contractor;
+    }
+
+    private IPersistable createDisturbanceFromCSVData(final String[] csvData) {
+        final var disturbance = new Stoerung(
+                Integer.parseInt(csvData[Stoerung.CSVPosition.STOERUNGSNUMMER.ordinal()]),
+                csvData[Stoerung.CSVPosition.TITEL.ordinal()],
+                csvData[Stoerung.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDateTime.parse(csvData[Stoerung.CSVPosition.ERSTELLUNGSDATUM.ordinal()]),
+                LocalDateTime.parse(csvData[Stoerung.CSVPosition.BEHEBUNGSDATUM.ordinal()]),
+                Stoerung.Status.valueOf(csvData[Stoerung.CSVPosition.STATUS.ordinal()])
+        );
+
+        final var pitchFunctionId = csvData[Stoerung.CSVPosition.STELLPLATZFUNKTION_ID.ordinal()];
+        if (!pitchFunctionId.isEmpty()) {
+            this.onReferenceFound(Stellplatzfunktion.class,
+                    Integer.parseInt(pitchFunctionId),
+                    disturbance::setStellplatzfunktion);
+        }
+
+        return disturbance;
+    }
+
+    private IPersistable createEquipmentFromCSVData(final String[] csvData) {
+        // Equipment and Subclasses are implemented as Single Table Inheritance
         final var discriminator = csvData[Ausruestung.CSVPosition.DISCRIMINATOR.ordinal()];
 
         if (discriminator.equals(Fahrzeug.class.getSimpleName())) {
@@ -204,77 +331,8 @@ public class EntityFactory {
         throw new IllegalArgumentException("EntityFactor::createElement: Unknown Ausruestungs discriminator: " + discriminator);
     }
 
-    private IPersistable createBereichFromCSVData(final String[] csvData) {
-        final var bereich = new Bereich(
-                Integer.parseInt(csvData[Bereich.CSVPosition.ANLAGEID.ordinal()]),
-                new GPSPosition(
-                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LATITUDE.ordinal()]),
-                        Double.parseDouble(csvData[Bereich.CSVPosition.LAGE_LONGITUDE.ordinal()])
-                ),
-                csvData[Bereich.CSVPosition.KENNZEICHEN.ordinal()].charAt(0),
-                csvData[Bereich.CSVPosition.BESCHREIBUNG.ordinal()]
-        );
-
-        for (final var anlageId : this.getListValues(csvData[Bereich.CSVPosition.ANLAGEN_IDS.ordinal()])) {
-            this.onReferenceFound(Anlage.class, Integer.parseInt(anlageId), bereich::addAnlage);
-        }
-
-        final var bereichId = csvData[Bereich.CSVPosition.BEREICH_ID.ordinal()];
-        if (!bereichId.isEmpty()) {
-            this.onReferenceFound(Bereich.class, Integer.parseInt(bereichId), bereich::setBereich);
-        }
-
-        for (final var fotoId : this.getListValues(csvData[Bereich.CSVPosition.FOTO_IDS.ordinal()])) {
-            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), bereich::addFoto);
-        }
-
-        return bereich;
-    }
-
-    private IPersistable createBuchungFromCSVData(final String[] csvData) {
-        final var buchung = new Buchung(
-                Integer.parseInt(csvData[Buchung.CSVPosition.BUCHUNGSNUMMER.ordinal()]),
-                LocalDateTime.parse(csvData[Buchung.CSVPosition.ANREISE.ordinal()]),
-                LocalDateTime.parse(csvData[Buchung.CSVPosition.ABREISE.ordinal()])
-        );
-
-        final var stellplatzId = Integer.parseInt(csvData[Buchung.CSVPosition.GEBUCHTER_STELLPLATZ_ID.ordinal()]);
-        this.onReferenceFound(Stellplatz.class, stellplatzId, buchung::setGebuchterStellplatz);
-
-        for (final var ausgehaendigteChipkartenId : this.getListValues(csvData[Buchung.CSVPosition.AUSGEHAENDIGTE_CHIPKARTEN_IDS.ordinal()])) {
-            this.onReferenceFound(Chipkarte.class,
-                    Integer.parseInt(ausgehaendigteChipkartenId),
-                    buchung::addAusgehaendigteChipkarte);
-        }
-
-        final var rechnungId = csvData[Buchung.CSVPosition.RECHNUNG_ID.ordinal()];
-        if (!rechnungId.isEmpty()) {
-            this.onReferenceFound(Rechnung.class, Integer.parseInt(rechnungId), buchung::setRechnung);
-        }
-
-        for (final var zugehoerigerGastId : this.getListValues(csvData[Buchung.CSVPosition.ZUGEHOERIGE_GAESTE_IDS.ordinal()])) {
-            this.onReferenceFound(Gast.class, Integer.parseInt(zugehoerigerGastId), buchung::addZugehoerigerGast);
-        }
-
-        final var verantwortlicherGastId = Integer.parseInt(csvData[Buchung.CSVPosition.VERANTWORTLICHER_GAST_ID.ordinal()]);
-        this.onReferenceFound(Gast.class, verantwortlicherGastId, buchung::setVerantwortlicherGast);
-
-        for (final var gebuchteLeistungId : this.getListValues(csvData[Buchung.CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.ordinal()])) {
-            this.onReferenceFound(GebuchteLeistung.class, Integer.parseInt(gebuchteLeistungId), buchung::addGebuchteLeistung);
-        }
-
-        return buchung;
-    }
-
-    private IPersistable createChipkarteFromCSVData(final String[] csvData) {
-        return new Chipkarte(
-                Integer.parseInt(csvData[Chipkarte.CSVPosition.NUMMER.ordinal()]),
-                Chipkarte.Status.valueOf(csvData[Chipkarte.CSVPosition.STATUS.ordinal()])
-        );
-    }
-
-    private IPersistable createEinrichtungFromCSVData(final String[] csvData) {
-        final var einrichtung = new Einrichtung(
+    private IPersistable createFacilityFromCSVData(final String[] csvData) {
+        final var facility = new Einrichtung(
                 Integer.parseInt(csvData[Einrichtung.CSVPosition.ANLAGE_ID.ordinal()]),
                 new GPSPosition(
                         Double.parseDouble(csvData[Einrichtung.CSVPosition.LAGE_LATITUDE.ordinal()]),
@@ -285,61 +343,29 @@ public class EntityFactory {
                 LocalDateTime.parse(csvData[Einrichtung.CSVPosition.LETZTE_WARTUNG.ordinal()])
         );
 
-        for (final var oeffnungstagId : this.getListValues(csvData[Einrichtung.CSVPosition.OEFFNUNGSTAGE_IDS.ordinal()])) {
-            this.onReferenceFound(Oeffnungstag.class, Integer.parseInt(oeffnungstagId), einrichtung::addOeffnungstag);
+        for (final var openingDayId : this.getListValues(csvData[Einrichtung.CSVPosition.OEFFNUNGSTAGE_IDS.ordinal()])) {
+            this.onReferenceFound(Oeffnungstag.class, Integer.parseInt(openingDayId), facility::addOeffnungstag);
         }
 
-        final var fremdfirmaId = csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()];
-        if (!fremdfirmaId.isEmpty()) {
-            this.onReferenceFound(Fremdfirma.class, Integer.parseInt(fremdfirmaId), einrichtung::setZustaendigeFirma);
+        final var contractorId = csvData[Einrichtung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()];
+        if (!contractorId.isEmpty()) {
+            this.onReferenceFound(Fremdfirma.class, Integer.parseInt(contractorId), facility::setZustaendigeFirma);
         }
 
-        final var bereichId = csvData[Einrichtung.CSVPosition.BEREICH_ID.ordinal()];
-        if (!bereichId.isEmpty()) {
-            this.onReferenceFound(Bereich.class, Integer.parseInt(bereichId), einrichtung::setBereich);
+        final var areaId = csvData[Einrichtung.CSVPosition.BEREICH_ID.ordinal()];
+        if (!areaId.isEmpty()) {
+            this.onReferenceFound(Bereich.class, Integer.parseInt(areaId), facility::setBereich);
         }
 
-        for (final var fotoId : this.getListValues(csvData[Einrichtung.CSVPosition.FOTO_IDS.ordinal()])) {
-            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), einrichtung::addFoto);
+        for (final var photoId : this.getListValues(csvData[Einrichtung.CSVPosition.FOTO_IDS.ordinal()])) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(photoId), facility::addFoto);
         }
 
-        return einrichtung;
+        return facility;
     }
 
-    private IPersistable createFotoFromCSVData(final String[] csvData) {
-        return new Foto(
-                Integer.parseInt(csvData[Foto.CSVPosition.FOTO_ID.ordinal()]),
-                Path.of(csvData[Foto.CSVPosition.DATEIPFAD.ordinal()]),
-                csvData[Foto.CSVPosition.TITEL.ordinal()],
-                csvData[Foto.CSVPosition.BESCHREIBUNG.ordinal()]
-        );
-    }
-
-    private IPersistable createFremdfirmaFromCSVData(final String[] csvData) {
-        final var fremdfirma = new Fremdfirma(
-                Integer.parseInt(csvData[Fremdfirma.CSVPosition.FREMDFIRMA_ID.ordinal()]),
-                csvData[Fremdfirma.CSVPosition.NAME.ordinal()]
-        );
-
-        for (final var wartungsId : this.getListValues(csvData[Fremdfirma.CSVPosition.WARTUNG_IDS.ordinal()])) {
-            this.onReferenceFound(Wartung.class, Integer.parseInt(wartungsId), fremdfirma::addWartung);
-        }
-
-        for (final var einrichtungsId : this.getListValues(csvData[Fremdfirma.CSVPosition.EINRICHTUNG_IDS.ordinal()])) {
-            this.onReferenceFound(Einrichtung.class, Integer.parseInt(einrichtungsId), fremdfirma::addEinrichtung);
-        }
-
-        final var anschriftId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSCHRIFT_ID.ordinal()]);
-        this.onReferenceFound(Adresse.class, anschriftId, fremdfirma::setAnschrift);
-
-        final var ansprechpersonId = Integer.parseInt(csvData[Fremdfirma.CSVPosition.ANSPRECHPERSON_ID.ordinal()]);
-        this.onReferenceFound(Person.class, ansprechpersonId, fremdfirma::setAnsprechperson);
-
-        return fremdfirma;
-    }
-
-    private IPersistable createGastFromCSVData(final String[] csvData) {
-        final var gast = new Gast(
+    private IPersistable createGuestFromCSVData(final String[] csvData) {
+        final var guest = new Gast(
                 csvData[Gast.CSVPosition.VORNAME.ordinal()],
                 csvData[Gast.CSVPosition.NACHNAME.ordinal()],
                 Gast.Geschlecht.valueOf(csvData[Gast.CSVPosition.GESCHLECHT.ordinal()]),
@@ -349,54 +375,68 @@ public class EntityFactory {
                 csvData[Gast.CSVPosition.AUSWEISNUMMER.ordinal()]
         );
 
-        final var anschriftId = Integer.parseInt(csvData[Gast.CSVPosition.ANSCHRIFT.ordinal()]);
-        this.onReferenceFound(Adresse.class, anschriftId, gast::setAnschrift);
+        final var addressId = Integer.parseInt(csvData[Gast.CSVPosition.ANSCHRIFT.ordinal()]);
+        this.onReferenceFound(Adresse.class, addressId, guest::setAnschrift);
 
-        for (final var buchungId : this.getListValues(csvData[Gast.CSVPosition.BUCHUNG_IDS.ordinal()])) {
-            this.onReferenceFound(Buchung.class, Integer.parseInt(buchungId), gast::addBuchung);
+        for (final var bookingId : this.getListValues(csvData[Gast.CSVPosition.BUCHUNG_IDS.ordinal()])) {
+            this.onReferenceFound(Buchung.class, Integer.parseInt(bookingId), guest::addBuchung);
         }
 
-        return gast;
+        return guest;
     }
 
-    private IPersistable createGebuchteLeistungFromCSVData(final String[] csvData) {
-        final var gebuchteLeistung = new GebuchteLeistung(
-                Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.GEBUCHTE_LEISTUNG_ID.ordinal()]),
-                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNG_START.ordinal()]),
-                LocalDate.parse(csvData[GebuchteLeistung.CSVPosition.BUCHUNGS_ENDE.ordinal()])
+    private IPersistable createInvoiceFromCSVData(final String[] csvData) {
+        final var invoice = new Rechnung(
+                Integer.parseInt(csvData[Rechnung.CSVPosition.RECHNUNGSNUMMER.ordinal()]),
+                LocalDate.parse(csvData[Rechnung.CSVPosition.RECHNUNGSDATUM.ordinal()]),
+                new BigDecimal(csvData[Rechnung.CSVPosition.BETRAG_NETTO.ordinal()]),
+                csvData[Rechnung.CSVPosition.ZAHLUNGSANWEISUNG.ordinal()],
+                csvData[Rechnung.CSVPosition.BANKVERBINDUNG.ordinal()],
+                csvData[Rechnung.CSVPosition.ZAHLUNGSZWECK.ordinal()],
+                LocalDate.parse(csvData[Rechnung.CSVPosition.ZAHLUNGSZIEL.ordinal()])
         );
 
-        final var leistungsBeschreibungId = Integer.parseInt(csvData[GebuchteLeistung.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]);
-        this.onReferenceFound(Leistungsbeschreibung.class, leistungsBeschreibungId, gebuchteLeistung::setLeistungsbeschreibung);
+        final var guestId = Integer.parseInt(csvData[Rechnung.CSVPosition.ADRESSAT_ID.ordinal()]);
+        this.onReferenceFound(Gast.class, guestId, invoice::setAdressat);
 
-        return gebuchteLeistung;
+        return invoice;
     }
 
-    private IPersistable createGeraetschaftFromCSVData(final String[] csvData) {
-        return new Geraetschaft(
-                Integer.parseInt(csvData[Geraetschaft.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
-                new BigDecimal(csvData[Geraetschaft.CSVPosition.GEBUEHR.ordinal()]),
-                Integer.parseInt(csvData[Geraetschaft.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
-                csvData[Geraetschaft.CSVPosition.BESCHREIBUNG.ordinal()],
-                LocalDate.parse(csvData[Geraetschaft.CSVPosition.ANSCHAFFUNGSDATUM.ordinal()]),
-                csvData[Geraetschaft.CSVPosition.ZUSTAND.ordinal()]
+    private IPersistable createMaintenanceFromCSVData(final String[] csvData) {
+        final var maintenance = new Wartung(
+                Integer.parseInt(csvData[Wartung.CSVPosition.WARTUNGSNUMMER.ordinal()]),
+                LocalDate.parse(csvData[Wartung.CSVPosition.DUERCHFUEHRUNGSDATUM.ordinal()]),
+                LocalDate.parse(csvData[Wartung.CSVPosition.RECHNUNGSDATUM.ordinal()]),
+                csvData[Wartung.CSVPosition.AUFTRAGSNUMMER.ordinal()],
+                csvData[Wartung.CSVPosition.RECHNUNGSNUMMER.ordinal()],
+                new BigDecimal(csvData[Wartung.CSVPosition.KOSTEN.ordinal()])
         );
+
+        final var contractorId = csvData[Wartung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()];
+        if (!contractorId.isEmpty()) {
+            this.onReferenceFound(Fremdfirma.class, Integer.parseInt(contractorId), maintenance::setZustaendigeFirma);
+        }
+
+        final var complexId = Integer.parseInt(csvData[Wartung.CSVPosition.ANLAGE_ID.ordinal()]);
+        this.onReferenceFound(Anlage.class, complexId, maintenance::setAnlage);
+
+        return maintenance;
     }
 
-    private IPersistable createOeffnungstagFromCSVData(final String[] csvData) {
-        final var oeffnungstag = new Oeffnungstag(
+    private IPersistable createOpeningDayFromCSVData(final String[] csvData) {
+        final var openingDay = new Oeffnungstag(
                 Integer.parseInt(csvData[Oeffnungstag.CSVPosition.OEFFNUNGSTAG_ID.ordinal()]),
                 Oeffnungstag.Wochentag.valueOf(csvData[Oeffnungstag.CSVPosition.WOCHENTAG.ordinal()])
         );
 
-        for (final var oeffnungszeitId : this.getListValues(csvData[Oeffnungstag.CSVPosition.OEFFNUNGSZEITEN_IDS.ordinal()])) {
-            this.onReferenceFound(Oeffnungszeit.class, Integer.parseInt(oeffnungszeitId), oeffnungstag::addOeffnungszeit);
+        for (final var openingHourId : this.getListValues(csvData[Oeffnungstag.CSVPosition.OEFFNUNGSZEITEN_IDS.ordinal()])) {
+            this.onReferenceFound(Oeffnungszeit.class, Integer.parseInt(openingHourId), openingDay::addOeffnungszeit);
         }
 
-        return oeffnungstag;
+        return openingDay;
     }
 
-    private IPersistable createOeffnungszeitFromCSVData(final String[] csvData) {
+    private IPersistable createOpeningHourFromCSVData(final String[] csvData) {
         return new Oeffnungszeit(
                 Integer.parseInt(csvData[Oeffnungszeit.CSVPosition.OEFFNUNGSZEIT_ID.ordinal()]),
                 LocalTime.parse(csvData[Oeffnungszeit.CSVPosition.START.ordinal()]),
@@ -427,32 +467,24 @@ public class EntityFactory {
                 Personal.Rolle.valueOf(csvData[Personal.CSVPosition.ROLLE.ordinal()])
         );
 
-        for (final var stoerungsId : this.getListValues(csvData[Personal.CSVPosition.STOERUNGEN_IDS.ordinal()])) {
-            this.onReferenceFound(Stoerung.class, Integer.parseInt(stoerungsId), personal::addStoerung);
+        for (final var disturbanceId : this.getListValues(csvData[Personal.CSVPosition.STOERUNGEN_IDS.ordinal()])) {
+            this.onReferenceFound(Stoerung.class, Integer.parseInt(disturbanceId), personal::addStoerung);
         }
 
         return personal;
     }
 
-    private IPersistable createRechnungFromCSVData(final String[] csvData) {
-        final var rechnung = new Rechnung(
-                Integer.parseInt(csvData[Rechnung.CSVPosition.RECHNUNGSNUMMER.ordinal()]),
-                LocalDate.parse(csvData[Rechnung.CSVPosition.RECHNUNGSDATUM.ordinal()]),
-                new BigDecimal(csvData[Rechnung.CSVPosition.BETRAG_NETTO.ordinal()]),
-                csvData[Rechnung.CSVPosition.ZAHLUNGSANWEISUNG.ordinal()],
-                csvData[Rechnung.CSVPosition.BANKVERBINDUNG.ordinal()],
-                csvData[Rechnung.CSVPosition.ZAHLUNGSZWECK.ordinal()],
-                LocalDate.parse(csvData[Rechnung.CSVPosition.ZAHLUNGSZIEL.ordinal()])
+    private IPersistable createPhotoFromCSVData(final String[] csvData) {
+        return new Foto(
+                Integer.parseInt(csvData[Foto.CSVPosition.FOTO_ID.ordinal()]),
+                Path.of(csvData[Foto.CSVPosition.DATEIPFAD.ordinal()]),
+                csvData[Foto.CSVPosition.TITEL.ordinal()],
+                csvData[Foto.CSVPosition.BESCHREIBUNG.ordinal()]
         );
-
-        final var gastId = Integer.parseInt(csvData[Rechnung.CSVPosition.ADRESSAT_ID.ordinal()]);
-        this.onReferenceFound(Gast.class, gastId, rechnung::setAdressat);
-
-        return rechnung;
     }
 
-    private IPersistable createStellplatzFromCSVData(final String[] csvData) {
-        final var stellplatz = new Stellplatz(
+    private IPersistable createPitchFromCSVData(final String[] csvData) {
+        final var pitch = new Stellplatz(
                 Integer.parseInt(csvData[Stellplatz.CSVPosition.ANLAGE_ID.ordinal()]),
                 new GPSPosition(
                         Double.parseDouble(csvData[Stellplatz.CSVPosition.LAGE_LATITUDE.ordinal()]),
@@ -467,26 +499,26 @@ public class EntityFactory {
                 Integer.parseInt(csvData[Stellplatz.CSVPosition.ANZAHL_ZELTE.ordinal()])
         );
 
-        for (final var stellplatzfunktionId : this.getListValues(csvData[Stellplatz.CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.ordinal()])) {
+        for (final var pitchFunctionId : this.getListValues(csvData[Stellplatz.CSVPosition.VERFUEGBARE_FUNKTIONEN_IDS.ordinal()])) {
             this.onReferenceFound(Stellplatzfunktion.class,
-                    Integer.parseInt(stellplatzfunktionId),
-                    stellplatz::addVerfuegbareFunktion);
+                    Integer.parseInt(pitchFunctionId),
+                    pitch::addVerfuegbareFunktion);
         }
 
-        final var bereichId = csvData[Stellplatz.CSVPosition.BEREICH_ID.ordinal()];
-        if (!bereichId.isEmpty()) {
-            this.onReferenceFound(Bereich.class, Integer.parseInt(bereichId), stellplatz::setBereich);
+        final var areaId = csvData[Stellplatz.CSVPosition.BEREICH_ID.ordinal()];
+        if (!areaId.isEmpty()) {
+            this.onReferenceFound(Bereich.class, Integer.parseInt(areaId), pitch::setBereich);
         }
 
-        for (final var fotoId : this.getListValues(csvData[Stellplatz.CSVPosition.FOTO_IDS.ordinal()])) {
-            this.onReferenceFound(Foto.class, Integer.parseInt(fotoId), stellplatz::addFoto);
+        for (final var photoId : this.getListValues(csvData[Stellplatz.CSVPosition.FOTO_IDS.ordinal()])) {
+            this.onReferenceFound(Foto.class, Integer.parseInt(photoId), pitch::addFoto);
         }
 
-        return stellplatz;
+        return pitch;
     }
 
-    private IPersistable createStellplatzfunktionFromCSVData(final String[] csvData) {
-        final var stellplatzFunktion = new Stellplatzfunktion(
+    private IPersistable createPitchFunctionFromCSVData(final String[] csvData) {
+        final var pitchFunction = new Stellplatzfunktion(
                 Integer.parseInt(csvData[Stellplatzfunktion.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
                 new BigDecimal(csvData[Stellplatzfunktion.CSVPosition.GEBUEHR.ordinal()]),
                 Integer.parseInt(csvData[Stellplatzfunktion.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
@@ -494,52 +526,22 @@ public class EntityFactory {
                 Stellplatzfunktion.Status.valueOf(csvData[Stellplatzfunktion.CSVPosition.STATUS.ordinal()])
         );
 
-        for (final var stellplatzId : this.getListValues(csvData[Stellplatzfunktion.CSVPosition.STELLPLATZ_IDS.ordinal()])) {
-            this.onReferenceFound(Stellplatz.class, Integer.parseInt(stellplatzId), stellplatzFunktion::addStellplatz);
+        for (final var pitchId : this.getListValues(csvData[Stellplatzfunktion.CSVPosition.STELLPLATZ_IDS.ordinal()])) {
+            this.onReferenceFound(Stellplatz.class, Integer.parseInt(pitchId), pitchFunction::addStellplatz);
         }
 
-        return stellplatzFunktion;
+        return pitchFunction;
     }
 
-    private IPersistable createStoerungFromCSVData(final String[] csvData) {
-        final var stoerung = new Stoerung(
-                Integer.parseInt(csvData[Stoerung.CSVPosition.STOERUNGSNUMMER.ordinal()]),
-                csvData[Stoerung.CSVPosition.TITEL.ordinal()],
-                csvData[Stoerung.CSVPosition.BESCHREIBUNG.ordinal()],
-                LocalDateTime.parse(csvData[Stoerung.CSVPosition.ERSTELLUNGSDATUM.ordinal()]),
-                LocalDateTime.parse(csvData[Stoerung.CSVPosition.BEHEBUNGSDATUM.ordinal()]),
-                Stoerung.Status.valueOf(csvData[Stoerung.CSVPosition.STATUS.ordinal()])
+    private IPersistable createToolFromCSVData(final String[] csvData) {
+        return new Geraetschaft(
+                Integer.parseInt(csvData[Geraetschaft.CSVPosition.LEISTUNGSBESCHREIBUNG_ID.ordinal()]),
+                new BigDecimal(csvData[Geraetschaft.CSVPosition.GEBUEHR.ordinal()]),
+                Integer.parseInt(csvData[Geraetschaft.CSVPosition.MAXIMAL_ANZAHL.ordinal()]),
+                csvData[Geraetschaft.CSVPosition.BESCHREIBUNG.ordinal()],
+                LocalDate.parse(csvData[Geraetschaft.CSVPosition.ANSCHAFFUNGSDATUM.ordinal()]),
+                csvData[Geraetschaft.CSVPosition.ZUSTAND.ordinal()]
         );
-
-        final var stellplatzFunktionId = csvData[Stoerung.CSVPosition.STELLPLATZFUNKTION_ID.ordinal()];
-        if (!stellplatzFunktionId.isEmpty()) {
-            this.onReferenceFound(Stellplatzfunktion.class,
-                    Integer.parseInt(stellplatzFunktionId),
-                    stoerung::setStellplatzfunktion);
-        }
-
-        return stoerung;
-    }
-
-    private IPersistable createWartungFromCSVData(final String[] csvData) {
-        final var wartung = new Wartung(
-                Integer.parseInt(csvData[Wartung.CSVPosition.WARTUNGSNUMMER.ordinal()]),
-                LocalDate.parse(csvData[Wartung.CSVPosition.DUERCHFUEHRUNGSDATUM.ordinal()]),
-                LocalDate.parse(csvData[Wartung.CSVPosition.RECHNUNGSDATUM.ordinal()]),
-                csvData[Wartung.CSVPosition.AUFTRAGSNUMMER.ordinal()],
-                csvData[Wartung.CSVPosition.RECHNUNGSNUMMER.ordinal()],
-                new BigDecimal(csvData[Wartung.CSVPosition.KOSTEN.ordinal()])
-        );
-
-        final var fremdFirmaId = csvData[Wartung.CSVPosition.ZUSTAENDIGE_FIRMA_ID.ordinal()];
-        if (!fremdFirmaId.isEmpty()) {
-            this.onReferenceFound(Fremdfirma.class, Integer.parseInt(fremdFirmaId), wartung::setZustaendigeFirma);
-        }
-
-        final var anlageId = Integer.parseInt(csvData[Wartung.CSVPosition.ANLAGE_ID.ordinal()]);
-        this.onReferenceFound(Anlage.class, anlageId, wartung::setAnlage);
-
-        return wartung;
     }
 
     private Iterable<String> getListValues(final String csvData) {
