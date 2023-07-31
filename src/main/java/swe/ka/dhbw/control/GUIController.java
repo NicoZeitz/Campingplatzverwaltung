@@ -577,6 +577,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         // setup up initial data
         this.doEntityUpdate();
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, LocalDate.now()));
+
+        //Custom text for JOptionPane in correct language
+        UIManager.put("OptionPane.yesButtonText", "Ja");
+        UIManager.put("OptionPane.noButtonText", "Nein");
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

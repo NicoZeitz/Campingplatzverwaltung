@@ -24,13 +24,15 @@ Attribute in Person, ... protected gemacht
 # Weiterer Plan
 
 Fabian:
-- [ ] Aktion abbrechen -> Antworten YES / NO (JOptionPane) global -> guiCont openMain
+
+- [x] Aktion abbrechen -> Antworten YES / NO (JOptionPane) global -> guiCont openMain
 - [ ] Fahrzeugtyp sollte Leerfeld besitzen
 - [ ] Bedienungsanleitung-Start
-- [ ] Anforderungen durchlesen 
+- [ ] Anforderungen durchlesen
 
 Nico:
-- [ ] Konfig-Fenster macht was es will (bleibt nicht an der Stelle, an der es sein soll)
+
+- [ ] Konfig-Fenster macht, was es will (bleibt nicht an der Stelle, an der es sein soll)
 - [ ] Ausrüstung wird nicht gespeichert
 - [ ] Dokument ergänzen, was bei Implementierung geändert wurde
 - [ ] Buchung bearbeiten
