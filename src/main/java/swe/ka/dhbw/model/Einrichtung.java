@@ -103,6 +103,13 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
 
     public void setZustaendigeFirma(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Fremdfirma> zustaendigeFirma) {
         Validator.getInstance().validateNotNull(zustaendigeFirma);
+
+        if (this.zustaendigeFirma.equals(zustaendigeFirma)) {
+            return;
+        }
+
+        this.zustaendigeFirma.ifPresent(firma -> firma.removeEinrichtung(this));
+
         this.zustaendigeFirma = zustaendigeFirma;
         if (zustaendigeFirma.isPresent() && !zustaendigeFirma.get().getEinrichtungen().contains(this)) {
             zustaendigeFirma.get().addEinrichtung(this);

@@ -292,7 +292,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         var hasError = false;
         this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_RESET));
 
-
         if (payload.arrivalDate().isEmpty()) {
             this.fireUpdateEvent(new UpdateEvent(this,
                     BookingCreateComponent.Commands.ERRORS_SHOW_START_DATE,

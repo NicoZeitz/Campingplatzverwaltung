@@ -118,7 +118,16 @@ public final class Wartung implements ICSVPersistable, IPersistable, IDepictable
 
     public void setZustaendigeFirma(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Fremdfirma> zustaendigeFirma) {
         Validator.getInstance().validateNotNull(zustaendigeFirma);
+
+        if (this.zustaendigeFirma.equals(zustaendigeFirma)) {
+            return;
+        }
+
+        this.zustaendigeFirma.ifPresent(firma -> firma.removeWartung(this));
         this.zustaendigeFirma = zustaendigeFirma;
+        if (zustaendigeFirma.isPresent() && !zustaendigeFirma.get().getWartungen().contains(this)) {
+            zustaendigeFirma.get().addWartung(this);
+        }
     }
 
     public Anlage getAnlage() {

@@ -109,6 +109,13 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
 
     public void setVerantwortlicherGast(final Gast verantwortlicherGast) {
         Validator.getInstance().validateNotNull(verantwortlicherGast);
+
+        if (this.verantwortlicherGast.equals(verantwortlicherGast)) {
+            return;
+        }
+        
+        this.verantwortlicherGast.removeBuchung(this);
+
         this.verantwortlicherGast = verantwortlicherGast;
         if (!verantwortlicherGast.getBuchungen().contains(this)) {
             verantwortlicherGast.addBuchung(this);
@@ -300,6 +307,9 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     public void addZugehoerigerGast(final Gast gast) {
         Validator.getInstance().validateNotNull(gast);
         this.zugehoerigeGaeste.add(gast);
+        if (!gast.getBuchungen().contains(this)) {
+            gast.addBuchung(this);
+        }
     }
 
     @SuppressWarnings("unused")
@@ -320,5 +330,8 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     @SuppressWarnings("unused")
     public void removeZugehoerigerGast(final Gast gast) {
         this.zugehoerigeGaeste.remove(gast);
+        if (gast.getBuchungen().contains(this)) {
+            gast.removeBuchung(this);
+        }
     }
 }
