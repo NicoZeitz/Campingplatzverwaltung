@@ -105,6 +105,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return instance;
     }
 
+    // get tranformed data
+
     private Map<LocalDate, List<IDepictable>> getAppointments() {
         return this.entityManager.find(Buchung.class).stream()
                 .sorted(Buchung::compareTo)
@@ -188,6 +190,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .toList();
     }
 
+    // setters
+
     public void setEntityManager(final EntityManager entityManager) {
         this.entityManager = entityManager;
     }
@@ -199,6 +203,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public void setDatabase(final Datenbasis<ICSVPersistable> database) {
         this.database = database;
     }
+
+    // observer pattern
 
     @Override
     public boolean addObserver(final EventListener eventListener) {
@@ -224,24 +230,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.updateEventObservers.remove(eventListener);
     }
 
-    public void bookingCreateSelectChipkarte(final Chipkarte newlySelectedChipkarte) {
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                BookingCreateComponent.Commands.ADD_SELECTED_CHIPCARD,
-                newlySelectedChipkarte
-        ));
-    }
-
-    public void bookingRemoveChipkarte(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
-        selectedChipCards.remove(deletedChipCard);
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
-                selectedChipCards
-        ));
-    }
-
-    // Event Handlers
+    // general methods
 
     public void exitApplication() {
         if (this.app.getConfig() == null) {
@@ -250,6 +239,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.app.exitApplication();
     }
 
+    // oberver pattern
+
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
         for (final var eventListener : this.updateEventObservers) {
             if (eventListener instanceof IUpdateEventListener updateListener) {
@@ -257,6 +248,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
         }
     }
+
+    // event Handlers
 
     public void handleWindowBookingAppointmentOverviewNextWeek(final LocalDate currentWeek) {
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, currentWeek.plusWeeks(1)));
@@ -499,6 +492,15 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         ));
     }
 
+    public void handleWindowBookingCreateRemoveChipCard(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
+        selectedChipCards.remove(deletedChipCard);
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
+                selectedChipCards
+        ));
+    }
+
     public void handleWindowBookingCreateResponsibleGuestSelected(final BookingCreateComponent.ResponsibleGuestSelectedPayload payload) {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
@@ -507,6 +509,14 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         payload.selectedGuests(),
                         Optional.of(payload.selectedGuest())
                 )
+        ));
+    }
+
+    public void handleWindowBookingCreateSelectChipCard(final Chipkarte newlySelectedChipkarte) {
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingCreateComponent.Commands.ADD_SELECTED_CHIPCARD,
+                newlySelectedChipkarte
         ));
     }
 
@@ -544,7 +554,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.APPOINTMENT_OVERVIEW));
     }
 
-    // Dialogs
+    // Initialization
 
     public void initialize() {
         this.addObserver(this);
@@ -570,6 +580,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.doEntityUpdate();
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, LocalDate.now()));
     }
+
+    // Dialogs
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public void openDialogDatePicker(
@@ -1072,6 +1084,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
+    // Windows
+
     public void openWindowBooking() {
         if (this.windowBooking.isDisplayable()) {
             this.windowBooking.grabFocus();
@@ -1084,8 +1098,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             return true;
         });
     }
-
-    // Windows
 
     public void openWindowCheckInCheckOut() {
         if (this.windowCheckInCheckOut.isDisplayable()) {
@@ -1202,6 +1214,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             return true;
         });
     }
+    
+    // general methods
 
     private void doEntityUpdate() {
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_ADDRESSES, this.entityManager.find(Adresse.class)));
