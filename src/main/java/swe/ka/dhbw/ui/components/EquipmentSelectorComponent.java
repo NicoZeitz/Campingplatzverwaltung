@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class EquipmentSelectorComponent extends GUIComponent implements IGUIEventListener {
     public record SavePayload(
@@ -20,7 +21,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
             Optional<Double> width,
             Optional<Double> height,
             Optional<String> licensePlate,
-            Object vehicleTyp) {
+            Optional<Object> vehicleTyp) {
     }
 
     public enum Commands implements EventCommand {
@@ -89,7 +90,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                     final var width = tryOptional(() -> Double.parseDouble((this.widthElement.getValueAsString()).replaceAll(",", ".")));
                     final var height = tryOptional(() -> Double.parseDouble((this.heightElement.getValueAsString()).replaceAll(",", ".")));
                     final var licensePlate = Optional.of((String) this.licensePlateElement.getValue()).filter(s -> !s.isBlank());
-                    final var vehicleTyp = this.vehicleTypElement.getValue();
+                    final var vehicleTyp = Optional.of(this.vehicleTypElement.getValue()).filter(s -> !s.equals(""));
 
                     final var payload = new SavePayload(description, amount, width, height, licensePlate, vehicleTyp);
                     this.fireGUIEvent(new GUIEvent(this, Commands.SAVE, payload));
@@ -203,7 +204,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .autoformat()
                 .modificationType(AttributeElement.ModificationType.INTERACTIVE_AND_DIRECT)
                 // action button
-                .data(this.vehicleTypes.toArray())
+                .data(Stream.concat(Stream.of(""), this.vehicleTypes.stream()).toArray(Object[]::new))
                 .actionElementSize(new Dimension(120, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .actionType(AttributeElement.ActionType.COMBOBOX)
                 .actionElementFont(this.config.getFont())
