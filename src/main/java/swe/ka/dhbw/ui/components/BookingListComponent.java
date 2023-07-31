@@ -105,6 +105,11 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
     public void processUpdateEvent(final UpdateEvent updateEvent) {
         if (updateEvent.getCmd() == Commands.UPDATE_BOOKINGS) {
             this.bookings = (List<? extends IDepictable>) updateEvent.getData();
+            if (this.bookings.isEmpty()) {
+                this.tableComponent.setData(new IDepictable[0], new String[0]);
+                return;
+            }
+
             final var columnNames = Arrays.stream(this.bookings.get(0).getAttributeArray())
                     .map(Attribute::getName)
                     .toList()

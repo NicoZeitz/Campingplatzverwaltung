@@ -158,6 +158,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.entityManager
                 .find(Buchung.class)
                 .stream()
+                .sorted(Buchung::compareTo)
                 .map(b -> new IDepictable() {
                     @Override
                     public Attribute[] getAttributeArray() {

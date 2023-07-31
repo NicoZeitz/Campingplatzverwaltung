@@ -42,7 +42,7 @@ Nico:
     - [ ] BookingEditComponent: Modify BookingCreateComponent to allow editing
         - add a new button to delete the booking
 - [ ] BookingListComponent
-    - [ ] Sort Bookings by Time
+    - [x] Sort Bookings by Time
     - [ ] Search Bookings (Buchungen werden über ihre Termindaten gesucht. Termindaten werden über
       einen Zeitraum gesucht (Start- und Enddatum im Format DD.MM.YYYY). Alle Termine, die im gesamten Zeitraum zwischen
       Start- und Enddatum mindestens einen gebuchten Tag beinhalten, werden beim Ergebnis angezeigt)
