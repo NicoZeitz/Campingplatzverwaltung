@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
-public final class Ausruestung implements ICSVPersistable, IPersistable, IDepictable {
+public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepictable permits Fahrzeug {
     public enum Attributes {
         AUSRUESTUNG_ID,
         BEZEICHNUNG,
