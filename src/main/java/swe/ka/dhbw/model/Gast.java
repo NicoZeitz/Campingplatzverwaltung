@@ -215,7 +215,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
     public void addBuchung(final Buchung buchung) {
         Validator.getInstance().validateNotNull(buchung);
         this.buchungen.add(buchung);
-        if (!buchung.getVerantwortlicherGast().equals(this)) {
+        if (!this.equals(buchung.getVerantwortlicherGast())) {
             buchung.setVerantwortlicherGast(this);
         }
     }

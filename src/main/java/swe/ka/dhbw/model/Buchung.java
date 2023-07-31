@@ -110,11 +110,13 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     public void setVerantwortlicherGast(final Gast verantwortlicherGast) {
         Validator.getInstance().validateNotNull(verantwortlicherGast);
 
-        if (this.verantwortlicherGast.equals(verantwortlicherGast)) {
+        if (this.verantwortlicherGast != null && this.verantwortlicherGast.equals(verantwortlicherGast)) {
             return;
         }
-        
-        this.verantwortlicherGast.removeBuchung(this);
+
+        if (this.verantwortlicherGast != null) {
+            this.verantwortlicherGast.removeBuchung(this);
+        }
 
         this.verantwortlicherGast = verantwortlicherGast;
         if (!verantwortlicherGast.getBuchungen().contains(this)) {
