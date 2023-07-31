@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BookingCreateComponent extends GUIComponent implements IGUIEventListener {
-    public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedGuest) {
+    public record ResponsibleGuestSelectedPayload(List<? extends IDepictable> selectedGuests, IDepictable selectedResponsibleGuest) {
     }
 
     public record GuestDeletePayload(

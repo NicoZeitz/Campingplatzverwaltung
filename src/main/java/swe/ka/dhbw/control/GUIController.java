@@ -170,14 +170,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
                         // @formatter:off
                         return new Attribute[] {
-                            new Attribute("Buchungsnummer", b, Integer.class, b.getBuchungsnummer(), null, true, false, false, true),
+                            new Attribute("Buchungsnummer", b, String.class, Integer.toString(b.getBuchungsnummer()), null, true, false, false, true),
                             new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)), null, true, false, false, true),
-                            new Attribute("Verantwortlicher Gast", b, String.class, verantwortlicherGast.getName() + " (" + verantwortlicherGast.getKundennummer() + ")", null, true, false, false, true),
-                            new Attribute("Stellplatz", b, String.class, stellplatz.getStellplatz(), null, true, false, false, true),
-                            new Attribute("Bereich", b, String.class, bereich.map(Bereich::getKennzeichen).orElse('-'), null, true, false, false, true),
-                            new Attribute("Weitere Gäste", b, String.class, b.getZugehoerigeGaeste().stream().map(Person::getName).collect(Collectors.joining(", ")), null, true, false, false, true),
+                            new Attribute("Verantwortlicher Gast", b, IDepictable.class, verantwortlicherGast, null, true, false, false, true),
+                            new Attribute("Stellplatz", b, IDepictable.class, stellplatz, null, true, false, false, true),
+                            new Attribute("Bereich", b, Optional.class, bereich, null, true, false, false, true),
+                            new Attribute("Weitere Gäste", b, List.class, b.getZugehoerigeGaeste(), null, true, false, false, true),
                             new Attribute("Stellplatzbilder", b, List.class, stellplatz.getFotos().stream().map(Foto::getImage).toList(), null, true, false, false, true),
-                            new Attribute("Chipkarten", b, String.class, b.getAusgehaendigteChipkarten().stream().map(c -> c.getNummer() + " (" + c.getStatus() + ")").collect(Collectors.joining(", ")), null, true, false, false, true),
+                            new Attribute("Gebuchte Leistungen", b, List.class, b.getGebuchteLeistungen(), null, true, false, false, true),
+                            new Attribute("Mitgebrachte Ausrüstung", b, List.class, b.getMitgebrachteAusruestung(), null, true, false, false, true),
+                            new Attribute("Chipkarten", b, List.class, b.getAusgehaendigteChipkarten(), null, true, false, false, true),
                         };
                         // @formatter:on
                     }
@@ -291,7 +293,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public void handleWindowBookingCreateBookingCreate(final BookingCreateComponent.BookingCreatePayload payload) {
         var hasError = false;
         this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_RESET));
-
 
         if (payload.arrivalDate().isEmpty()) {
             this.fireUpdateEvent(new UpdateEvent(this,
@@ -423,6 +424,18 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
     }
 
+    public void handleWindowBookingCreateDeleteChipCard(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
+        final var newSelectedChipCards = new ArrayList<>(selectedChipCards);
+        newSelectedChipCards.remove(deletedChipCard);
+        if (newSelectedChipCards.size() != selectedChipCards.size()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
+                    newSelectedChipCards
+            ));
+        }
+    }
+
     public void handleWindowBookingCreateDeleteEquipment(final List<Ausruestung> rentedEquipment, final Ausruestung equipmentToDelete) {
         final var newRentedEquipment = new ArrayList<>(rentedEquipment);
         newRentedEquipment.remove(equipmentToDelete);
@@ -435,12 +448,10 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
     }
 
-    public void handleWindowBookingCreateDeleteService(final BookingCreateComponent.ServiceDeletePayload payload) {
-        final var newBookedServices = payload.selectedServices()
-                .stream()
-                .filter(s -> !s.equals(payload.serviceToDelete()))
-                .collect(Collectors.toList());
-        if (newBookedServices.size() != payload.selectedServices().size()) {
+    public void handleWindowBookingCreateDeleteService(final List<GebuchteLeistung> bookedServices, final GebuchteLeistung serviceToDelete) {
+        final var newBookedServices = new ArrayList<>(bookedServices);
+        newBookedServices.remove(serviceToDelete);
+        if (newBookedServices.size() != bookedServices.size()) {
             this.fireUpdateEvent(new UpdateEvent(
                     this,
                     BookingCreateComponent.Commands.SET_BOOKED_SERVICES,
@@ -452,17 +463,19 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public void handleWindowBookingCreateEditEquipment(final List<Ausruestung> rentedEquipment,
                                                        final Ausruestung equipmentToEdit,
                                                        final int countDelta) {
-        final var index = rentedEquipment.indexOf(equipmentToEdit);
+        final var newRentEquipment = new ArrayList<>(rentedEquipment);
+        final var index = newRentEquipment.indexOf(equipmentToEdit);
         if (index == -1) {
             return;
         }
 
         final var newCount = equipmentToEdit.getAnzahl() + countDelta;
         if (newCount <= 0) {
+            newRentEquipment.remove(equipmentToEdit);
             this.fireUpdateEvent(new UpdateEvent(
                     this,
                     BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
-                    rentedEquipment.stream().filter(e -> !e.equals(equipmentToEdit)).collect(Collectors.toList())
+                    rentedEquipment
             ));
         } else {
             rentedEquipment.get(index).setAnzahl(newCount);
@@ -476,14 +489,19 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     }
 
     @SuppressWarnings("unchecked")
-    public void handleWindowBookingCreateGuestDeleted(final BookingCreateComponent.GuestDeletePayload payload) {
-        final var newSelectedGuests = payload.selectedGuests()
-                .stream()
-                .filter(g -> !g.equals(payload.deletedGuest()))
-                .collect(Collectors.toList());
-        final var newResponsibleGuest = payload.deletedGuest().equals(payload.responsibleGuest().orElse(null))
-                ? Optional.<IDepictable>empty()
-                : (Optional<IDepictable>) payload.responsibleGuest();
+    public void handleWindowBookingCreateGuestDeleted(final List<Gast> selectedGuests,
+                                                      final Gast deletedGuest,
+                                                      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Gast> responsibleGuest) {
+        final var newSelectedGuests = new ArrayList<>(selectedGuests);
+        newSelectedGuests.remove(deletedGuest);
+
+        if (selectedGuests.size() == newSelectedGuests.size()) {
+            return;
+        }
+
+        final var newResponsibleGuest = responsibleGuest.isPresent() && responsibleGuest.get().equals(deletedGuest)
+                ? Optional.<Gast>empty()
+                : responsibleGuest;
 
         this.fireUpdateEvent(new UpdateEvent(
                 this,
@@ -492,22 +510,13 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         ));
     }
 
-    public void handleWindowBookingCreateRemoveChipCard(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
-        selectedChipCards.remove(deletedChipCard);
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
-                selectedChipCards
-        ));
-    }
-
-    public void handleWindowBookingCreateResponsibleGuestSelected(final BookingCreateComponent.ResponsibleGuestSelectedPayload payload) {
+    public void handleWindowBookingCreateResponsibleGuestSelected(final List<Gast> selectedGuests, final Gast responsibleGuest) {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
                 BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
                 new Payload.GuestList(
-                        payload.selectedGuests(),
-                        Optional.of(payload.selectedGuest())
+                        selectedGuests,
+                        Optional.of(responsibleGuest)
                 )
         ));
     }
@@ -818,6 +827,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         payload.height().get(),
                         payload.width().get()
                 );
+                entityManager.persist(equipment);
 
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
                 this.removeObserver(equipmentSelectorComponent);
@@ -908,6 +918,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(guestSelectorComponent);
                 this.removeObserver(guestSelectorComponent);
                 dialog.dispose();
+                entityManager.persist(guest);
 
                 this.fireUpdateEvent(new UpdateEvent(
                         GUIController.this,
@@ -971,6 +982,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(pitchSelectorComponent);
                 this.removeObserver(pitchSelectorComponent);
                 dialog.dispose();
+                entityManager.persist(pitch);
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
                         eventToEmit,
@@ -1089,6 +1101,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
                 this.removeObserver(serviceSelectorComponent);
                 dialog.dispose();
+                entityManager.persist(bookedService);
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
                         eventToEmit,

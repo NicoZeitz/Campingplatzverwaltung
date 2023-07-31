@@ -39,3 +39,4 @@ build/
 
 ### Own configuration ###
 ./data/configuration.properties
+data/configuration.properties

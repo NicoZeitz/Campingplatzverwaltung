@@ -57,11 +57,18 @@ public class GUIBuchungObserver implements IGUIEventListener {
                 }
                 case RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST -> {
                     final var payload = (BookingCreateComponent.ResponsibleGuestSelectedPayload) guiEvent.getData();
-                    controller.handleWindowBookingCreateResponsibleGuestSelected(payload);
+                    controller.handleWindowBookingCreateResponsibleGuestSelected(
+                            (List<Gast>) payload.selectedGuests(),
+                            (Gast) payload.selectedResponsibleGuest()
+                    );
                 }
                 case BUTTON_PRESSED_DELETE_GUEST -> {
                     final var payload = (BookingCreateComponent.GuestDeletePayload) guiEvent.getData();
-                    controller.handleWindowBookingCreateGuestDeleted(payload);
+                    controller.handleWindowBookingCreateGuestDeleted(
+                            (List<Gast>) payload.selectedGuests(),
+                            (Gast) payload.deletedGuest(),
+                            (Optional<Gast>) payload.responsibleGuest()
+                    );
                 }
                 // services
                 case BUTTON_PRESSED_ADD_SERVICE -> controller.openDialogServiceSelector(
@@ -79,7 +86,10 @@ public class GUIBuchungObserver implements IGUIEventListener {
                 }
                 case BUTTON_PRESSED_DELETE_SERVICE -> {
                     final var payload = (BookingCreateComponent.ServiceDeletePayload) guiEvent.getData();
-                    controller.handleWindowBookingCreateDeleteService(payload);
+                    controller.handleWindowBookingCreateDeleteService(
+                            (List<GebuchteLeistung>) payload.selectedServices(),
+                            (GebuchteLeistung) payload.serviceToDelete()
+                    );
                 }
                 // equipment
                 case BUTTON_PRESSED_ADD_EQUIPMENT -> controller.openDialogEquipmentSelector(
@@ -139,7 +149,7 @@ public class GUIBuchungObserver implements IGUIEventListener {
                 case BUTTON_PRESSED_SELECT_CHIPCARD -> controller.handleWindowBookingCreateSelectChipCard((Chipkarte) guiEvent.getData());
                 case BUTTON_PRESSED_DELETE_CHIPCARD -> {
                     final var payload = (BookingCreateComponent.ChipcardDeletePayload) guiEvent.getData();
-                    controller.handleWindowBookingCreateRemoveChipCard(
+                    controller.handleWindowBookingCreateDeleteChipCard(
                             (List<Chipkarte>) payload.selectedChipCards(),
                             (Chipkarte) payload.chipCardToDelete()
                     );

@@ -25,8 +25,8 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
     // Commands
     public enum Commands implements EventCommand {
         // outgoing gui events
-        OPEN_MAIN_GUI("GUIConfiguration::OPEN_MAIN_GUI"),
-        EXIT_APPLICATION("GUIConfiguration::EXIT_APPLICATION"),
+        BUTTON_PRESSED_OPEN_MAIN_GUI("GUIConfiguration::BUTTON_PRESSED_OPEN_MAIN_GUI"),
+        BUTTON_PRESSED_EXIT_APPLICATION("GUIConfiguration::BUTTON_PRESSED_EXIT_APPLICATION"),
         CONFIGURATION_ACCENT_COLOR("GUIConfiguration::CONFIGURATION_ACCENT_COLOR", Color.class),
         CONFIGURATION_DARK_MODE("GUIConfiguration::CONFIGURATION_DARK_MODE", Boolean.class),
         CONFIGURATION_TEXT_FONT("GUIConfiguration::CONFIGURATION_TEXT_FONT", Font.class),
@@ -86,8 +86,8 @@ public class GUIConfiguration extends GUIComponent implements IGUIEventListener 
                     final var currentColor = this.accentColorButton.getBackgroundColor();
                     this.fireGUIEvent(new GUIEvent(this, Commands.CONFIGURATION_ACCENT_COLOR, currentColor));
                 }
-                case START_APP_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.OPEN_MAIN_GUI));
-                case EXIT_APP_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.EXIT_APPLICATION));
+                case START_APP_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_OPEN_MAIN_GUI));
+                case EXIT_APP_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_EXIT_APPLICATION));
                 case DARK_MODE_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(
                         this,
                         Commands.CONFIGURATION_DARK_MODE,

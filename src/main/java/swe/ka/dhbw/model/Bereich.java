@@ -133,6 +133,11 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
     }
 
     @Override
+    public String getVisibleText() {
+        return Character.toString(this.getKennzeichen());
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), this.getKennzeichen(), this.getBeschreibung());
     }

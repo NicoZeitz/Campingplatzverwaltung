@@ -4,4 +4,6 @@ Fahrzeug;2;Superracer Car X44;1;3.0;4.0;WOLF420;KFZ;NULL
 Fahrzeug;3;Ahuuu Wagen;1;3.0;6.0;A-1234;WOHNWAGEN;NULL
 Fahrzeug;4;Batmobil;1;3.25;4.5;DA RK 77;WOHNMOBIL;NULL
 Fahrzeug;5;Mein Auto;1;1.8;3.0;HUAB123;WOHNWAGEN;NULL
-Ausruestung;5;Zelt;4;2.0;2.0;;;NULL
+Ausruestung;6;Zelt;4;2.0;2.0;;;NULL
+Fahrzeug;7;Detlefs Dreamcar;5;2.0;2.5;DT LF 2003;KFZ;NULL
+Ausruestung;8;Dagobert Duck;1;1.11;0.34;;;NULL

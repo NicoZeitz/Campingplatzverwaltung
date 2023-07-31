@@ -12,11 +12,13 @@ import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.ui.GUIComponent;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class BookingListComponent extends GUIComponent implements IGUIEventListener, TableCellRenderer {
     // Commands
@@ -61,6 +63,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Component getTableCellRendererComponent(final JTable table,
                                                    final Object value,
                                                    final boolean isSelected,
@@ -68,7 +71,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
                                                    final int row,
                                                    final int column) {
         if (value instanceof Collection<?> collection && collection.size() > 0 && collection.stream()
-                .findFirst()
+                .findAny()
                 .get() instanceof ImageElement) {
             final var cell = new JPanel();
             cell.setLayout(new FlowLayout());
@@ -86,7 +89,57 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
             return cell;
         }
 
-        return new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        var text = "";
+        if (value != null) {
+            text = value.toString();
+
+            if (value instanceof IDepictable depictable) {
+                text = depictable.getVisibleText();
+            } else if (value instanceof Optional<?> optional) {
+                if (optional.isPresent() && optional.get() instanceof IDepictable depictable) {
+                    text = depictable.getVisibleText();
+                } else if (optional.isPresent()) {
+                    text = optional.toString();
+                } else {
+                    text = "-";
+                }
+            } else if (value instanceof Collection<?> collection) {
+                if (collection.size() == 0) {
+                    text = "";
+                } else if (collection.stream()
+                        .findAny()
+                        .get() instanceof IDepictable) {
+                    text = ((Collection<IDepictable>) collection).stream().map(IDepictable::getVisibleText).collect(Collectors.joining(", "));
+                } else {
+                    text = collection.stream().map(Object::toString).collect(Collectors.joining(", "));
+                }
+            }
+        }
+
+        final var cell = new JPanel();
+        cell.setLayout(new GridLayout(1, 1));
+        cell.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+        cell.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+        cell.setFont(table.getFont());
+        cell.setOpaque(true);
+
+
+        final var textComponent = new JTextPane();
+        textComponent.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+        textComponent.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+        textComponent.setFont(table.getFont());
+        textComponent.setOpaque(true);
+        textComponent.setEditable(false);
+        textComponent.setFocusable(false);
+        textComponent.setText(text);
+        var doc = textComponent.getStyledDocument();
+        var styles = new SimpleAttributeSet();
+        StyleConstants.setAlignment(styles, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setFontFamily(styles, this.config.getFontFamily());
+        StyleConstants.setFontSize(styles, this.config.getFontSize());
+        doc.setParagraphAttributes(0, doc.getLength(), styles, false);
+        cell.add(textComponent);
+        return cell;
     }
 
     @Override
@@ -126,7 +179,7 @@ public class BookingListComponent extends GUIComponent implements IGUIEventListe
         this.tableComponent = SimpleTableComponent
                 .builder(BOOKING_SIMPLE_TABLE_COMPONENT_ID)
                 .columnNames(new String[0])
-                .cellRenderer(this, List.class)
+                .cellRenderer(this, List.class, String.class, IDepictable.class, Optional.class)
                 .build();
         super.colorizeTable(this.tableComponent);
         this.tableComponent.setData(this.bookings.toArray(new IDepictable[0]), new String[0]);

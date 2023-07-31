@@ -50,6 +50,13 @@ public sealed abstract class Anlage implements IDepictable, IPersistable permits
 
     public void setBereich(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Bereich> bereich) {
         Validator.getInstance().validateNotNull(bereich);
+
+        if (this.bereich.equals(bereich)) {
+            return;
+        }
+        
+        this.bereich.ifPresent(b -> b.removeAnlage(this));
+
         this.bereich = bereich;
         if (bereich.isPresent() && !bereich.get().getAnlagen().contains(this)) {
             bereich.get().addAnlage(this);

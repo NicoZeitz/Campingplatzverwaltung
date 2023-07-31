@@ -247,7 +247,9 @@ public class EntityFactory {
             this.onReferenceFound(GebuchteLeistung.class, Integer.parseInt(bookedServiceId), booking::addGebuchteLeistung);
         }
 
-        // TODO: equipment
+        for (final var equipmentId : this.getListValues(csvData[Buchung.CSVPosition.MITGEBRACHTE_AUSRUESTUNG_IDS.ordinal()])) {
+            this.onReferenceFound(Ausruestung.class, Integer.parseInt(equipmentId), booking::addMitgebrachteAusruestung);
+        }
 
         return booking;
     }

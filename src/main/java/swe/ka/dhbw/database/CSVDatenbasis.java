@@ -121,7 +121,11 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
             return;
         }
 
-        final var index = entities.indexOf(data);
+        final var proxyEntities = entities.stream()
+                .map(entity -> EntityFactory.getInstance().createElement(c, entity.getCSVData()))
+                .toList();
+
+        final var index = proxyEntities.indexOf((IPersistable) data);
         if (index == -1) {
             return;
         }
@@ -137,12 +141,23 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
             return;
         }
 
-        if (EntityManager.getInstance().contains((IPersistable) data)) {
-            this.update(c, data);
+        final var entities = this.read(c);
+        if (entities.size() == 0) {
+            this.write(c, List.of(data), Optional.empty());
             return;
         }
 
-        this.create(c, data);
+        final var proxyEntities = entities.stream()
+                .map(entity -> EntityFactory.getInstance().createElement(c, entity.getCSVData()))
+                .toList();
+
+        final var index = proxyEntities.indexOf((IPersistable) data);
+        if (index == -1) {
+            entities.add(data);
+        } else {
+            entities.set(index, data);
+        }
+        this.write(c, entities, Optional.empty());
     }
 
     public void init() throws IOException {

@@ -220,7 +220,7 @@ public final class Personal extends Person implements IDepictable, ICSVPersistab
     public void addStoerung(final Stoerung stoerung) {
         Validator.getInstance().validateNotNull(stoerung);
         this.stoerungen.add(stoerung);
-        if (!stoerung.getVerantwortlicher().equals(this)) {
+        if (!this.equals(stoerung.getVerantwortlicher())) {
             stoerung.setVerantwortlicher(this);
         }
     }

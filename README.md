@@ -33,12 +33,18 @@ Fabian:
 
 Nico:
 
-- [ ] GUIConfiguration: The window location is not always saved
+- [x] GUIController
+    - [x] Handlers: look that all handlers treat collections as immutable, don't get as payload, check before
+      fire update
+    - [x] Dialog: don't pass data in constructor but in processUpdateEvent (CalendarComponent is impossible as Lutz does
+      not allow setting the date after creating the dialog)
+- [x] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
+- [x] GUIConfiguration: The window location is not always saved
 - [ ] BookingCreateComponent
     - [x] GUI: Disable chip card selector iff "" is the only entry
     - [x] GUI: Sort Booked Services by Time
     - [x] GUI: Sort Equipment by ???
-    - [ ] BookingIds of Guest don't get updated
+    - [x] BookingIds of Guest don't get updated
     - [ ] BookingEditComponent: Modify BookingCreateComponent to allow editing
         - add a new button to delete the booking
 - [ ] BookingListComponent
@@ -47,12 +53,6 @@ Nico:
       einen Zeitraum gesucht (Start- und Enddatum im Format DD.MM.YYYY). Alle Termine, die im gesamten Zeitraum zwischen
       Start- und Enddatum mindestens einen gebuchten Tag beinhalten, werden beim Ergebnis angezeigt)
 - [ ] Payload: Move classes somewhere else
-- [ ] GUIController
-    - [ ] Handlers: look that all handlers treat collections as immutable, don't get as payload, check before
-      fire update
-    - [x] Dialog: don't pass data in constructor but in processUpdateEvent (CalendarComponent is impossible as Lutz does
-      not allow setting the date after creating the dialog)
-- [ ] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
 - [ ] Documentation: What was changed in the implementation
     - Stoerung daten mit Zeit
     - Anlage zu abstrakter Klasse gemacht
