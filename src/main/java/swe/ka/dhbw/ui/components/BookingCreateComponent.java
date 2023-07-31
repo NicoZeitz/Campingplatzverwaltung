@@ -87,6 +87,11 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
     public record GuestListPayload(List<? extends IDepictable> guests, Optional<? extends IDepictable> responsibleGuest) {
     }
 
+    public enum Mode {
+        CREATE,
+        EDIT
+    }
+
 
     public enum Commands implements EventCommand {
         // outgoing gui events
@@ -109,6 +114,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         BUTTON_PRESSED_CREATE_BOOKING("BookingCreateComponent::BUTTON_PRESSED_CREATE_BOOKING"),
         BUTTON_PRESSED_CANCEL("BookingCreateComponent::BUTTON_PRESSED_CANCEL"),
         // incoming update events
+        SET_MODE("BookingCreateComponent::SET_MODE", Mode.class),
         SET_START_DATE("BookingCreateComponent::SET_START_DATE", Temporal.class),
         SET_END_DATE("BookingCreateComponent::SET_END_DATE", Temporal.class),
         SET_PITCH("BookingCreateComponent::SET_PITCH", IDepictable.class),
@@ -166,6 +172,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
 
     // Data
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMANY);
+    private Mode mode = Mode.CREATE;
     private List<? extends IDepictable> availablePitches = new ArrayList<>();
     private List<? extends IDepictable> allChipCards = new ArrayList<>();
     private List<? extends IDepictable> availableChipCards = new ArrayList<>();
@@ -380,6 +387,10 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     this.revalidate();
                 }
                 // other
+                case SET_MODE -> {
+                    this.mode = (Mode) updateEvent.getData();
+                    this.resetInput();
+                }
                 case RESET_INPUT -> this.resetInput();
                 default -> throw new IllegalArgumentException(String.valueOf(updateEvent));
             }

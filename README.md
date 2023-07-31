@@ -21,6 +21,7 @@ DUMMY_DATA NULL
 Beide
 
 - [ ] Ausrüstungsdialog anschauen (kann sein, dass da noch ein Bug ist)
+- [ ] Validierung von Stellplatzfunktion
 - [ ] Benötigte Java Version in der Bedinungsanleitung/Doku eintragen
 - [ ] Test auf Linux
 - [ ] Löschen der Config-Datei vor Meisterübergabe

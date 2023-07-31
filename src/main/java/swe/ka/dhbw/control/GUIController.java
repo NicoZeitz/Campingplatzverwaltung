@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public enum Commands implements EventCommand {
@@ -351,12 +352,24 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 hasError = true;
             }
 
-            final var serviceErrors = payload.bookedServices()
-                    .stream()
-                    .map(s -> (GebuchteLeistung) s)
-                    .filter(s -> s.getBuchungStart().isBefore(arrivalDate.toLocalDate()) || s.getBuchungsEnde().isAfter(departureDate.toLocalDate()))
-                    .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum")
-                    .collect(Collectors.joining("\n"));
+            final var serviceErrors = Stream.concat(
+                    payload.bookedServices()
+                            .stream()
+                            .map(s -> (GebuchteLeistung) s)
+                            .filter(s -> s.getBuchungStart().isBefore(arrivalDate.toLocalDate()) || s.getBuchungsEnde()
+                                    .isAfter(departureDate.toLocalDate()))
+                            .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum"),
+                    payload.bookedServices()
+                            .stream()
+                            .map(s -> (GebuchteLeistung) s)
+                            .filter(s -> {
+                                if (s.getLeistungsbeschreibung() instanceof Stellplatzfunktion function) {
+                                    return function.getStellplaetze().contains(pitch);
+                                }
+                                return false;
+                            })
+                            .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist eine Stellplatzfunktion, welche nicht vom ausgewählten " + pitch.getVisibleText() + " unterstützt wird")
+            ).collect(Collectors.joining("\n"));
 
             if (!serviceErrors.isEmpty()) {
                 this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_SHOW_SERVICES, serviceErrors));
