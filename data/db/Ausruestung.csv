@@ -7,3 +7,9 @@ Fahrzeug;5;Mein Auto;1;1.8;3.0;HUAB123;WOHNWAGEN;NULL
 Ausruestung;6;Zelt;4;2.0;2.0;;;NULL
 Fahrzeug;7;Detlefs Dreamcar;5;2.0;2.5;DT LF 2003;KFZ;NULL
 Ausruestung;8;Dagobert Duck;1;1.11;0.34;;;NULL
+Fahrzeug;15;VW Polo;2;1.9;2.5;WO LF 420;KFZ;NULL
+Ausruestung;16;Boot;10;0.5;3.0;;;NULL
+Ausruestung;18;Klimaanlage gegen Klimawandel;1;0.5;0.5;;;NULL
+Ausruestung;17;Schatzkarte;1;0.01;0.2;;;NULL
+Fahrzeug;20;Der kaiserliche Wohnwagen;1;5.0;5.0;WO HN 2000;WOHNWAGEN;NULL
+Fahrzeug;19;Mi Hotel;3;2.0;2.5;WA GE 9999;WOHNWAGEN;NULL

@@ -506,7 +506,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
                 BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
-                new Payload.GuestList(newSelectedGuests, newResponsibleGuest)
+                new BookingCreateComponent.GuestListPayload(newSelectedGuests, newResponsibleGuest)
         ));
     }
 
@@ -514,7 +514,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
                 BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
-                new Payload.GuestList(
+                new BookingCreateComponent.GuestListPayload(
                         selectedGuests,
                         Optional.of(responsibleGuest)
                 )
@@ -677,7 +677,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
-                final var payload = (Payload.ServiceCreation) guiEvent.getData();
+                final var payload = (ServiceSelectorComponent.ServiceCreationPayload) guiEvent.getData();
                 if (payload.startDate().isEmpty() && payload.endDate().isEmpty()) {
                     JOptionPane.showMessageDialog(
                             parentComponent,
@@ -1051,7 +1051,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
-                final var payload = (Payload.ServiceCreation) guiEvent.getData();
+                final var payload = (ServiceSelectorComponent.ServiceCreationPayload) guiEvent.getData();
                 if (payload.startDate().isEmpty() && payload.endDate().isEmpty()) {
                     JOptionPane.showMessageDialog(
                             parentComponent,

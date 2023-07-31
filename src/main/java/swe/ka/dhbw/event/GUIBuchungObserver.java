@@ -4,7 +4,6 @@ import de.dhbwka.swe.utils.event.GUIEvent;
 import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.GUIController;
-import swe.ka.dhbw.control.Payload;
 import swe.ka.dhbw.model.Ausruestung;
 import swe.ka.dhbw.model.Chipkarte;
 import swe.ka.dhbw.model.Gast;
@@ -47,7 +46,7 @@ public class GUIBuchungObserver implements IGUIEventListener {
             switch (command) {
                 // guests
                 case BUTTON_PRESSED_ADD_GUEST -> {
-                    final var excludedGuests = new HashSet<>((List<Gast>) ((Payload.GuestList) guiEvent.getData()).guests());
+                    final var excludedGuests = new HashSet<>((List<Gast>) ((BookingCreateComponent.GuestListPayload) guiEvent.getData()).guests());
 
                     controller.openDialogGuestSelector(
                             (GUIComponent) guiEvent.getSource(),

@@ -7,7 +7,6 @@ import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.*;
 import de.dhbwka.swe.utils.model.IDepictable;
 import swe.ka.dhbw.control.GUIController;
-import swe.ka.dhbw.control.Payload;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.ui.GUIComponent;
 
@@ -85,10 +84,13 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         }
     }
 
+    public record GuestListPayload(List<? extends IDepictable> guests, Optional<? extends IDepictable> responsibleGuest) {
+    }
+
 
     public enum Commands implements EventCommand {
         // outgoing gui events
-        BUTTON_PRESSED_ADD_GUEST("BookingCreateComponent::BUTTON_PRESSED_ADD_GUEST", Payload.GuestList.class),
+        BUTTON_PRESSED_ADD_GUEST("BookingCreateComponent::BUTTON_PRESSED_ADD_GUEST", GuestListPayload.class),
         RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST("BookingCreateComponent::RADIO_BUTTON_PRESSED_SELECT_RESPONSIBLE_GUEST",
                 ResponsibleGuestSelectedPayload.class),
         BUTTON_PRESSED_DELETE_GUEST("BookingCreateComponent::BUTTON_PRESSED_DELETE_GUEST", GuestDeletePayload.class),
@@ -111,7 +113,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
         SET_END_DATE("BookingCreateComponent::SET_END_DATE", Temporal.class),
         SET_PITCH("BookingCreateComponent::SET_PITCH", IDepictable.class),
         ADD_ASSOCIATED_GUEST("BookingCreateComponent::ADD_ASSOCIATED_GUEST", IDepictable.class),
-        SET_ASSOCIATED_GUESTS("BookingCreateComponent::SET_ASSOCIATED_GUESTS", Payload.GuestList.class),
+        SET_ASSOCIATED_GUESTS("BookingCreateComponent::SET_ASSOCIATED_GUESTS", GuestListPayload.class),
         ADD_BOOKED_SERVICE("BookingCreateComponent::ADD_BOOKED_SERVICE", IDepictable.class),
         SET_BOOKED_SERVICES("BookingCreateComponent::SET_BOOKED_SERVICES", List.class),
         ADD_RENTED_EQUIPMENT("BookingCreateComponent::ADD_RENTED_EQUIPMENT", IDepictable.class),
@@ -206,7 +208,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                 case ADD_GUEST_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(
                         this,
                         Commands.BUTTON_PRESSED_ADD_GUEST,
-                        new Payload.GuestList(
+                        new GuestListPayload(
                                 this.associatedGuests,
                                 this.responsibleGuest
                         )
@@ -278,7 +280,7 @@ public class BookingCreateComponent extends GUIComponent implements IGUIEventLis
                     this.buildGuestTable();
                 }
                 case SET_ASSOCIATED_GUESTS -> {
-                    final var payload = (Payload.GuestList) updateEvent.getData();
+                    final var payload = (GuestListPayload) updateEvent.getData();
                     this.associatedGuests = payload.guests().stream().sorted().collect(Collectors.toList());
                     this.responsibleGuest = payload.responsibleGuest();
                     this.buildGuestTable();

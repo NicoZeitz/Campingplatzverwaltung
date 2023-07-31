@@ -20,6 +20,7 @@ DUMMY_DATA NULL
 
 Beide
 
+- [ ] Ausrüstungsdialog anschauen (kann sein, dass da noch ein Bug ist)
 - [ ] Benötigte Java Version in der Bedinungsanleitung/Doku eintragen
 - [ ] Test auf Linux
 - [ ] Löschen der Config-Datei vor Meisterübergabe
@@ -52,7 +53,7 @@ Nico:
     - [ ] Search Bookings (Buchungen werden über ihre Termindaten gesucht. Termindaten werden über
       einen Zeitraum gesucht (Start- und Enddatum im Format DD.MM.YYYY). Alle Termine, die im gesamten Zeitraum zwischen
       Start- und Enddatum mindestens einen gebuchten Tag beinhalten, werden beim Ergebnis angezeigt)
-- [ ] Payload: Move classes somewhere else
+- [x] Payload: Move classes somewhere else
 - [ ] Documentation: What was changed in the implementation
     - Stoerung daten mit Zeit
     - Anlage zu abstrakter Klasse gemacht
