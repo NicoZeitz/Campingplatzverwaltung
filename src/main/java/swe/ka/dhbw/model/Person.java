@@ -205,6 +205,11 @@ public sealed class Person implements IDepictable, IPersistable, ICSVPersistable
     }
 
     @Override
+    public String getVisibleText() {
+        return this.getName() + " (" + this.getGeschlecht() + ")";
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(this.getVorname(),
                 this.getNachname(),

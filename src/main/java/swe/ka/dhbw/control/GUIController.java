@@ -170,14 +170,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
                         // @formatter:off
                         return new Attribute[] {
-                            new Attribute("Buchungsnummer", b, Integer.class, b.getBuchungsnummer(), null, true, false, false, true),
+                            new Attribute("Buchungsnummer", b, String.class, Integer.toString(b.getBuchungsnummer()), null, true, false, false, true),
                             new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)), null, true, false, false, true),
-                            new Attribute("Verantwortlicher Gast", b, String.class, verantwortlicherGast.getName() + " (" + verantwortlicherGast.getKundennummer() + ")", null, true, false, false, true),
-                            new Attribute("Stellplatz", b, String.class, stellplatz.getStellplatz(), null, true, false, false, true),
-                            new Attribute("Bereich", b, String.class, bereich.map(Bereich::getKennzeichen).orElse('-'), null, true, false, false, true),
-                            new Attribute("Weitere Gäste", b, String.class, b.getZugehoerigeGaeste().stream().map(Person::getName).collect(Collectors.joining(", ")), null, true, false, false, true),
+                            new Attribute("Verantwortlicher Gast", b, IDepictable.class, verantwortlicherGast, null, true, false, false, true),
+                            new Attribute("Stellplatz", b, IDepictable.class, stellplatz, null, true, false, false, true),
+                            new Attribute("Bereich", b, Optional.class, bereich, null, true, false, false, true),
+                            new Attribute("Weitere Gäste", b, List.class, b.getZugehoerigeGaeste(), null, true, false, false, true),
                             new Attribute("Stellplatzbilder", b, List.class, stellplatz.getFotos().stream().map(Foto::getImage).toList(), null, true, false, false, true),
-                            new Attribute("Chipkarten", b, String.class, b.getAusgehaendigteChipkarten().stream().map(c -> c.getNummer() + " (" + c.getStatus() + ")").collect(Collectors.joining(", ")), null, true, false, false, true),
+                            new Attribute("Gebuchte Leistungen", b, List.class, b.getGebuchteLeistungen(), null, true, false, false, true),
+                            new Attribute("Mitgebrachte Ausrüstung", b, List.class, b.getMitgebrachteAusruestung(), null, true, false, false, true),
+                            new Attribute("Chipkarten", b, List.class, b.getAusgehaendigteChipkarten(), null, true, false, false, true),
                         };
                         // @formatter:on
                     }
@@ -825,6 +827,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         payload.height().get(),
                         payload.width().get()
                 );
+                entityManager.persist(equipment);
 
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
                 this.removeObserver(equipmentSelectorComponent);
@@ -915,6 +918,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(guestSelectorComponent);
                 this.removeObserver(guestSelectorComponent);
                 dialog.dispose();
+                entityManager.persist(guest);
 
                 this.fireUpdateEvent(new UpdateEvent(
                         GUIController.this,
@@ -978,6 +982,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(pitchSelectorComponent);
                 this.removeObserver(pitchSelectorComponent);
                 dialog.dispose();
+                entityManager.persist(pitch);
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
                         eventToEmit,
@@ -1096,6 +1101,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
                 this.removeObserver(serviceSelectorComponent);
                 dialog.dispose();
+                entityManager.persist(bookedService);
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
                         eventToEmit,

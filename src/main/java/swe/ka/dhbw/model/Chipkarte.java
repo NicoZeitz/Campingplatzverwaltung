@@ -144,6 +144,6 @@ public final class Chipkarte implements ICSVPersistable, IPersistable, IDepictab
 
     @Override
     public String toString() {
-        return "Chipkarte " + this.getNummer() + " - " + this.getStatus().toString();
+        return "Chipkarte " + this.getNummer() + " (" + this.getStatus().toString() + ")";
     }
 }

@@ -27,7 +27,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         VERANTWORTLICHER_GAST_ID,
         ZUGEHOERIGE_GAESTE_IDS,
         GEBUCHTE_LEISTUNGEN_IDS,
-        // TODO: ADD AUSRUESTUNG
+        MITGEBRACHTE_AUSRUESTUNG_IDS,
         DUMMY_DATA
     }
 
@@ -201,6 +201,11 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                 .map(GebuchteLeistung::getPrimaryKey)
                 .map(Object::toString)
                 .collect(Collectors.joining(","));
+        csvData[CSVPosition.MITGEBRACHTE_AUSRUESTUNG_IDS.ordinal()] = this.getMitgebrachteAusruestung()
+                .stream()
+                .map(Ausruestung::getPrimaryKey)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
         csvData[CSVPosition.DUMMY_DATA.ordinal()] = "NULL";
         return csvData;
     }
@@ -217,6 +222,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
                 CSVPosition.VERANTWORTLICHER_GAST_ID.name(),
                 CSVPosition.ZUGEHOERIGE_GAESTE_IDS.name(),
                 CSVPosition.GEBUCHTE_LEISTUNGEN_IDS.name(),
+                CSVPosition.MITGEBRACHTE_AUSRUESTUNG_IDS.name(),
                 CSVPosition.DUMMY_DATA.name()
         };
     }

@@ -38,7 +38,7 @@ Nico:
       fire update
     - [x] Dialog: don't pass data in constructor but in processUpdateEvent (CalendarComponent is impossible as Lutz does
       not allow setting the date after creating the dialog)
-- [ ] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
+- [x] Buchung/Ausruestung/EntityFactory/GUIController/BookingCreateComponent: Equipment is not saved / associated
 - [ ] GUIConfiguration: The window location is not always saved
 - [ ] BookingCreateComponent
     - [x] GUI: Disable chip card selector iff "" is the only entry

@@ -5,7 +5,7 @@ Johannes;FreudigesKind;MAENNLICH;kind@freudige.de;+0000000002;3;Ausweisnummer12;
 Peter;Zufall;MAENNLICH;peter.zufall64@gmx.de;+0000000003;4;Ausweisnummer13;2;;NULL
 Tom;Müller;MAENNLICH;tom@muellermilch.tv;+0000000004;5;Ausweisnummer14;3;;NULL
 Hans;Peter;MAENNLICH;hansepeter@gmail.com;+0000000005;6;Ausweisnummer15;4;4;NULL
-Micki;Maus;MAENNLICH;micki@entenhausen.uk;+0000000006;7;Ausweisnummer16;5;3;NULL
+Micki;Maus;MAENNLICH;micki@entenhausen.uk;+0000000006;7;Ausweisnummer16;5;3,109;NULL
 Donald;Duck;MAENNLICH;donald@hausenenten.de;+0000000007;8;Ausweisnummer17;5;;NULL
 Jens;Reich;DIVERS;jens@ichbinreicheralsdu.org;+0000000008;9;Ausweisnummer18;6;6,5;NULL
 Thomas;Jäger;MAENNLICH;thomas.jae@hotmail.com;+0000000009;10;Ausweisnummer19;7;;NULL
