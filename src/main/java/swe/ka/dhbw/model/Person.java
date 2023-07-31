@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
-public class Person implements IDepictable, IPersistable, ICSVPersistable {
+public sealed class Person implements IDepictable, IPersistable, ICSVPersistable permits Gast, Personal {
     public enum Geschlecht {
         MAENNLICH("männlich"),
         WEIBLICH("weiblich"),

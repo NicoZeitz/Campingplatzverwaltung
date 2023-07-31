@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
+public final class Stoerung implements IDepictable, ICSVPersistable, IPersistable {
     public enum Status {
         AKTIV, BEHOBEN, IN_ARBEIT, VERSCHOBEN
     }

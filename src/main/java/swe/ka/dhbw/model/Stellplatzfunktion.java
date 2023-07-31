@@ -12,7 +12,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
+public final class Stellplatzfunktion extends Leistungsbeschreibung implements ICSVPersistable, IPersistable, IDepictable {
     public enum Status {
         AKTIV, INAKTIV, GESTOERT
     }

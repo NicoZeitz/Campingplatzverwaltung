@@ -9,7 +9,7 @@ import swe.ka.dhbw.util.Validator;
 import java.time.LocalTime;
 import java.util.Objects;
 
-public class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable {
+public final class Oeffnungszeit implements IDepictable, ICSVPersistable, IPersistable {
     public enum CSVPosition {
         OEFFNUNGSZEIT_ID,
         START,

@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public class Foto implements IDepictable, ICSVPersistable, IPersistable {
+public final class Foto implements IDepictable, ICSVPersistable, IPersistable {
     public enum Attributes {
         FOTO_ID,
         DATEIPFAD,

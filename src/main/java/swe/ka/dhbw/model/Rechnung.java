@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
-public class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
+public final class Rechnung implements IPersistable, ICSVPersistable, IDepictable {
     public enum Attributes {
         RECHNUNGSNUMMER,
         RECHNUNGSDATUM,

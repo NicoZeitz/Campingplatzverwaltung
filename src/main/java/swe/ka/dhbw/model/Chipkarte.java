@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 
 import java.util.Objects;
 
-public class Chipkarte implements ICSVPersistable, IPersistable, IDepictable, Comparable<Chipkarte> {
+public final class Chipkarte implements ICSVPersistable, IPersistable, IDepictable, Comparable<Chipkarte> {
     public enum Status {
         VERFUEGBAR("Verfügbar"), IN_VERWENDUNG("In Verwendung");
 

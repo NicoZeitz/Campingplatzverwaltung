@@ -8,7 +8,7 @@ import swe.ka.dhbw.util.Validator;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-public abstract class Leistungsbeschreibung implements IPersistable, IDepictable {
+public sealed abstract class Leistungsbeschreibung implements IPersistable, IDepictable permits Geraetschaft, Stellplatzfunktion {
     public enum Attributes {
         LEISTUNGSBESCHREIBUNG_ID,
         GEBUEHR,

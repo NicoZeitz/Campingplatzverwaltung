@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Wartung implements ICSVPersistable, IPersistable, IDepictable {
+public final class Wartung implements ICSVPersistable, IPersistable, IDepictable {
     public enum Attributes {
         WARTUNGSNUMMER,
         DUERCHFUEHRUNGSDATUM,
