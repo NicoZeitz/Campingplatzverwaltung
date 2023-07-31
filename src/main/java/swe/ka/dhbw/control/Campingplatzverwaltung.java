@@ -72,7 +72,7 @@ public final class Campingplatzverwaltung {
         controller.setDatabase(database);
         controller.setEntityManager(entityManager);
         controller.setApp(this);
-        
+
         if (arguments.skipConfiguration()) {
             controller.openWindowMain(propManager);
         } else {
