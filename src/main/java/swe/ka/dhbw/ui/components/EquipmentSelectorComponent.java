@@ -106,7 +106,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
     public void processUpdateEvent(final UpdateEvent updateEvent) {
         if (updateEvent.getCmd() == Commands.SET_VEHICLE_TYPES) {
             this.vehicleTypes = (List<?>) updateEvent.getData();
-            this.vehicleTypElement.setData(this.vehicleTypes.toArray());
+            this.vehicleTypElement.setData(Stream.concat(Stream.of(""), this.vehicleTypes.stream()).toArray(Object[]::new));
         }
     }
 
