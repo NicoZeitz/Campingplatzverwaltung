@@ -12,6 +12,7 @@ public final class Fahrzeug extends Ausruestung {
     }
 
     public enum Typ {
+        KEIN_FAHRZEUG(""),
         KFZ("Auto / KFZ"),
         WOHNMOBIL("Wohnmobil"),
         WOHNWAGEN("Wohnwagen");
