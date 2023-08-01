@@ -217,6 +217,11 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
     private JLabel guestErrorComponent;
     private JLabel pitchErrorComponent;
     private JLabel serviceErrorComponent;
+    // Empty Message Components
+    private JLabel guestEmptyMessageComponent;
+    private JLabel serviceEmptyMessageComponent;
+    private JLabel equipmentEmptyMessageComponent;
+    private JLabel chipCardEmptyMessageComponent;
 
 
     public BookingChangeComponent(
@@ -317,18 +322,21 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                 case ADD_ASSOCIATED_GUEST -> {
                     ((List<IDepictable>) this.associatedGuests).add((IDepictable) updateEvent.getData());
                     this.associatedGuests = this.associatedGuests.stream().sorted().collect(Collectors.toList());
+                    this.guestEmptyMessageComponent.setText("");
                     this.buildGuestTable();
                 }
                 case SET_ASSOCIATED_GUESTS -> {
                     final var payload = (GuestListPayload) updateEvent.getData();
                     this.associatedGuests = payload.guests().stream().sorted().collect(Collectors.toList());
                     this.responsibleGuest = payload.responsibleGuest();
+                    this.guestEmptyMessageComponent.setText(this.associatedGuests.size() > 0 ? "" : "Noch keinen Gast ausgewählt");
                     this.buildGuestTable();
                 }
                 // service selection
                 case ADD_BOOKED_SERVICE -> {
                     ((List<IDepictable>) this.bookedServices).add((IDepictable) updateEvent.getData());
                     this.bookedServices = this.bookedServices.stream().sorted().collect(Collectors.toList());
+                    this.serviceEmptyMessageComponent.setText("");
                     this.buildServiceTable();
                 }
                 case SET_BOOKED_SERVICES -> {
@@ -336,12 +344,14 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                             .stream()
                             .sorted()
                             .collect(Collectors.toList());
+                    this.serviceEmptyMessageComponent.setText(this.bookedServices.size() > 0 ? "" : "Noch keine Leistung ausgewählt");
                     this.buildServiceTable();
                 }
                 // equipment selection
                 case ADD_RENTED_EQUIPMENT -> {
                     ((List<IDepictable>) this.rentedEquipment).add((IDepictable) updateEvent.getData());
                     this.rentedEquipment = this.rentedEquipment.stream().sorted().collect(Collectors.toList());
+                    this.equipmentEmptyMessageComponent.setText("");
                     this.buildEquipmentTable();
                 }
                 case SET_RENTED_EQUIPMENT -> {
@@ -349,6 +359,7 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                             .stream()
                             .sorted()
                             .collect(Collectors.toList());
+                    this.equipmentEmptyMessageComponent.setText(this.rentedEquipment.size() > 0 ? "" : "Noch keine Ausrüstung ausgewählt");
                     this.buildEquipmentTable();
                 }
                 // date selection
@@ -381,6 +392,7 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                             .collect(Collectors.toList());
                     this.chipCardSelector.setData(Stream.concat(Stream.of(""), this.availableChipCards.stream()).toArray(Object[]::new));
                     this.chipCardSelector.setEnabled(this.availableChipCards.size() > 0);
+                    this.chipCardEmptyMessageComponent.setText("");
                     this.buildChipCardTable();
                 }
                 case SET_SELECTED_CHIPCARDS -> {
@@ -392,6 +404,7 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                             .collect(Collectors.toList());
                     this.chipCardSelector.setData(Stream.concat(Stream.of(""), this.availableChipCards.stream()).toArray(Object[]::new));
                     this.chipCardSelector.setEnabled(this.availableChipCards.size() > 0);
+                    this.chipCardEmptyMessageComponent.setText(this.selectedChipCards.size() > 0 ? "" : "Noch keine Chipkarte ausgewählt");
                     this.buildChipCardTable();
                 }
                 // errors
@@ -994,9 +1007,16 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
         this.chipCardTable.setLayout(new GridBagLayout());
         this.chipCardTable.setOpaque(true);
 
+        this.chipCardEmptyMessageComponent = super.createNormalLabel();
+        this.chipCardEmptyMessageComponent.setText("Noch keine Chipkarte ausgewählt");
+        final var errorWrapper = super.createErrorWrapper(this.chipCardEmptyMessageComponent);
+        errorWrapper.add(this.chipCardTable);
+
+        this.buildGuestTable();
+
         this.buildChipCardTable();
 
-        panel.add(this.chipCardTable,
+        panel.add(errorWrapper,
                 new GridBagConstraints(0, 1, 1, 1, 1d, 1d, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 0, 0));
 
         return panel;
@@ -1010,9 +1030,14 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
         this.equipmentTable.setLayout(new GridBagLayout());
         this.equipmentTable.setOpaque(true);
 
+        this.equipmentEmptyMessageComponent = super.createNormalLabel();
+        this.equipmentEmptyMessageComponent.setText("Noch keine Ausrüstung ausgewählt");
+        final var errorWrapper = super.createErrorWrapper(this.equipmentEmptyMessageComponent);
+        errorWrapper.add(this.equipmentTable);
+
         this.buildEquipmentTable();
 
-        return equipmentTable;
+        return errorWrapper;
     }
 
     private JComponent createGuestTable() {
@@ -1023,8 +1048,10 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
         this.guestTable.setLayout(new GridBagLayout());
         this.guestTable.setOpaque(true);
 
+        this.guestEmptyMessageComponent = super.createNormalLabel();
+        this.guestEmptyMessageComponent.setText("Noch keinen Gast ausgewählt");
         this.guestErrorComponent = super.createErrorLabel();
-        final var errorWrapper = super.createErrorWrapper(this.guestErrorComponent);
+        final var errorWrapper = super.createErrorWrapper(this.guestEmptyMessageComponent, this.guestErrorComponent);
         errorWrapper.add(this.guestTable);
 
         this.buildGuestTable();
@@ -1100,8 +1127,10 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
         this.serviceTable.setLayout(new GridBagLayout());
         this.serviceTable.setOpaque(true);
 
+        this.serviceEmptyMessageComponent = super.createNormalLabel();
+        this.serviceEmptyMessageComponent.setText("Noch keine Leistung ausgewählt");
         this.serviceErrorComponent = super.createErrorLabel();
-        final var errorWrapper = super.createErrorWrapper(this.serviceErrorComponent);
+        final var errorWrapper = super.createErrorWrapper(this.serviceEmptyMessageComponent, this.serviceErrorComponent);
         errorWrapper.add(this.serviceTable);
 
         this.buildServiceTable();

@@ -159,18 +159,12 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
     }
 
     protected JLabel createErrorLabel() {
-        final var label = new JLabel();
+        final var label = this.createNormalLabel();
         final var attributes = new HashMap<TextAttribute, Object>(this.config.getFont().getAttributes());
         attributes.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
-
-        label.setVerticalAlignment(SwingConstants.CENTER);
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        label.setFont(this.config.getFont());
         label.setFont(new Font(attributes));
 
         label.setForeground(this.config.getFailureColor());
-        label.setBackground(this.config.getBackgroundColor());
-        label.setOpaque(true);
         return label;
     }
 
@@ -204,6 +198,17 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
         fillComponent.setBackground(this.config.getBackgroundColor());
         fillComponent.setForeground(this.config.getTextColor());
         return fillComponent;
+    }
+
+    protected JLabel createNormalLabel() {
+        final var label = new JLabel();
+        label.setVerticalAlignment(SwingConstants.CENTER);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setFont(this.config.getFont());
+        label.setForeground(this.config.getTextColor());
+        label.setBackground(this.config.getBackgroundColor());
+        label.setOpaque(true);
+        return label;
     }
 
     protected JComponent createWrapper(

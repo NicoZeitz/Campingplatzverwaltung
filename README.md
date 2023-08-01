@@ -21,10 +21,11 @@ DUMMY_DATA NULL
 Beide
 
 - [ ] Ausrüstungsdialog anschauen (kann sein, dass da noch ein Bug ist)
-
+- [ ] Buchungsliste: Sucheingabe kann nicht einfach gelöscht werden
 - [ ] Benötigte Java Version in der Bedinungsanleitung/Doku eintragen
 - [ ] Test auf Linux
 - [ ] Löschen der Config-Datei vor Meisterübergabe
+- [ ] Fenster X Clicken Während man am bearbeiten ist ist erlaubt
 
 Fabian:
 
@@ -50,9 +51,9 @@ Nico:
     - [x] BookingIds of Guest don't get updated
     - [x] BookingEditComponent: Modify BookingCreateComponent to allow editing
         - add a new button to delete the booking
-- [ ] BookingListComponent
+- [x] BookingListComponent
     - [x] Sort Bookings by Time
-    - [ ] Search Bookings (Buchungen werden über ihre Termindaten gesucht. Termindaten werden über
+    - [x] Search Bookings (Buchungen werden über ihre Termindaten gesucht. Termindaten werden über
       einen Zeitraum gesucht (Start- und Enddatum im Format DD.MM.YYYY). Alle Termine, die im gesamten Zeitraum zwischen
       Start- und Enddatum mindestens einen gebuchten Tag beinhalten, werden beim Ergebnis angezeigt)
 - [x] Payload: Move classes somewhere else
