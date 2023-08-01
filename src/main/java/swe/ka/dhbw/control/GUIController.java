@@ -288,7 +288,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         );
     }
 
-    public void handleWindowBookingChangeCancel(final GUIComponent source, final BookingChangeComponent.Mode mode) {
+    public int handleWindowBookingChangeCancel(final GUIComponent source, final BookingChangeComponent.Mode mode) {
         final var decision = JOptionPane.showConfirmDialog(
                 null,
                 mode instanceof BookingChangeComponent.Mode.CREATE
@@ -322,6 +322,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
             this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
         }
+
+        return decision;
     }
 
     public void handleWindowBookingChangeDelete(final Buchung booking) {
@@ -1503,9 +1505,22 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
 
         this.openInWindow(this.windowBooking, "Buchungen", "Window::Booking", event -> {
-            ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
-            this.windowMain.grabFocus();
-            return true;
+            final var tab = this.windowBooking.getSelectedTab();
+            var decision = JOptionPane.YES_OPTION;
+
+            // This only tests for the active tab to be a BookingChangeComponent.
+            // There could exist others which we will ignore when having the BookingListComponent open for example.
+            // We do this to avoid being too annoying with the confirmation dialogs.
+            if (tab instanceof BookingChangeComponent changeComponent) {
+                decision = this.handleWindowBookingChangeCancel(changeComponent, changeComponent.getMode());
+            }
+
+            if (decision == JOptionPane.YES_OPTION) {
+                ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
+                this.windowMain.grabFocus();
+                return true;
+            }
+            return false;
         });
     }
 
@@ -1761,6 +1776,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         frame.setForeground(config.getTextColor());
         frame.setBackground(config.getBackgroundColor());
         frame.setFont(config.getFont());
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setSize(windowLocation.width() > 0 ? windowLocation.width() : 100,
                 windowLocation.height() > 0 ? windowLocation.height() : 100);
         frame.setLocation(Math.max(windowLocation.x(), 0), Math.max(windowLocation.y(), 0));

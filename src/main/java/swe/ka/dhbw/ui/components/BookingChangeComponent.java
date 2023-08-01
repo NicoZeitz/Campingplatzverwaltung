@@ -231,6 +231,10 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
         this.initUI();
     }
 
+    public Mode getMode() {
+        return this.mode;
+    }
+
     @Override
     public void processGUIEvent(final GUIEvent guiEvent) {
         // Component in tab and tab is closed

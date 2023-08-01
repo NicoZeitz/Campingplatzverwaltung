@@ -14,7 +14,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class GUIBuchung extends GUIComponent implements IGUIEventListener {
@@ -91,13 +93,25 @@ public class GUIBuchung extends GUIComponent implements IGUIEventListener {
         this.initUI();
     }
 
-    @SuppressWarnings("unused")
-    private GUIComponent getSelectedTab() {
+    public GUIComponent getSelectedTab() {
         final var selectedTab = (JComponent) this.tabs.getSelectedComponent();
         if (selectedTab instanceof GUIComponent component) {
             return component;
         }
         return (GUIComponent) selectedTab.getComponent(0);
+    }
+
+    public List<GUIComponent> getTabs() {
+        final var list = new ArrayList<GUIComponent>();
+        for (var i = 0; i < this.tabs.getTabCount(); i++) {
+            final var tab = (JComponent) this.tabs.getComponentAt(i);
+            if (tab instanceof GUIComponent component) {
+                list.add(component);
+            } else if (tab.getComponent(0) instanceof GUIComponent component) {
+                list.add(component);
+            }
+        }
+        return list;
     }
 
     @Override

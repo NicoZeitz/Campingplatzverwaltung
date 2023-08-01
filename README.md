@@ -25,7 +25,6 @@ Beide
 - [ ] Benötigte Java Version in der Bedinungsanleitung/Doku eintragen
 - [ ] Test auf Linux
 - [ ] Löschen der Config-Datei vor Meisterübergabe
-- [ ] Fenster X Clicken Während man am bearbeiten ist ist erlaubt
 
 Fabian:
 
@@ -36,6 +35,7 @@ Fabian:
 
 Nico:
 
+- [x] Fenster X Clicken Während man am bearbeiten ist ist erlaubt
 - [x] Validierung von Stellplatzfunktion
 - [x] GUIController
     - [x] Handlers: look that all handlers treat collections as immutable, don't get as payload, check before
