@@ -26,10 +26,14 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
         FR("Frankreich"),
         CH("Schweiz");
 
-        public final String name;
+        private final String name;
 
         Land(final String name) {
             this.name = name;
+        }
+
+        public String getName() {
+            return this.name;
         }
     }
 

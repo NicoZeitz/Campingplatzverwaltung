@@ -115,6 +115,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .builder(DESCRIPTION_ELEMENT_ID)
                 .labelName("Bezeichnung")
                 .toolTip("Bezeichnung für die mitgebrachte Ausrüstung")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -131,6 +132,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .builder(AMOUNT_ELEMENT_ID)
                 .labelName("Anzahl")
                 .toolTip("Anzahl der mitgebrachten Ausrüstung")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -149,6 +151,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .builder(WIDTH_ELEMENT_ID)
                 .labelName("Breite (in m)")
                 .toolTip("Breite der mitgebrachten Ausrüstung")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -166,6 +169,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .builder(HEIGHT_ELEMENT_ID)
                 .labelName("Höhe (in m)")
                 .toolTip("Höhe der mitgebrachten Ausrüstung")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -183,6 +187,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .builder(LICENSE_PLATE_ELEMENT_ID)
                 .labelName("Kennzeichen")
                 .toolTip("Angabe des Kennzeichens, falls es sich bei der Ausrüstung um ein Fahrzeug handelt (optional)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -199,6 +204,7 @@ public class EquipmentSelectorComponent extends GUIComponent implements IGUIEven
                 .builder(VEHICLE_TYP_ELEMENT_ID)
                 .labelName("Fahrzeugtyp")
                 .toolTip("Angabe des konkreten Fahrzeugtyps, falls es sich bei der Ausrüstung um ein Fahrzeug handelt (optional)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())

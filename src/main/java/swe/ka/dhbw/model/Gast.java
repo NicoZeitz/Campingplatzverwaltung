@@ -6,10 +6,7 @@ import de.dhbwka.swe.utils.model.IDepictable;
 import de.dhbwka.swe.utils.model.IPersistable;
 import swe.ka.dhbw.util.Validator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class Gast extends Person implements IPersistable, IDepictable, ICSVPersistable, Comparable<Gast> {
@@ -37,7 +34,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
     }
 
     private final int kundennummer;
-    private final List<Buchung> buchungen = new ArrayList<>();
+    private final Set<Buchung> buchungen = new LinkedHashSet<>();
     private String ausweisnummer;
     private Adresse anschrift;
 
@@ -78,7 +75,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
         this.anschrift = anschrift;
     }
 
-    public List<Buchung> getBuchungen() {
+    public Collection<Buchung> getBuchungen() {
         return this.buchungen;
     }
 

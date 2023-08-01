@@ -6,7 +6,6 @@ import de.dhbwka.swe.utils.event.IGUIEventListener;
 import de.dhbwka.swe.utils.event.UpdateEvent;
 import de.dhbwka.swe.utils.gui.*;
 import de.dhbwka.swe.utils.model.IDepictable;
-import swe.ka.dhbw.control.Payload;
 import swe.ka.dhbw.control.ReadonlyConfiguration;
 import swe.ka.dhbw.ui.GUIComponent;
 
@@ -17,8 +16,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class ServiceSelectorComponent extends GUIComponent implements IGUIEventListener {
+    public record ServiceCreationPayload(
+            IDepictable serviceType,
+            Optional<LocalDate> startDate,
+            Optional<LocalDate> endDate
+    ) {
+    }
+
     public enum Mode {
         EDIT,
         CREATE
@@ -28,7 +35,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
         // outgoing gui events
         BUTTON_PRESSED_SELECT_START_DATE("ServiceSelectorComponent::BUTTON_PRESSED_SELECT_START_DATE", LocalDate.class),
         BUTTON_PRESSED_SELECT_END_DATE("ServiceSelectorComponent::BUTTON_PRESSED_SELECT_END_DATE", LocalDate.class),
-        BUTTON_PRESSED_SAVE("ServiceSelectorComponent::BUTTON_PRESSED_SAVE", Payload.ServiceCreation.class),
+        BUTTON_PRESSED_SAVE("ServiceSelectorComponent::BUTTON_PRESSED_SAVE", ServiceCreationPayload.class),
         BUTTON_PRESSED_CANCEL("ServiceSelectorComponent::BUTTON_PRESSED_CANCEL"),
         // incoming update events
         UPDATE_SERVICE_TYPES("ServiceSelectorComponent::UPDATE_SERVICE_TYPES", List.class),
@@ -70,6 +77,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
     // Data
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
     private List<? extends IDepictable> serviceTypes = new ArrayList<>();
+    @SuppressWarnings("FieldCanBeLocal")
     private Mode mode = Mode.CREATE;
 
     // Components
@@ -105,7 +113,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                     final var startDate = tryOptional(() -> LocalDate.parse(this.startDateElement.getValueAsString(), this.dateTimeFormatter));
                     final var endDate = tryOptional(() -> LocalDate.parse(this.endDateElement.getValueAsString(), this.dateTimeFormatter));
 
-                    final var payload = new Payload.ServiceCreation(
+                    final var payload = new ServiceCreationPayload(
                             (IDepictable) this.serviceTypeElement.getValue(),
                             startDate,
                             endDate
@@ -150,6 +158,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .builder(super.generateRandomID())
                 .labelName("Art der Leistung")
                 .toolTip("Angabe des konkreten Leistungstyps")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -175,6 +184,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .builder(START_DATE_ELEMENT_ID)
                 .labelName("Startdatum")
                 .toolTip("Angabe des Startdatums, ab wann die Leistung gebucht wird (Format: dd.MM.yyyy)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -200,6 +210,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .builder(END_DATE_ELEMENT_ID)
                 .labelName("Enddatum")
                 .toolTip("Angabe des Enddatums, bis wann die Leistung gebucht wird (Format: dd.MM.yyyy)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())

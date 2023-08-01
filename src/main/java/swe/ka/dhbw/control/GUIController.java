@@ -25,11 +25,13 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public enum Commands implements EventCommand {
@@ -75,8 +77,9 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     private static GUIController instance;
     // Observers
     private final Set<EventListener> updateEventObservers = new HashSet<>();
-    private GUIConfigurationObserver windowConfigurationObserver;
     // Windows
+    private final Map<Buchung, BookingChangeComponent> editTabs = new HashMap<>();
+    private GUIConfigurationObserver windowConfigurationObserver;
     private GUIBuchung windowBooking;
     private GUIPersonal windowStaff;
     private GUIGast windowGuest;
@@ -156,47 +159,11 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 );
     }
 
-    private List<? extends IDepictable> getBookingsAsDisplayableList() {
-        return this.entityManager
-                .find(Buchung.class)
-                .stream()
-                .sorted(Buchung::compareTo)
-                .map(b -> new IDepictable() {
-                    @Override
-                    public Attribute[] getAttributeArray() {
-                        final var verantwortlicherGast = b.getVerantwortlicherGast();
-                        final var stellplatz = b.getGebuchterStellplatz();
-                        final var bereich = stellplatz.getBereich();
-
-                        // @formatter:off
-                        return new Attribute[] {
-                            new Attribute("Buchungsnummer", b, String.class, Integer.toString(b.getBuchungsnummer()), null, true, false, false, true),
-                            new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)), null, true, false, false, true),
-                            new Attribute("Verantwortlicher Gast", b, IDepictable.class, verantwortlicherGast, null, true, false, false, true),
-                            new Attribute("Stellplatz", b, IDepictable.class, stellplatz, null, true, false, false, true),
-                            new Attribute("Bereich", b, Optional.class, bereich, null, true, false, false, true),
-                            new Attribute("Weitere Gäste", b, List.class, b.getZugehoerigeGaeste(), null, true, false, false, true),
-                            new Attribute("Stellplatzbilder", b, List.class, stellplatz.getFotos().stream().map(Foto::getImage).toList(), null, true, false, false, true),
-                            new Attribute("Gebuchte Leistungen", b, List.class, b.getGebuchteLeistungen(), null, true, false, false, true),
-                            new Attribute("Mitgebrachte Ausrüstung", b, List.class, b.getMitgebrachteAusruestung(), null, true, false, false, true),
-                            new Attribute("Chipkarten", b, List.class, b.getAusgehaendigteChipkarten(), null, true, false, false, true),
-                        };
-                        // @formatter:on
-                    }
-
-                    @Override
-                    public String getElementID() {
-                        return b.getElementID();
-                    }
-                })
-                .toList();
-    }
-
-    // setters
-
     public void setEntityManager(final EntityManager entityManager) {
         this.entityManager = entityManager;
     }
+
+    // setters
 
     public void setApp(final Campingplatzverwaltung app) {
         this.app = app;
@@ -206,12 +173,12 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.database = database;
     }
 
-    // observer pattern
-
     @Override
     public boolean addObserver(final EventListener eventListener) {
         return this.updateEventObservers.add(eventListener);
     }
+
+    // observer pattern
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
@@ -221,7 +188,9 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             switch (command) {
                 case UPDATE_BOOKINGS -> {
                     this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_APPOINTMENTS, this.getAppointments()));
-                    this.fireUpdateEvent(new UpdateEvent(this, BookingListComponent.Commands.UPDATE_BOOKINGS, this.getBookingsAsDisplayableList()));
+                    this.fireUpdateEvent(new UpdateEvent(this,
+                            BookingListComponent.Commands.UPDATE_BOOKINGS,
+                            this.getBookingsAsDisplayableList(this.entityManager.find(Buchung.class))));
                 }
             }
         }
@@ -232,8 +201,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.updateEventObservers.remove(eventListener);
     }
 
-    // general methods
-
     public void exitApplication() {
         if (this.app.getConfig() == null) {
             this.app.setConfig(this.configurationBuilder.build());
@@ -241,7 +208,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.app.exitApplication();
     }
 
-    // oberver pattern
+    // general methods
 
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
         for (final var eventListener : this.updateEventObservers) {
@@ -251,71 +218,376 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
     }
 
-    // event Handlers
+    // oberver pattern
 
     public void handleWindowBookingAppointmentOverviewNextWeek(final LocalDate currentWeek) {
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, currentWeek.plusWeeks(1)));
     }
+
+    // event Handlers
 
     public void handleWindowBookingAppointmentOverviewPreviousWeek(final LocalDate currentWeek) {
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, currentWeek.minusWeeks(1)));
     }
 
     public void handleWindowBookingBookingSelected(final String elementID) {
+        final var optionalBooking = this.entityManager.findOne(Buchung.class, elementID);
+        if (optionalBooking.isEmpty()) {
+            return; // should not happen
+        }
+
+        final var booking = optionalBooking.get();
+        if (this.editTabs.containsKey(booking)) {
+            // Tab already exists switch to it
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SWITCH_TAB,
+                    this.editTabs.get(booking)
+            ));
+            return;
+        }
+
+        final var editBookingGUI = new BookingChangeComponent(this.getConfig());
+        this.editTabs.put(booking, editBookingGUI);
+        this.addObserver(editBookingGUI);
+        editBookingGUI.addObserver(new GUIBuchungObserver());
+
+
+        // load the booking data in the edit gui
+        final var allGuests = new ArrayList<>(booking.getZugehoerigeGaeste());
+        allGuests.add(booking.getVerantwortlicherGast());
+        final var updateEvents = new UpdateEvent[] {
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_MODE, BookingChangeComponent.Mode.EDIT(booking)),
+                new UpdateEvent(this, Commands.UPDATE_PITCHES, this.entityManager.find(Stellplatz.class)),
+                new UpdateEvent(this, Commands.UPDATE_CHIPCARDS, this.entityManager.find(Chipkarte.class)),
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_START_DATE, booking.getAnreise()),
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_END_DATE, booking.getAbreise()),
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_PITCH, booking.getGebuchterStellplatz()),
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_ASSOCIATED_GUESTS, new BookingChangeComponent.GuestListPayload(
+                        allGuests,
+                        Optional.of(booking.getVerantwortlicherGast())
+                )),
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_BOOKED_SERVICES, new ArrayList<>(booking.getGebuchteLeistungen())),
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_RENTED_EQUIPMENT, new ArrayList<>(booking.getMitgebrachteAusruestung())),
+                new UpdateEvent(this, BookingChangeComponent.Commands.SET_SELECTED_CHIPCARDS, new ArrayList<>(booking.getAusgehaendigteChipkarten()))
+        };
+
+        for (final var updateEvent : updateEvents) {
+            editBookingGUI.processUpdateEvent(updateEvent);
+        }
+
         this.fireUpdateEvent(new UpdateEvent(
                         this,
                         GUIBuchung.Commands.OPEN_TAB,
                         new GUIBuchung.TabPayload(
-                                // TODO: real data this.entityManager.findOne(Buchung.class, elementID),
-                                // TODO: close tab panes after done editing
                                 "Buchung " + elementID + " bearbeiten",
-                                this.windowStaff,
+                                editBookingGUI,
                                 "Die Buchung mit der Buchungsnummer " + elementID + " bearbeiten"
                         )
                 )
         );
     }
 
-    public void handleWindowBookingCreateBookingCancel() {
+    public int handleWindowBookingChangeCancel(final GUIComponent source, final BookingChangeComponent.Mode mode) {
         final var decision = JOptionPane.showConfirmDialog(
                 null,
-                "Wollen Sie die Erstellung der Buchung wirklich abbrechen?",
-                "Buchung abbrechen",
+                mode instanceof BookingChangeComponent.Mode.CREATE
+                        ? "Wollen Sie die Erstellung der Buchung wirklich abbrechen?"
+                        : "Wollen Sie die Bearbeitung der Buchung wirklich abbrechen?",
+                mode instanceof BookingChangeComponent.Mode.CREATE
+                        ? "Buchungserstellung abbrechen"
+                        : "Buchungsbearbeitung abbrechen",
                 JOptionPane.YES_NO_OPTION
         );
 
         if (decision == JOptionPane.YES_OPTION) {
-            this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.RESET_INPUT));
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    GUIController.this,
+                                    BookingChangeComponent.Commands.RESET_INPUT
+                            )
+
+                    )
+            ));
+
+            if (mode instanceof BookingChangeComponent.Mode.EDIT edit) {
+                final var booking = (Buchung) edit.data();
+                final var component = this.editTabs.get(booking);
+                this.editTabs.remove(booking);
+                this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
+            }
             this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
+        }
+
+        return decision;
+    }
+
+    public void handleWindowBookingChangeDelete(final Buchung booking) {
+        final var decision = JOptionPane.showConfirmDialog(
+                null,
+                "Wollen Sie die Buchung wirklich löschen?",
+                "Buchung löschen",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (decision == JOptionPane.YES_OPTION) {
+            final var component = this.editTabs.get(booking);
+            this.editTabs.remove(booking);
+            this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
+            this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
+
+            try {
+                this.database.transaction(() -> {
+                    for (final var bookedService : booking.getGebuchteLeistungen()) {
+                        this.database.delete(GebuchteLeistung.class, bookedService);
+                    }
+                    for (final var equipment : booking.getMitgebrachteAusruestung()) {
+                        this.database.delete(Ausruestung.class, equipment);
+                    }
+                    this.database.delete(Buchung.class, booking);
+                });
+            } catch (IOException e) {
+                AppLogger.getInstance().error("Failed to delete booking from the database.");
+                AppLogger.getInstance().error(e);
+                JOptionPane.showMessageDialog(null, "Die Buchung konnte nicht gelöscht werden.", "Fehler", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            for (final var bookedService : booking.getGebuchteLeistungen()) {
+                this.entityManager.remove(bookedService);
+            }
+            for (final var equipment : booking.getMitgebrachteAusruestung()) {
+                this.entityManager.remove(equipment);
+            }
+            this.entityManager.remove(booking);
         }
     }
 
-    public void handleWindowBookingCreateBookingCreate(final BookingCreateComponent.BookingCreatePayload payload) {
+    public void handleWindowBookingChangeDeleteChipCard(final GUIComponent source,
+                                                        final List<Chipkarte> selectedChipCards,
+                                                        final Chipkarte deletedChipCard) {
+        final var newSelectedChipCards = new ArrayList<>(selectedChipCards);
+        newSelectedChipCards.remove(deletedChipCard);
+        if (newSelectedChipCards.size() != selectedChipCards.size()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    GUIController.this,
+                                    BookingChangeComponent.Commands.SET_SELECTED_CHIPCARDS,
+                                    newSelectedChipCards
+                            )
+
+                    )
+            ));
+        }
+    }
+
+    public void handleWindowBookingChangeDeleteEquipment(final GUIComponent source,
+                                                         final List<Ausruestung> rentedEquipment,
+                                                         final Ausruestung equipmentToDelete) {
+        final var newRentedEquipment = new ArrayList<>(rentedEquipment);
+        newRentedEquipment.remove(equipmentToDelete);
+        if (newRentedEquipment.size() != rentedEquipment.size()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    GUIController.this,
+                                    BookingChangeComponent.Commands.SET_RENTED_EQUIPMENT,
+                                    newRentedEquipment
+                            )
+
+                    )
+            ));
+        }
+    }
+
+    public void handleWindowBookingChangeDeleteService(final GUIComponent source,
+                                                       final List<GebuchteLeistung> bookedServices,
+                                                       final GebuchteLeistung serviceToDelete) {
+        final var newBookedServices = new ArrayList<>(bookedServices);
+        newBookedServices.remove(serviceToDelete);
+        if (newBookedServices.size() != bookedServices.size()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    GUIController.this,
+                                    BookingChangeComponent.Commands.SET_BOOKED_SERVICES,
+                                    newBookedServices
+                            )
+
+                    )
+            ));
+        }
+    }
+
+    public void handleWindowBookingChangeEditEquipment(final GUIComponent source,
+                                                       final List<Ausruestung> rentedEquipment,
+                                                       final Ausruestung equipmentToEdit,
+                                                       final int countDelta) {
+        final var newRentEquipment = new ArrayList<>(rentedEquipment);
+        final var index = newRentEquipment.indexOf(equipmentToEdit);
+        if (index == -1) {
+            return;
+        }
+
+        final var newCount = equipmentToEdit.getAnzahl() + countDelta;
+        if (newCount <= 0) {
+            newRentEquipment.remove(equipmentToEdit);
+        } else {
+            rentedEquipment.get(index).setAnzahl(newCount);
+        }
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                new GUIBuchung.SendEventToTabPayload(
+                        source,
+                        new UpdateEvent(
+                                GUIController.this,
+                                BookingChangeComponent.Commands.SET_RENTED_EQUIPMENT,
+                                rentedEquipment
+                        )
+
+                )
+        ));
+    }
+
+    @SuppressWarnings("unchecked")
+    public void handleWindowBookingChangeGuestDeleted(final GUIComponent source,
+                                                      final List<Gast> selectedGuests,
+                                                      final Gast deletedGuest,
+                                                      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Gast> responsibleGuest) {
+        final var newSelectedGuests = new ArrayList<>(selectedGuests);
+        newSelectedGuests.remove(deletedGuest);
+
+        if (selectedGuests.size() == newSelectedGuests.size()) {
+            return;
+        }
+
+        final var newResponsibleGuest = responsibleGuest.isPresent() && responsibleGuest.get().equals(deletedGuest)
+                ? Optional.<Gast>empty()
+                : responsibleGuest;
+
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                new GUIBuchung.SendEventToTabPayload(
+                        source,
+                        new UpdateEvent(
+                                GUIController.this,
+                                BookingChangeComponent.Commands.SET_ASSOCIATED_GUESTS,
+                                new BookingChangeComponent.GuestListPayload(newSelectedGuests, newResponsibleGuest)
+                        )
+
+                )
+        ));
+    }
+
+    public void handleWindowBookingChangeResponsibleGuestSelected(final GUIComponent source,
+                                                                  final List<Gast> selectedGuests,
+                                                                  final Gast responsibleGuest) {
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                new GUIBuchung.SendEventToTabPayload(
+                        source,
+                        new UpdateEvent(
+                                this,
+                                BookingChangeComponent.Commands.SET_ASSOCIATED_GUESTS,
+                                new BookingChangeComponent.GuestListPayload(
+                                        selectedGuests,
+                                        Optional.of(responsibleGuest)
+                                )
+                        )
+
+                )
+        ));
+    }
+
+    public void handleWindowBookingChangeSave(final GUIComponent source, final BookingChangeComponent.SavePayload payload) {
         var hasError = false;
-        this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_RESET));
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                new GUIBuchung.SendEventToTabPayload(
+                        source,
+                        new UpdateEvent(this, BookingChangeComponent.Commands.ERRORS_RESET)
+                )
+        ));
 
         if (payload.arrivalDate().isEmpty()) {
-            this.fireUpdateEvent(new UpdateEvent(this,
-                    BookingCreateComponent.Commands.ERRORS_SHOW_START_DATE,
-                    "Bitte geben Sie ein Anreisedatum an."));
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    this,
+                                    BookingChangeComponent.Commands.ERRORS_SHOW_START_DATE,
+                                    "Bitte geben Sie ein Anreisedatum an."
+                            )
+                    )
+            ));
             hasError = true;
-        } else if (payload.arrivalDate().get().isBefore(LocalDateTime.now())) {
-            this.fireUpdateEvent(new UpdateEvent(this,
-                    BookingCreateComponent.Commands.ERRORS_SHOW_START_DATE,
-                    "Das Anreisedatum muss in der Zukunft liegen."));
+        } else if (payload.arrivalDate().get().isBefore(LocalDateTime.now()) && payload.mode() instanceof BookingChangeComponent.Mode.CREATE) {
+            // new bookings have to be in the future
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    this,
+                                    BookingChangeComponent.Commands.ERRORS_SHOW_START_DATE,
+                                    "Das Anreisedatum muss in der Zukunft liegen."
+                            )
+                    )
+            ));
             hasError = true;
         }
 
         if (payload.departureDate().isEmpty()) {
-            this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_SHOW_END_DATE, "Bitte geben Sie ein Abreisedatum an."));
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    this,
+                                    BookingChangeComponent.Commands.ERRORS_SHOW_END_DATE,
+                                    "Bitte geben Sie ein Abreisedatum an."
+                            )
+                    )
+            ));
             hasError = true;
         }
 
 
         if (payload.responsibleGuest().isEmpty()) {
-            this.fireUpdateEvent(new UpdateEvent(this,
-                    BookingCreateComponent.Commands.ERRORS_SHOW_GUEST,
-                    "Bitte wählen Sie einen verantwortlichen Gast aus."));
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(
+                                    this,
+                                    BookingChangeComponent.Commands.ERRORS_SHOW_GUEST,
+                                    "Bitte wählen Sie einen verantwortlichen Gast aus."
+                            )
+                    )
+            ));
             hasError = true;
         }
 
@@ -326,9 +598,18 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             final var departureDate = payload.departureDate().get();
 
             if (arrivalDate.isAfter(departureDate)) {
-                this.fireUpdateEvent(new UpdateEvent(this,
-                        BookingCreateComponent.Commands.ERRORS_SHOW_END_DATE,
-                        "Bitte geben Sie ein Abreisedatum an."));
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                source,
+                                new UpdateEvent(
+                                        this,
+                                        BookingChangeComponent.Commands.ERRORS_SHOW_END_DATE,
+                                        "Bitte geben Sie ein Abreisedatum an."
+                                )
+                        )
+                ));
                 hasError = true;
             }
 
@@ -336,6 +617,13 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     .find(Buchung.class)
                     .stream()
                     .filter(b -> b.getGebuchterStellplatz().equals(pitch))
+                    .filter(b -> {
+                        if (payload.mode() instanceof BookingChangeComponent.Mode.EDIT edit) {
+                            // don't count the booking we're editing
+                            return !b.equals(edit.data());
+                        }
+                        return true;
+                    })
                     .filter(b -> {
                         final var otherArrivalDate = b.getAnreise();
                         final var otherDepartureDate = b.getAbreise();
@@ -345,21 +633,49 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     .count();
 
             if (conflictingBookingsCount > 0) {
-                this.fireUpdateEvent(new UpdateEvent(this,
-                        BookingCreateComponent.Commands.ERRORS_SHOW_PITCH,
-                        "Der Stellplatz ist in diesem Zeitraum bereits belegt. Bitte wählen Sie einen anderen Stellplatz aus."));
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                source,
+                                new UpdateEvent(
+                                        this,
+                                        BookingChangeComponent.Commands.ERRORS_SHOW_PITCH,
+                                        "Der Stellplatz ist in diesem Zeitraum bereits belegt. Bitte wählen Sie einen anderen Stellplatz aus."
+                                )
+                        )
+                ));
                 hasError = true;
             }
 
-            final var serviceErrors = payload.bookedServices()
-                    .stream()
-                    .map(s -> (GebuchteLeistung) s)
-                    .filter(s -> s.getBuchungStart().isBefore(arrivalDate.toLocalDate()) || s.getBuchungsEnde().isAfter(departureDate.toLocalDate()))
-                    .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum")
-                    .collect(Collectors.joining("\n"));
+            final var serviceErrors = Stream.concat(
+                    payload.bookedServices()
+                            .stream()
+                            .map(s -> (GebuchteLeistung) s)
+                            .filter(s -> s.getBuchungStart().isBefore(arrivalDate.toLocalDate()) || s.getBuchungsEnde()
+                                    .isAfter(departureDate.toLocalDate()))
+                            .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum"),
+                    payload.bookedServices()
+                            .stream()
+                            .map(s -> (GebuchteLeistung) s)
+                            .filter(s -> {
+                                if (s.getLeistungsbeschreibung() instanceof Stellplatzfunktion function) {
+                                    return function.getStellplaetze().contains(pitch);
+                                }
+                                return false;
+                            })
+                            .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist eine Stellplatzfunktion, welche nicht vom ausgewählten " + pitch.getVisibleText() + " unterstützt wird")
+            ).collect(Collectors.joining("\n"));
 
             if (!serviceErrors.isEmpty()) {
-                this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.ERRORS_SHOW_SERVICES, serviceErrors));
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                source,
+                                new UpdateEvent(this, BookingChangeComponent.Commands.ERRORS_SHOW_SERVICES, serviceErrors)
+                        )
+                ));
                 hasError = true;
             }
         }
@@ -372,7 +688,19 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         final var departureDate = payload.departureDate().get();
         final var responsibleGuest = (Gast) payload.responsibleGuest().get();
 
-        final var booking = new Buchung(this.entityManager.generateNextPrimaryKey(Buchung.class), arrivalDate, departureDate);
+        final var booking = payload.mode() instanceof BookingChangeComponent.Mode.EDIT edit
+                ? (Buchung) edit.data()
+                : new Buchung(this.entityManager.generateNextPrimaryKey(Buchung.class), arrivalDate, departureDate);
+
+        if (payload.mode() instanceof BookingChangeComponent.Mode.EDIT edit) {
+            booking.setAnreise(arrivalDate);
+            booking.setAbreise(departureDate);
+            booking.removeAllZugehoerigerGaeste();
+            booking.removeAllGebuchteLeistungen();
+            booking.removeAllMitgebrachteAusruestungen();
+            booking.removeAllAusgehaendigteChipkarten();
+        }
+
         for (final var associatedGuest : payload.associatedGuests()) {
             booking.addZugehoerigerGast((Gast) associatedGuest);
         }
@@ -400,7 +728,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 for (final var equipment : booking.getMitgebrachteAusruestung()) {
                     this.database.upsert(Ausruestung.class, equipment);
                 }
-                this.database.create(Buchung.class, booking);
+                this.database.upsert(Buchung.class, booking);
             });
         } catch (IOException e) {
             AppLogger.getInstance().error("Failed to create booking in database.");
@@ -420,112 +748,86 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
         this.entityManager.persist(booking);
         this.doEntityUpdate();
-        this.fireUpdateEvent(new UpdateEvent(this, BookingCreateComponent.Commands.RESET_INPUT));
+
+        if (payload.mode() instanceof BookingChangeComponent.Mode.EDIT edit) {
+            final var beforeBooking = (Buchung) edit.data();
+            final var component = this.editTabs.get(beforeBooking);
+            this.editTabs.remove(beforeBooking);
+
+            this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
+        }
+
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                new GUIBuchung.SendEventToTabPayload(
+                        source,
+                        new UpdateEvent(this, BookingChangeComponent.Commands.RESET_INPUT)
+                )
+        ));
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
     }
 
-    public void handleWindowBookingCreateDeleteChipCard(final List<Chipkarte> selectedChipCards, final Chipkarte deletedChipCard) {
-        final var newSelectedChipCards = new ArrayList<>(selectedChipCards);
-        newSelectedChipCards.remove(deletedChipCard);
-        if (newSelectedChipCards.size() != selectedChipCards.size()) {
-            this.fireUpdateEvent(new UpdateEvent(
-                    this,
-                    BookingCreateComponent.Commands.SET_SELECTED_CHIPCARDS,
-                    newSelectedChipCards
-            ));
-        }
-    }
-
-    public void handleWindowBookingCreateDeleteEquipment(final List<Ausruestung> rentedEquipment, final Ausruestung equipmentToDelete) {
-        final var newRentedEquipment = new ArrayList<>(rentedEquipment);
-        newRentedEquipment.remove(equipmentToDelete);
-        if (newRentedEquipment.size() != rentedEquipment.size()) {
-            this.fireUpdateEvent(new UpdateEvent(
-                    this,
-                    BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
-                    newRentedEquipment
-            ));
-        }
-    }
-
-    public void handleWindowBookingCreateDeleteService(final List<GebuchteLeistung> bookedServices, final GebuchteLeistung serviceToDelete) {
-        final var newBookedServices = new ArrayList<>(bookedServices);
-        newBookedServices.remove(serviceToDelete);
-        if (newBookedServices.size() != bookedServices.size()) {
-            this.fireUpdateEvent(new UpdateEvent(
-                    this,
-                    BookingCreateComponent.Commands.SET_BOOKED_SERVICES,
-                    newBookedServices
-            ));
-        }
-    }
-
-    public void handleWindowBookingCreateEditEquipment(final List<Ausruestung> rentedEquipment,
-                                                       final Ausruestung equipmentToEdit,
-                                                       final int countDelta) {
-        final var newRentEquipment = new ArrayList<>(rentedEquipment);
-        final var index = newRentEquipment.indexOf(equipmentToEdit);
-        if (index == -1) {
-            return;
-        }
-
-        final var newCount = equipmentToEdit.getAnzahl() + countDelta;
-        if (newCount <= 0) {
-            newRentEquipment.remove(equipmentToEdit);
-            this.fireUpdateEvent(new UpdateEvent(
-                    this,
-                    BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
-                    rentedEquipment
-            ));
-        } else {
-            rentedEquipment.get(index).setAnzahl(newCount);
-            this.fireUpdateEvent(new UpdateEvent(
-                    this,
-                    BookingCreateComponent.Commands.SET_RENTED_EQUIPMENT,
-                    rentedEquipment
-            ));
-        }
-
-    }
-
-    @SuppressWarnings("unchecked")
-    public void handleWindowBookingCreateGuestDeleted(final List<Gast> selectedGuests,
-                                                      final Gast deletedGuest,
-                                                      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Gast> responsibleGuest) {
-        final var newSelectedGuests = new ArrayList<>(selectedGuests);
-        newSelectedGuests.remove(deletedGuest);
-
-        if (selectedGuests.size() == newSelectedGuests.size()) {
-            return;
-        }
-
-        final var newResponsibleGuest = responsibleGuest.isPresent() && responsibleGuest.get().equals(deletedGuest)
-                ? Optional.<Gast>empty()
-                : responsibleGuest;
-
+    public void handleWindowBookingChangeSelectChipCard(final GUIComponent source, final Chipkarte newlySelectedChipkarte) {
         this.fireUpdateEvent(new UpdateEvent(
                 this,
-                BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
-                new Payload.GuestList(newSelectedGuests, newResponsibleGuest)
-        ));
-    }
+                GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                new GUIBuchung.SendEventToTabPayload(
+                        source,
+                        new UpdateEvent(
+                                GUIController.this,
+                                BookingChangeComponent.Commands.ADD_SELECTED_CHIPCARD,
+                                newlySelectedChipkarte
+                        )
 
-    public void handleWindowBookingCreateResponsibleGuestSelected(final List<Gast> selectedGuests, final Gast responsibleGuest) {
-        this.fireUpdateEvent(new UpdateEvent(
-                this,
-                BookingCreateComponent.Commands.SET_ASSOCIATED_GUESTS,
-                new Payload.GuestList(
-                        selectedGuests,
-                        Optional.of(responsibleGuest)
                 )
         ));
     }
 
-    public void handleWindowBookingCreateSelectChipCard(final Chipkarte newlySelectedChipkarte) {
+    public void handleWindowBookingListSearchInputChanged(final List<IDepictable> allBookings,
+                                                          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDate> startDate,
+                                                          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDate> endDate) {
+        var filteredBookings = (List<Buchung>) new ArrayList<>(allBookings
+                .stream()
+                .map(depictable -> this.entityManager.findOne(Buchung.class, depictable.getAttributeArray()[0].getValue()).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        if (startDate.isPresent() && endDate.isPresent()) {
+            if (startDate.get().isAfter(endDate.get())) {
+                JOptionPane.showMessageDialog(null, "Das Startdatum darf nicht nach dem Enddatum liegen.", "Fehler", JOptionPane.ERROR_MESSAGE);
+                this.fireUpdateEvent(new UpdateEvent(this, BookingListComponent.Commands.RESET_SEARCH_INPUT));
+                return;
+            }
+
+            // filter for all bookings that have at least one day in the given range
+            final var startDateTime = startDate.get().atStartOfDay();
+            final var endDateTime = endDate.get().atTime(LocalTime.of(23, 59));
+            filteredBookings = filteredBookings
+                    .stream()
+                    .filter(booking -> booking.getAnreise().isBefore(endDateTime) && booking.getAbreise().isAfter(startDateTime))
+                    .collect(Collectors.toList());
+        } else if (startDate.isPresent()) {
+            // filter for all bookings that have at least one day after the given start date
+            final var startDateTime = startDate.get().atStartOfDay();
+            filteredBookings = filteredBookings
+                    .stream()
+                    .filter(booking -> booking.getAbreise().isAfter(startDateTime))
+                    .collect(Collectors.toList());
+        } else if (endDate.isPresent()) {
+            // filter for all bookings that have at least one day before the given end date
+            final var endDateTime = endDate.get().atTime(LocalTime.of(23, 59));
+            filteredBookings = filteredBookings
+                    .stream()
+                    .filter(booking -> booking.getAnreise().isBefore(endDateTime))
+                    .collect(Collectors.toList());
+        }
+
         this.fireUpdateEvent(new UpdateEvent(
                 this,
-                BookingCreateComponent.Commands.ADD_SELECTED_CHIPCARD,
-                newlySelectedChipkarte
+                BookingListComponent.Commands.UPDATE_FILTERED_BOOKINGS,
+                this.getBookingsAsDisplayableList(filteredBookings)
         ));
     }
 
@@ -563,8 +865,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.APPOINTMENT_OVERVIEW));
     }
 
-    // Initialization
-
     public void initialize() {
         this.addObserver(this);
         this.app.setConfig(this.configurationBuilder.build());
@@ -594,13 +894,14 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         UIManager.put("OptionPane.noButtonText", "Nein");
     }
 
-    // Dialogs
+    // Initialization
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public void openDialogDatePicker(
             final GUIComponent parentComponent,
             final EventCommand eventToEmit,
-            final Optional<LocalDate> optionalDate
+            final Optional<LocalDate> optionalDate,
+            final boolean wrapEventInTabDelegation
     ) {
         // create dialog
         final var calendarComponent = new CalendarComponent(this.getConfig(), optionalDate);
@@ -616,11 +917,28 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
             final var dialog = SwingUtilities.getWindowAncestor(calendarComponent);
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-            this.fireUpdateEvent(new UpdateEvent(
-                    this,
-                    eventToEmit,
-                    guiEvent.getData()
-            ));
+            // TODO: can we do this in a better way?
+            if (wrapEventInTabDelegation) {
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                parentComponent,
+                                new UpdateEvent(
+                                        GUIController.this,
+                                        eventToEmit,
+                                        guiEvent.getData()
+                                )
+
+                        )
+                ));
+            } else {
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        eventToEmit,
+                        guiEvent.getData()
+                ));
+            }
         });
 
         // open Dialog
@@ -631,6 +949,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             return true;
         });
     }
+
+    // Dialogs
 
     @SuppressWarnings("unchecked")
     public void openDialogEditService(
@@ -665,19 +985,21 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 this.openDialogDatePicker(
                         parentComponent,
                         ServiceSelectorComponent.Commands.SET_START_DATE,
-                        (Optional<LocalDate>) guiEvent.getData()
+                        (Optional<LocalDate>) guiEvent.getData(),
+                        true
                 );
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_END_DATE) {
                 this.openDialogDatePicker(
                         parentComponent,
                         ServiceSelectorComponent.Commands.SET_END_DATE,
-                        (Optional<LocalDate>) guiEvent.getData()
+                        (Optional<LocalDate>) guiEvent.getData(),
+                        true
                 );
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
-                final var payload = (Payload.ServiceCreation) guiEvent.getData();
+                final var payload = (ServiceSelectorComponent.ServiceCreationPayload) guiEvent.getData();
                 if (payload.startDate().isEmpty() && payload.endDate().isEmpty()) {
                     JOptionPane.showMessageDialog(
                             parentComponent,
@@ -733,10 +1055,17 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 dialog.dispose();
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
-                        eventToEmit,
-                        services
-                ));
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                parentComponent,
+                                new UpdateEvent(
+                                        GUIController.this,
+                                        eventToEmit,
+                                        services
+                                )
 
+                        )
+                ));
             }
         });
 
@@ -834,8 +1163,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 dialog.dispose();
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
-                        eventToEmit,
-                        equipment
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                parentComponent,
+                                new UpdateEvent(
+                                        GUIController.this,
+                                        eventToEmit,
+                                        equipment
+                                )
+
+                        )
                 ));
             }
         });
@@ -922,8 +1259,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
                 this.fireUpdateEvent(new UpdateEvent(
                         GUIController.this,
-                        eventToEmit,
-                        guest
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                parentComponent,
+                                new UpdateEvent(
+                                        GUIController.this,
+                                        eventToEmit,
+                                        guest
+                                )
+
+                        )
                 ));
             }
         });
@@ -959,14 +1304,19 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         final var pitches = this.entityManager
                 .find(Stellplatz.class)
                 .stream()
+                .sorted()
                 .map(p -> new PitchSelectorComponent.Pitch(
                         p.getLage().getLatitude(),
                         p.getLage().getLongitude(),
                         p.getFotos().stream().findAny().map(Foto::getImage).map(ImageElement::getBaseImage),
                         p
                 ))
-                .toList();
-        this.fireUpdateEvent(new UpdateEvent(this, PitchSelectorComponent.Commands.UPDATE_PITCHES, pitches));
+                .collect(Collectors.toList());
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                PitchSelectorComponent.Commands.UPDATE_PITCHES,
+                pitches
+        ));
 
         // set window properties
         final var parentWindow = this.getNearestWindow(parentComponent);
@@ -985,8 +1335,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 entityManager.persist(pitch);
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
-                        eventToEmit,
-                        pitch
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                parentComponent,
+                                new UpdateEvent(
+                                        GUIController.this,
+                                        eventToEmit,
+                                        pitch
+                                )
+
+                        )
                 ));
             }
         });
@@ -1039,19 +1397,21 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 this.openDialogDatePicker(
                         parentComponent,
                         ServiceSelectorComponent.Commands.SET_START_DATE,
-                        (Optional<LocalDate>) guiEvent.getData()
+                        (Optional<LocalDate>) guiEvent.getData(),
+                        false
                 );
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_END_DATE) {
                 this.openDialogDatePicker(
                         parentComponent,
                         ServiceSelectorComponent.Commands.SET_END_DATE,
-                        (Optional<LocalDate>) guiEvent.getData()
+                        (Optional<LocalDate>) guiEvent.getData(),
+                        false
                 );
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
-                final var payload = (Payload.ServiceCreation) guiEvent.getData();
+                final var payload = (ServiceSelectorComponent.ServiceCreationPayload) guiEvent.getData();
                 if (payload.startDate().isEmpty() && payload.endDate().isEmpty()) {
                     JOptionPane.showMessageDialog(
                             parentComponent,
@@ -1102,12 +1462,20 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 this.removeObserver(serviceSelectorComponent);
                 dialog.dispose();
                 entityManager.persist(bookedService);
+
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
-                        eventToEmit,
-                        bookedService
-                ));
+                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                        new GUIBuchung.SendEventToTabPayload(
+                                parentComponent,
+                                new UpdateEvent(
+                                        GUIController.this,
+                                        eventToEmit,
+                                        bookedService
+                                )
 
+                        )
+                ));
             }
         });
 
@@ -1130,8 +1498,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
-    // Windows
-
     public void openWindowBooking() {
         if (this.windowBooking.isDisplayable()) {
             this.windowBooking.grabFocus();
@@ -1139,11 +1505,26 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
 
         this.openInWindow(this.windowBooking, "Buchungen", "Window::Booking", event -> {
-            ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
-            this.windowMain.grabFocus();
-            return true;
+            final var tab = this.windowBooking.getSelectedTab();
+            var decision = JOptionPane.YES_OPTION;
+
+            // This only tests for the active tab to be a BookingChangeComponent.
+            // There could exist others which we will ignore when having the BookingListComponent open for example.
+            // We do this to avoid being too annoying with the confirmation dialogs.
+            if (tab instanceof BookingChangeComponent changeComponent) {
+                decision = this.handleWindowBookingChangeCancel(changeComponent, changeComponent.getMode());
+            }
+
+            if (decision == JOptionPane.YES_OPTION) {
+                ((JFrame) SwingUtilities.getWindowAncestor(this.windowMain)).setState(Frame.NORMAL);
+                this.windowMain.grabFocus();
+                return true;
+            }
+            return false;
         });
     }
+
+    // Windows
 
     public void openWindowCheckInCheckOut() {
         if (this.windowCheckInCheckOut.isDisplayable()) {
@@ -1261,8 +1642,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
-    // General methods
-
     private void doEntityUpdate() {
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_ADDRESSES, this.entityManager.find(Adresse.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)
@@ -1300,6 +1679,43 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_DISTURBANCES, this.entityManager.find(Stoerung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_MAINTENANCE, this.entityManager.find(Wartung.class)));
+    }
+
+    // General methods
+
+    private List<? extends IDepictable> getBookingsAsDisplayableList(final List<Buchung> bookings) {
+        return bookings
+                .stream()
+                .sorted(Buchung::compareTo)
+                .map(b -> new IDepictable() {
+                    @Override
+                    public Attribute[] getAttributeArray() {
+                        final var verantwortlicherGast = b.getVerantwortlicherGast();
+                        final var stellplatz = b.getGebuchterStellplatz();
+                        final var bereich = stellplatz.getBereich();
+
+                        // @formatter:off
+                        return new Attribute[] {
+                            new Attribute("Buchungsnummer", b, String.class, Integer.toString(b.getBuchungsnummer()), null, true, false, false, true),
+                            new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)), null, true, false, false, true),
+                            new Attribute("Verantwortlicher Gast", b, IDepictable.class, verantwortlicherGast, null, true, false, false, true),
+                            new Attribute("Stellplatz", b, IDepictable.class, stellplatz, null, true, false, false, true),
+                            new Attribute("Bereich", b, Optional.class, bereich, null, true, false, false, true),
+                            new Attribute("Weitere Gäste", b, List.class, b.getZugehoerigeGaeste(), null, true, false, false, true),
+                            new Attribute("Stellplatzbilder", b, List.class, stellplatz.getFotos().stream().map(Foto::getImage).toList(), null, true, false, false, true),
+                            new Attribute("Gebuchte Leistungen", b, List.class, b.getGebuchteLeistungen(), null, true, false, false, true),
+                            new Attribute("Mitgebrachte Ausrüstung", b, List.class, b.getMitgebrachteAusruestung(), null, true, false, false, true),
+                            new Attribute("Chipkarten", b, List.class, b.getAusgehaendigteChipkarten(), null, true, false, false, true),
+                        };
+                        // @formatter:on
+                    }
+
+                    @Override
+                    public String getElementID() {
+                        return b.getElementID();
+                    }
+                })
+                .toList();
     }
 
     // Utility Methods
@@ -1360,6 +1776,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         frame.setForeground(config.getTextColor());
         frame.setBackground(config.getBackgroundColor());
         frame.setFont(config.getFont());
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setSize(windowLocation.width() > 0 ? windowLocation.width() : 100,
                 windowLocation.height() > 0 ? windowLocation.height() : 100);
         frame.setLocation(Math.max(windowLocation.x(), 0), Math.max(windowLocation.y(), 0));

@@ -118,10 +118,13 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         this.setOpaque(true);
         this.setFont(this.config.getFont());
 
-        // The calendar component will throw NullPointerExceptions when no property manager is provided
-        // This is why we provide a useless property manager
+        // BUG:SWE-UTILS: The calendar component will throw NullPointerExceptions when no property manager is provided
+        // In the CCComponentListener::componentResized method there are calls to .getName() from CalendarComponent.this.btnFont and CalendarComponent.this.labelFont
+        // both these properties are only set when a property manager is provided
+        // This is why we provide a useless property manager here
         // Furthermore all other builder properties will get overridden by the property manager (even when no value is provided for a property)
         // Which is why we need to set the selected button color manually
+        // Moreover it would be great if the property manager would accept the generic Map interface instead of a HashMap
         final var calendar = de.dhbwka.swe.utils.gui.CalendarComponent.builder(super.generateRandomID())
                 .date(date.orElse(LocalDate.now()))
                 .selectedButtonColor(this.config.getAccentColor()) // this is useless as a property manager overrides all values provided by the builder

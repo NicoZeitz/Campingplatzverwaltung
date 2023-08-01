@@ -51,7 +51,12 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         }
 
         final var header = entities.get(0).getCSVHeader();
-        entities.remove(data);
+        final var index = this.getIndexInData(entities, c, data);
+        if (index == -1) {
+            return;
+        }
+
+        entities.remove(index);
         this.write(c, entities, Optional.of(header));
     }
 
@@ -121,11 +126,7 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
             return;
         }
 
-        final var proxyEntities = entities.stream()
-                .map(entity -> EntityFactory.getInstance().createElement(c, entity.getCSVData()))
-                .toList();
-
-        final var index = proxyEntities.indexOf((IPersistable) data);
+        final var index = this.getIndexInData(entities, c, data);
         if (index == -1) {
             return;
         }
@@ -147,11 +148,7 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
             return;
         }
 
-        final var proxyEntities = entities.stream()
-                .map(entity -> EntityFactory.getInstance().createElement(c, entity.getCSVData()))
-                .toList();
-
-        final var index = proxyEntities.indexOf((IPersistable) data);
+        final var index = this.getIndexInData(entities, c, data);
         if (index == -1) {
             entities.add(data);
         } else {
@@ -162,6 +159,20 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
 
     public void init() throws IOException {
         Files.createDirectories(directory);
+    }
+
+    private int getIndexInData(final List<ICSVPersistable> entities, final Class<?> c, final ICSVPersistable data) {
+        final var proxyEntities = entities.stream()
+                .map(entity -> EntityFactory.getInstance().createElement(c, entity.getCSVData()))
+                .toList();
+
+        for (var i = 0; i < proxyEntities.size(); i++) {
+            if (proxyEntities.get(i).getPrimaryKey().equals(((IPersistable) data).getPrimaryKey())) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private CSVReader getReader(final Class<?> c) throws IOException {
