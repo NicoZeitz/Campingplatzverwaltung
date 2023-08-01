@@ -25,6 +25,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
@@ -76,8 +77,9 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     private static GUIController instance;
     // Observers
     private final Set<EventListener> updateEventObservers = new HashSet<>();
-    private GUIConfigurationObserver windowConfigurationObserver;
     // Windows
+    private final Map<Buchung, BookingChangeComponent> editTabs = new HashMap<>();
+    private GUIConfigurationObserver windowConfigurationObserver;
     private GUIBuchung windowBooking;
     private GUIPersonal windowStaff;
     private GUIGast windowGuest;
@@ -86,7 +88,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     private GUIConfiguration windowConfiguration;
     private GUIMain windowMain;
     private GUICheckInCheckOut windowCheckInCheckOut;
-    private Map<Buchung, BookingChangeComponent> editTabs = new HashMap<>();
     // Other properties
     private EntityManager entityManager;
     private Datenbasis<ICSVPersistable> database;
@@ -158,47 +159,11 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 );
     }
 
-    private List<? extends IDepictable> getBookingsAsDisplayableList() {
-        return this.entityManager
-                .find(Buchung.class)
-                .stream()
-                .sorted(Buchung::compareTo)
-                .map(b -> new IDepictable() {
-                    @Override
-                    public Attribute[] getAttributeArray() {
-                        final var verantwortlicherGast = b.getVerantwortlicherGast();
-                        final var stellplatz = b.getGebuchterStellplatz();
-                        final var bereich = stellplatz.getBereich();
-
-                        // @formatter:off
-                        return new Attribute[] {
-                            new Attribute("Buchungsnummer", b, String.class, Integer.toString(b.getBuchungsnummer()), null, true, false, false, true),
-                            new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)), null, true, false, false, true),
-                            new Attribute("Verantwortlicher Gast", b, IDepictable.class, verantwortlicherGast, null, true, false, false, true),
-                            new Attribute("Stellplatz", b, IDepictable.class, stellplatz, null, true, false, false, true),
-                            new Attribute("Bereich", b, Optional.class, bereich, null, true, false, false, true),
-                            new Attribute("Weitere Gäste", b, List.class, b.getZugehoerigeGaeste(), null, true, false, false, true),
-                            new Attribute("Stellplatzbilder", b, List.class, stellplatz.getFotos().stream().map(Foto::getImage).toList(), null, true, false, false, true),
-                            new Attribute("Gebuchte Leistungen", b, List.class, b.getGebuchteLeistungen(), null, true, false, false, true),
-                            new Attribute("Mitgebrachte Ausrüstung", b, List.class, b.getMitgebrachteAusruestung(), null, true, false, false, true),
-                            new Attribute("Chipkarten", b, List.class, b.getAusgehaendigteChipkarten(), null, true, false, false, true),
-                        };
-                        // @formatter:on
-                    }
-
-                    @Override
-                    public String getElementID() {
-                        return b.getElementID();
-                    }
-                })
-                .toList();
-    }
-
-    // setters
-
     public void setEntityManager(final EntityManager entityManager) {
         this.entityManager = entityManager;
     }
+
+    // setters
 
     public void setApp(final Campingplatzverwaltung app) {
         this.app = app;
@@ -208,12 +173,12 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.database = database;
     }
 
-    // observer pattern
-
     @Override
     public boolean addObserver(final EventListener eventListener) {
         return this.updateEventObservers.add(eventListener);
     }
+
+    // observer pattern
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
@@ -223,7 +188,9 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             switch (command) {
                 case UPDATE_BOOKINGS -> {
                     this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_APPOINTMENTS, this.getAppointments()));
-                    this.fireUpdateEvent(new UpdateEvent(this, BookingListComponent.Commands.UPDATE_BOOKINGS, this.getBookingsAsDisplayableList()));
+                    this.fireUpdateEvent(new UpdateEvent(this,
+                            BookingListComponent.Commands.UPDATE_BOOKINGS,
+                            this.getBookingsAsDisplayableList(this.entityManager.find(Buchung.class))));
                 }
             }
         }
@@ -234,8 +201,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return this.updateEventObservers.remove(eventListener);
     }
 
-    // general methods
-
     public void exitApplication() {
         if (this.app.getConfig() == null) {
             this.app.setConfig(this.configurationBuilder.build());
@@ -243,7 +208,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.app.exitApplication();
     }
 
-    // oberver pattern
+    // general methods
 
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
         for (final var eventListener : this.updateEventObservers) {
@@ -253,11 +218,13 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
     }
 
-    // event Handlers
+    // oberver pattern
 
     public void handleWindowBookingAppointmentOverviewNextWeek(final LocalDate currentWeek) {
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, currentWeek.plusWeeks(1)));
     }
+
+    // event Handlers
 
     public void handleWindowBookingAppointmentOverviewPreviousWeek(final LocalDate currentWeek) {
         this.fireUpdateEvent(new UpdateEvent(this, BookingOverviewComponent.Commands.UPDATE_WEEK, currentWeek.minusWeeks(1)));
@@ -815,6 +782,53 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         ));
     }
 
+    public void handleWindowBookingListSearchInputChanged(final List<IDepictable> allBookings,
+                                                          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDate> startDate,
+                                                          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDate> endDate) {
+        var filteredBookings = (List<Buchung>) new ArrayList<>(allBookings
+                .stream()
+                .map(depictable -> this.entityManager.findOne(Buchung.class, depictable.getAttributeArray()[0].getValue()).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        if (startDate.isPresent() && endDate.isPresent()) {
+            if (startDate.get().isAfter(endDate.get())) {
+                JOptionPane.showMessageDialog(null, "Das Startdatum darf nicht nach dem Enddatum liegen.", "Fehler", JOptionPane.ERROR_MESSAGE);
+                this.fireUpdateEvent(new UpdateEvent(this, BookingListComponent.Commands.RESET_SEARCH_INPUT));
+                return;
+            }
+
+            // filter for all bookings that have at least one day in the given range
+            final var startDateTime = startDate.get().atStartOfDay();
+            final var endDateTime = endDate.get().atTime(LocalTime.of(23, 59));
+            filteredBookings = filteredBookings
+                    .stream()
+                    .filter(booking -> booking.getAnreise().isBefore(endDateTime) && booking.getAbreise().isAfter(startDateTime))
+                    .collect(Collectors.toList());
+        } else if (startDate.isPresent()) {
+            // filter for all bookings that have at least one day after the given start date
+            final var startDateTime = startDate.get().atStartOfDay();
+            filteredBookings = filteredBookings
+                    .stream()
+                    .filter(booking -> booking.getAbreise().isAfter(startDateTime))
+                    .collect(Collectors.toList());
+        } else if (endDate.isPresent()) {
+            // filter for all bookings that have at least one day before the given end date
+            final var endDateTime = endDate.get().atTime(LocalTime.of(23, 59));
+            filteredBookings = filteredBookings
+                    .stream()
+                    .filter(booking -> booking.getAnreise().isBefore(endDateTime))
+                    .collect(Collectors.toList());
+        }
+
+        this.fireUpdateEvent(new UpdateEvent(
+                this,
+                BookingListComponent.Commands.UPDATE_FILTERED_BOOKINGS,
+                this.getBookingsAsDisplayableList(filteredBookings)
+        ));
+    }
+
     public void handleWindowConfigurationSetAccentColor(final Color currentColor) {
         final var nextColor = JColorChooser.showDialog(this.windowConfiguration, "Farbe auswählen", currentColor);
         if (nextColor == null) {
@@ -849,8 +863,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.APPOINTMENT_OVERVIEW));
     }
 
-    // Initialization
-
     public void initialize() {
         this.addObserver(this);
         this.app.setConfig(this.configurationBuilder.build());
@@ -880,7 +892,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         UIManager.put("OptionPane.noButtonText", "Nein");
     }
 
-    // Dialogs
+    // Initialization
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public void openDialogDatePicker(
@@ -935,6 +947,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             return true;
         });
     }
+
+    // Dialogs
 
     @SuppressWarnings("unchecked")
     public void openDialogEditService(
@@ -1482,8 +1496,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
-    // Windows
-
     public void openWindowBooking() {
         if (this.windowBooking.isDisplayable()) {
             this.windowBooking.grabFocus();
@@ -1496,6 +1508,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             return true;
         });
     }
+
+    // Windows
 
     public void openWindowCheckInCheckOut() {
         if (this.windowCheckInCheckOut.isDisplayable()) {
@@ -1613,8 +1627,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
-    // General methods
-
     private void doEntityUpdate() {
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_ADDRESSES, this.entityManager.find(Adresse.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_EQUIPMENT, this.entityManager.find(Ausruestung.class)
@@ -1652,6 +1664,43 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .collect(Collectors.toList())));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_DISTURBANCES, this.entityManager.find(Stoerung.class)));
         this.fireUpdateEvent(new UpdateEvent(this, Commands.UPDATE_MAINTENANCE, this.entityManager.find(Wartung.class)));
+    }
+
+    // General methods
+
+    private List<? extends IDepictable> getBookingsAsDisplayableList(final List<Buchung> bookings) {
+        return bookings
+                .stream()
+                .sorted(Buchung::compareTo)
+                .map(b -> new IDepictable() {
+                    @Override
+                    public Attribute[] getAttributeArray() {
+                        final var verantwortlicherGast = b.getVerantwortlicherGast();
+                        final var stellplatz = b.getGebuchterStellplatz();
+                        final var bereich = stellplatz.getBereich();
+
+                        // @formatter:off
+                        return new Attribute[] {
+                            new Attribute("Buchungsnummer", b, String.class, Integer.toString(b.getBuchungsnummer()), null, true, false, false, true),
+                            new Attribute("Zeitraum", b, String.class, b.getAnreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)) + " - " + b.getAbreise().format(DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY)), null, true, false, false, true),
+                            new Attribute("Verantwortlicher Gast", b, IDepictable.class, verantwortlicherGast, null, true, false, false, true),
+                            new Attribute("Stellplatz", b, IDepictable.class, stellplatz, null, true, false, false, true),
+                            new Attribute("Bereich", b, Optional.class, bereich, null, true, false, false, true),
+                            new Attribute("Weitere Gäste", b, List.class, b.getZugehoerigeGaeste(), null, true, false, false, true),
+                            new Attribute("Stellplatzbilder", b, List.class, stellplatz.getFotos().stream().map(Foto::getImage).toList(), null, true, false, false, true),
+                            new Attribute("Gebuchte Leistungen", b, List.class, b.getGebuchteLeistungen(), null, true, false, false, true),
+                            new Attribute("Mitgebrachte Ausrüstung", b, List.class, b.getMitgebrachteAusruestung(), null, true, false, false, true),
+                            new Attribute("Chipkarten", b, List.class, b.getAusgehaendigteChipkarten(), null, true, false, false, true),
+                        };
+                        // @formatter:on
+                    }
+
+                    @Override
+                    public String getElementID() {
+                        return b.getElementID();
+                    }
+                })
+                .toList();
     }
 
     // Utility Methods

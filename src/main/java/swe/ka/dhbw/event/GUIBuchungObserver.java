@@ -35,6 +35,26 @@ public class GUIBuchungObserver implements IGUIEventListener {
         else if (guiEvent.getCmd() instanceof BookingListComponent.Commands command) {
             switch (command) {
                 case BOOKING_SELECTED -> controller.handleWindowBookingBookingSelected(((IDepictable) guiEvent.getData()).getElementID());
+                case BUTTON_PRESSED_SELECT_START_DATE -> controller.openDialogDatePicker(
+                        (GUIComponent) guiEvent.getSource(),
+                        BookingListComponent.Commands.SET_START_DATE,
+                        (Optional<LocalDate>) guiEvent.getData(),
+                        false
+                );
+                case BUTTON_PRESSED_SELECT_END_DATE -> controller.openDialogDatePicker(
+                        (GUIComponent) guiEvent.getSource(),
+                        BookingListComponent.Commands.SET_END_DATE,
+                        (Optional<LocalDate>) guiEvent.getData(),
+                        false
+                );
+                case SEARCH_INPUT_CHANGED -> {
+                    final var payload = (BookingListComponent.SearchInputChangedPayload) guiEvent.getData();
+                    controller.handleWindowBookingListSearchInputChanged(
+                            (List<IDepictable>) payload.allBookings(),
+                            payload.startDate(),
+                            payload.endDate()
+                    );
+                }
             }
         }
 

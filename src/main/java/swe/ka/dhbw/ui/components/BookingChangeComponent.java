@@ -873,6 +873,7 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                 .builder(BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Anreisedatum")
                 .toolTip("Angabe des Anreisedatums der Buchung (Format: dd.MM.yyyy HH:mm)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -898,6 +899,7 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                 .builder(BOOKING_PERIOD_TO_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Abreisedatum")
                 .toolTip("Angabe des Abreisedatums der Buchung (Format: dd.MM.yyyy HH:mm)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -949,6 +951,7 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
         this.chipCardSelector = AttributeElement.builder(CHIPCARD_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Neue Karte")
                 .toolTip("Auswahl der Chipkarten")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -1040,6 +1043,7 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
         this.pitchSelector = AttributeElement.builder(PITCH_ATTRIBUTE_ELEMENT_ID)
                 .labelName("Stellplatz")
                 .toolTip("Auswahl des Stellplatzes")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())

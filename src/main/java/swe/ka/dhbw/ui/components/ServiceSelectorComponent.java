@@ -77,6 +77,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
     // Data
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
     private List<? extends IDepictable> serviceTypes = new ArrayList<>();
+    @SuppressWarnings("FieldCanBeLocal")
     private Mode mode = Mode.CREATE;
 
     // Components
@@ -157,6 +158,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .builder(super.generateRandomID())
                 .labelName("Art der Leistung")
                 .toolTip("Angabe des konkreten Leistungstyps")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -182,6 +184,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .builder(START_DATE_ELEMENT_ID)
                 .labelName("Startdatum")
                 .toolTip("Angabe des Startdatums, ab wann die Leistung gebucht wird (Format: dd.MM.yyyy)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())
@@ -207,6 +210,7 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
                 .builder(END_DATE_ELEMENT_ID)
                 .labelName("Enddatum")
                 .toolTip("Angabe des Enddatums, bis wann die Leistung gebucht wird (Format: dd.MM.yyyy)")
+                .textFieldFont(this.config.getFont())
                 // label
                 .labelSize(new Dimension(100, GUIConstants.IntSizes.DEFAULT_BUTTON_HEIGHT.getValue()))
                 .labelFont(this.config.getFont())

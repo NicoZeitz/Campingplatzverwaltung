@@ -30,13 +30,17 @@ public abstract class GUIComponent extends ObservableComponent implements IUpdat
     protected void colorizeAttributeComponent(final AttributeComponent attributeComponent) {
         final var attributeElements = ((JComponent) attributeComponent.getComponent(0)).getComponents();
         for (final var element : attributeElements) {
-            final var component = ((AttributeElement) element).getComponent(1);
-            if (component instanceof JTextField textField) {
-                textField.setBackground(this.config.getSecondaryBackgroundColor());
-                textField.setForeground(this.config.getTextColor());
-                textField.setFont(this.config.getFont());
-                textField.setOpaque(true);
-            }
+            this.colorizeAttributeElement((AttributeElement) element);
+        }
+    }
+
+    protected void colorizeAttributeElement(final AttributeElement attributeElement) {
+        final var component = attributeElement.getComponent(1);
+        if (component instanceof JTextField textField) {
+            textField.setBackground(this.config.getSecondaryBackgroundColor());
+            textField.setForeground(this.config.getTextColor());
+            textField.setFont(this.config.getFont());
+            textField.setOpaque(true);
         }
     }
 
