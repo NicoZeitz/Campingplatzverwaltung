@@ -1,7 +1,7 @@
 #VORNAME;NACHNAME;GESCHLECHT;EMAIL;TELEFONNUMMER;KUNDENNUMMER;AUSWEISNUMMER;ANSCHRIFT;BUCHUNG_IDS;DUMMY_DATA
 Johann;FreudigerMann;MAENNLICH;j@freudiger.mann;+0000000000;1;Ausweisnummer10;1;;NULL
 Johanna;FreudigeFrau;WEIBLICH;j@freudige.frau;+0000000001;2;Ausweisnummer11;1;;NULL
-Johannes;FreudigesKind;MAENNLICH;kind@freudige.de;+0000000002;3;Ausweisnummer12;1;;NULL
+Johannes;FreudigesKind;MAENNLICH;kind@freudige.de;+0000000002;3;Ausweisnummer12;1;111;NULL
 Peter;Zufall;MAENNLICH;peter.zufall64@gmx.de;+0000000003;4;Ausweisnummer13;2;;NULL
 Tom;Müller;MAENNLICH;tom@muellermilch.tv;+0000000004;5;Ausweisnummer14;3;;NULL
 Hans;Peter;MAENNLICH;hansepeter@gmail.com;+0000000005;6;Ausweisnummer15;4;4;NULL
