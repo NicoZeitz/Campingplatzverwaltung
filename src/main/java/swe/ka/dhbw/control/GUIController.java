@@ -78,7 +78,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     // Observers
     private final Set<EventListener> updateEventObservers = new HashSet<>();
     // Windows
-    private final Map<Buchung, BookingChangeComponent> editTabs = new HashMap<>();
+    private final Map<Integer, BookingChangeComponent> editTabs = new HashMap<>();
     private GUIConfigurationObserver windowConfigurationObserver;
     private GUIBuchung windowBooking;
     private GUIPersonal windowStaff;
@@ -237,18 +237,18 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         }
 
         final var booking = optionalBooking.get();
-        if (this.editTabs.containsKey(booking)) {
+        if (this.editTabs.containsKey(booking.getBuchungsnummer())) {
             // Tab already exists switch to it
             this.fireUpdateEvent(new UpdateEvent(
                     this,
                     GUIBuchung.Commands.SWITCH_TAB,
-                    this.editTabs.get(booking)
+                    this.editTabs.get(booking.getBuchungsnummer())
             ));
             return;
         }
 
         final var editBookingGUI = new BookingChangeComponent(this.getConfig());
-        this.editTabs.put(booking, editBookingGUI);
+        this.editTabs.put(booking.getBuchungsnummer(), editBookingGUI);
         this.addObserver(editBookingGUI);
         editBookingGUI.addObserver(new GUIBuchungObserver());
 
@@ -316,8 +316,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
             if (mode instanceof BookingChangeComponent.Mode.EDIT edit) {
                 final var booking = (Buchung) edit.data();
-                final var component = this.editTabs.get(booking);
-                this.editTabs.remove(booking);
+                final var component = this.editTabs.get(booking.getBuchungsnummer());
+                this.editTabs.remove(booking.getBuchungsnummer());
                 this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
             }
             this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
@@ -335,8 +335,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         );
 
         if (decision == JOptionPane.YES_OPTION) {
-            final var component = this.editTabs.get(booking);
-            this.editTabs.remove(booking);
+            final var component = this.editTabs.get(booking.getBuchungsnummer());
+            this.editTabs.remove(booking.getBuchungsnummer());
             this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
             this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
 
@@ -357,6 +357,11 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 return;
             }
 
+            booking.getVerantwortlicherGast().removeBuchung(booking);
+            for (final var associatedGuest : booking.getZugehoerigeGaeste()) {
+                booking.removeZugehoerigerGast(associatedGuest);
+            }
+            
             for (final var bookedService : booking.getGebuchteLeistungen()) {
                 this.entityManager.remove(bookedService);
             }
@@ -751,8 +756,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
         if (payload.mode() instanceof BookingChangeComponent.Mode.EDIT edit) {
             final var beforeBooking = (Buchung) edit.data();
-            final var component = this.editTabs.get(beforeBooking);
-            this.editTabs.remove(beforeBooking);
+            final var component = this.editTabs.get(beforeBooking.getBuchungsnummer());
+            this.editTabs.remove(beforeBooking.getBuchungsnummer());
 
             this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
         }
@@ -1222,14 +1227,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         final var parentWindow = this.getNearestWindow(parentComponent);
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestSelector").withWidth(400).withHeight(320);
 
-        // create data for dialog
-        final var guests = this.entityManager
-                .find(Gast.class)
-                .stream()
-                .filter(g -> !excludedGuests.contains(g))
-                .toList();
-        this.fireUpdateEvent(new UpdateEvent(this, GuestSelectorComponent.Commands.UPDATE_GUESTS, guests));
-
         // react to changes in dialog
         guestSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
             if (guiEvent.getCmd() == GuestSelectorComponent.Commands.SEARCH_INPUT_CHANGED) {
@@ -1237,16 +1234,14 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 final var searchInput = payload.text().toLowerCase();
                 final var filteredGuests = payload.guests()
                         .stream()
-                        .filter(g -> ((Gast) g).getName().toLowerCase().contains(searchInput))
+                        .filter(g -> searchInput.isBlank() || ((Gast) g).getName().toLowerCase().contains(searchInput))
                         .toList();
 
-                if (filteredGuests.size() != payload.guests().size()) {
-                    this.fireUpdateEvent(new UpdateEvent(
-                            this,
-                            GuestSelectorComponent.Commands.UPDATE_GUESTS,
-                            filteredGuests
-                    ));
-                }
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        GuestSelectorComponent.Commands.UPDATE_FILTERED_GUESTS,
+                        filteredGuests
+                ));
             } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.BUTTON_PRESSED_ADD_GUEST) {
                 this.openDialogGuestCreate((GUIComponent) guiEvent.getSource(), GuestSelectorComponent.Commands.SELECT_GUEST);
             } else if (guiEvent.getCmd() == GuestSelectorComponent.Commands.BUTTON_PRESSED_GUEST_SELECTED) {
@@ -1267,11 +1262,18 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                                         eventToEmit,
                                         guest
                                 )
-
                         )
                 ));
             }
         });
+
+        // create data for dialog
+        final var guests = this.entityManager
+                .find(Gast.class)
+                .stream()
+                .filter(g -> !excludedGuests.contains(g))
+                .toList();
+        this.fireUpdateEvent(new UpdateEvent(this, GuestSelectorComponent.Commands.UPDATE_GUESTS, guests));
 
         // open Dialog
         this.openInDialog(guestSelectorComponent, parentWindow, "Gast auswählen", windowLocation, (event) -> {
