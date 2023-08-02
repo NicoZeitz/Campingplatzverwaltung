@@ -28,7 +28,8 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
         SEARCH_INPUT_CHANGED("GuestSelectorComponent::SEARCH_INPUT_CHANGED", SearchInputChangedPayload.class),
         // incoming update events
         SELECT_GUEST("GuestSelectorComponent::SELECT_GUEST", IDepictable.class),
-        UPDATE_GUESTS("GuestSelectorComponent::UPDATE_GUESTS", List.class);
+        UPDATE_GUESTS("GuestSelectorComponent::UPDATE_GUESTS", List.class),
+        UPDATE_FILTERED_GUESTS("GuestSelectorComponent::UPDATE_FILTERED_GUESTS", List.class);
 
         public final Class<?> payloadType;
         public final String cmdText;
@@ -60,6 +61,7 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
     private static final String GUEST_LIST_ELEMENT_ID = "GuestSelectorComponent::GUEST_LIST_ELEMENT_ID";
 
     // Data
+    private List<? extends IDepictable> allGuests = new ArrayList<>();
     private List<? extends IDepictable> guests = new ArrayList<>();
 
     // Components
@@ -79,7 +81,7 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
                 case SEARCH_INPUT_ELEMENT_ID -> {
                     if (guiEvent.getCmd() == SimpleTextComponent.Commands.TEXT_CHANGED) {
                         final var text = this.searchInputElement.getText();
-                        final var payload = new SearchInputChangedPayload(text, this.guests);
+                        final var payload = new SearchInputChangedPayload(text, this.allGuests);
                         this.fireGUIEvent(new GUIEvent(this, Commands.SEARCH_INPUT_CHANGED, payload));
                     }
                 }
@@ -109,16 +111,13 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
         if (updateEvent.getCmd() instanceof Commands command) {
             switch (command) {
                 case UPDATE_GUESTS -> {
+                    this.allGuests = (List<? extends IDepictable>) updateEvent.getData();
+                    final var payload = new SearchInputChangedPayload(this.searchInputElement.getText(), this.allGuests);
+                    this.fireGUIEvent(new GUIEvent(this, Commands.SEARCH_INPUT_CHANGED, payload));
+                }
+                case UPDATE_FILTERED_GUESTS -> {
                     this.guests = (List<? extends IDepictable>) updateEvent.getData();
                     this.guestListElement.setListElements(this.guests);
-                    final var text = this.searchInputElement.getText();
-                    if (!text.isEmpty()) {
-                        this.fireGUIEvent(new GUIEvent(
-                                this,
-                                Commands.SEARCH_INPUT_CHANGED,
-                                new SearchInputChangedPayload(text, this.guests)
-                        ));
-                    }
                 }
                 case SELECT_GUEST -> this.fireGUIEvent(new GUIEvent(
                         this,
