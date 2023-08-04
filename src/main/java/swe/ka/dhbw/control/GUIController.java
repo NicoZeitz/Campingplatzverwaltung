@@ -676,7 +676,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 .filter(s -> s.getBuchungStart().isBefore(payload.arrivalDate().get().toLocalDate()) ||
                         s.getBuchungsEnde().isAfter(payload.departureDate().get().toLocalDate()))
                 .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum");
-
         serviceErrorStream = Stream.concat(
                 serviceErrorStream,
                 payload.bookedServices()

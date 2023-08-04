@@ -29,7 +29,7 @@ Beide
 Fabian:
 
 - [x] Aktion abbrechen -> Antworten YES / NO (JOptionPane) global -> guiCont openMain
-- [ ] Fahrzeugtyp sollte Leerfeld besitzen
+- [x] Fahrzeugtyp sollte Leerfeld besitzen
 - [ ] Bedienungsanleitung-Start
 - [ ] Anforderungen durchlesen
 

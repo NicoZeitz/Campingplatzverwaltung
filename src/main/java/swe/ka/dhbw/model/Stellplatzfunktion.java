@@ -138,7 +138,7 @@ public final class Stellplatzfunktion extends Leistungsbeschreibung implements I
         final var df = new DecimalFormat();
         df.setMaximumFractionDigits(2);
         final var price = df.format(this.getGebuehr().setScale(2, RoundingMode.HALF_EVEN)) + "€";
-        return this.getBeschreibung() + "für den Stellplatz - " + price;
+        return this.getBeschreibung() + " für den Stellplatz - " + price;
     }
 
     public void addStellplatz(final Stellplatz stellplatz) {
