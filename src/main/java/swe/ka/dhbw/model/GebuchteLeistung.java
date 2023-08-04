@@ -82,9 +82,7 @@ public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPe
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final GebuchteLeistung that)) return false;
-        return Objects.equals(this.getBuchungStart(), that.getBuchungStart()) &&
-                Objects.equals(this.getBuchungsEnde(), that.getBuchungsEnde()) &&
-                Objects.equals(this.getLeistungsbeschreibung(), that.getLeistungsbeschreibung());
+        return this.getGebuchteLeistungId() == that.getGebuchteLeistungId();
     }
 
     @Override
@@ -156,7 +154,7 @@ public final class GebuchteLeistung implements IDepictable, IPersistable, ICSVPe
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getBuchungStart(), this.getBuchungsEnde(), this.getLeistungsbeschreibung());
+        return Objects.hash(this.getGebuchteLeistungId());
     }
 
     @Override

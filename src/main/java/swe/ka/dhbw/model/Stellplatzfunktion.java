@@ -65,7 +65,7 @@ public final class Stellplatzfunktion extends Leistungsbeschreibung implements I
         if (this == o) return true;
         if (!(o instanceof final Stellplatzfunktion that)) return false;
         if (!super.equals(o)) return false;
-        return this.getStatus() == that.getStatus();
+        return this.getLeistungsbeschreibungId() == that.getLeistungsbeschreibungId();
     }
 
     @Override
@@ -113,7 +113,7 @@ public final class Stellplatzfunktion extends Leistungsbeschreibung implements I
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.getStatus());
+        return Objects.hash(super.hashCode(), this.getLeistungsbeschreibungId());
     }
 
     @Override

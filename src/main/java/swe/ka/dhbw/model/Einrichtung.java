@@ -121,11 +121,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         if (this == o) return true;
         if (!(o instanceof final Einrichtung that)) return false;
         if (!super.equals(o)) return false;
-        return Objects.equals(this.getName(), that.getName()) &&
-                Objects.equals(this.getBeschreibung(), that.getBeschreibung()) &&
-                Objects.equals(this.getLetzteWartung(), that.getLetzteWartung()) &&
-                Objects.equals(this.getOeffnungstage(), that.getOeffnungstage()) &&
-                Objects.equals(this.getZustaendigeFirma(), that.getZustaendigeFirma());
+        return this.getAnlageId() == that.getAnlageId();
     }
 
     @Override
@@ -204,12 +200,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(),
-                this.getName(),
-                this.getBeschreibung(),
-                this.getLetzteWartung(),
-                this.getOeffnungstage(),
-                this.getZustaendigeFirma());
+        return Objects.hash(super.hashCode(), this.getAnlageId());
     }
 
     @Override

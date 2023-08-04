@@ -71,8 +71,7 @@ public final class Chipkarte implements ICSVPersistable, IPersistable, IDepictab
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Chipkarte that)) return false;
-        return this.getNummer() == that.getNummer() &&
-                this.getStatus() == that.getStatus();
+        return this.getNummer() == that.getNummer();
     }
 
     @Override
@@ -121,7 +120,7 @@ public final class Chipkarte implements ICSVPersistable, IPersistable, IDepictab
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getNummer(), this.getStatus());
+        return Objects.hash(this.getNummer());
     }
 
     @Override

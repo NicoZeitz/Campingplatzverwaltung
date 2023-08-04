@@ -131,11 +131,7 @@ public sealed class Person implements IDepictable, IPersistable, ICSVPersistable
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Person that)) return false;
-        return Objects.equals(this.getVorname(), that.getVorname()) &&
-                Objects.equals(this.getNachname(), that.getNachname()) &&
-                this.getGeschlecht() == that.getGeschlecht() &&
-                Objects.equals(this.getEmail(), that.getEmail()) &&
-                Objects.equals(this.getTelefonnummer(), that.getTelefonnummer());
+        return this.getPersonId() == that.getPersonId();
     }
 
     @Override
@@ -211,11 +207,7 @@ public sealed class Person implements IDepictable, IPersistable, ICSVPersistable
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getVorname(),
-                this.getNachname(),
-                this.getGeschlecht(),
-                this.getEmail(),
-                this.getTelefonnummer());
+        return Objects.hash(this.getPersonId());
     }
 
     @Override

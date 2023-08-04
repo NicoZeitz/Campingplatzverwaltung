@@ -130,14 +130,7 @@ public final class Rechnung implements IPersistable, ICSVPersistable, IDepictabl
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Rechnung that)) return false;
-        return this.getRechnungsnummer() == that.getRechnungsnummer() &&
-                Objects.equals(this.getRechnungsdatum(), that.getRechnungsdatum()) &&
-                Objects.equals(this.getBetragNetto(), that.getBetragNetto()) &&
-                Objects.equals(this.getZahlungsanweisung(), that.getZahlungsanweisung()) &&
-                Objects.equals(this.getBankverbindung(), that.getBankverbindung()) &&
-                Objects.equals(this.getZahlungszweck(), that.getZahlungszweck()) &&
-                Objects.equals(this.getZahlungsziel(), that.getZahlungsziel()) &&
-                Objects.equals(this.getAdressat(), that.getAdressat());
+        return this.getRechnungsnummer() == that.getRechnungsnummer();
     }
 
     @Override
@@ -233,14 +226,7 @@ public final class Rechnung implements IPersistable, ICSVPersistable, IDepictabl
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getRechnungsnummer(),
-                this.getRechnungsdatum(),
-                this.getBetragNetto(),
-                this.getZahlungsanweisung(),
-                this.getBankverbindung(),
-                this.getZahlungszweck(),
-                this.getZahlungsziel(),
-                this.getAdressat());
+        return Objects.hash(this.getRechnungsnummer());
     }
 
     @Override

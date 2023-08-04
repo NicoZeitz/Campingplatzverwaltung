@@ -170,13 +170,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
         if (this == o) return true;
         if (!(o instanceof final Stellplatz that)) return false;
         if (!super.equals(o)) return false;
-        return Double.compare(that.getGroesse(), this.getGroesse()) == 0 &&
-                this.isBarrierefrei() == that.isBarrierefrei() &&
-                this.getAnzahWohnwagen() == that.getAnzahWohnwagen() &&
-                this.getAnzahlPKW() == that.getAnzahlPKW() &&
-                this.getAnzahlZelte() == that.getAnzahlZelte() &&
-                Objects.equals(this.getStellplatz(), that.getStellplatz()) &&
-                Objects.equals(this.getGebuehr(), that.getGebuehr());
+        return this.getAnlageId() == that.getAnlageId();
     }
 
     @Override
@@ -289,14 +283,7 @@ public final class Stellplatz extends Anlage implements ICSVPersistable, IPersis
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(),
-                this.getStellplatz(),
-                this.getGebuehr(),
-                this.getGroesse(),
-                this.isBarrierefrei(),
-                this.getAnzahWohnwagen(),
-                this.getAnzahlPKW(),
-                this.getAnzahlZelte());
+        return Objects.hash(super.hashCode(), this.getAnlageId());
     }
 
     @Override

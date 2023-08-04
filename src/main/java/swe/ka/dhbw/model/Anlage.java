@@ -54,7 +54,7 @@ public sealed abstract class Anlage implements IDepictable, IPersistable permits
         if (this.bereich.equals(bereich)) {
             return;
         }
-        
+
         this.bereich.ifPresent(b -> b.removeAnlage(this));
 
         this.bereich = bereich;
@@ -71,9 +71,7 @@ public sealed abstract class Anlage implements IDepictable, IPersistable permits
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Anlage that)) return false;
-        return Objects.equals(this.getLage(), that.getLage()) &&
-                Objects.equals(this.getBereich(), that.getBereich()) &&
-                Objects.equals(this.getFotos(), that.getFotos());
+        return this.getAnlageId() == that.getAnlageId();
     }
 
     @Override
@@ -115,7 +113,7 @@ public sealed abstract class Anlage implements IDepictable, IPersistable permits
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getLage(), this.getBereich(), this.getFotos());
+        return Objects.hash(this.getAnlageId());
     }
 
     @Override

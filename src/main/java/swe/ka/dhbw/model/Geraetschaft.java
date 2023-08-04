@@ -72,8 +72,7 @@ public final class Geraetschaft extends Leistungsbeschreibung implements ICSVPer
         if (this == o) return true;
         if (!(o instanceof final Geraetschaft that)) return false;
         if (!super.equals(o)) return false;
-        return Objects.equals(this.getAnschaffungsdatum(), that.getAnschaffungsdatum()) &&
-                Objects.equals(this.getZustand(), that.getZustand());
+        return this.getLeistungsbeschreibungId() == that.getLeistungsbeschreibungId();
     }
 
     @Override
@@ -125,7 +124,7 @@ public final class Geraetschaft extends Leistungsbeschreibung implements ICSVPer
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.getAnschaffungsdatum(), this.getZustand());
+        return Objects.hash(super.hashCode(), this.getLeistungsbeschreibungId());
     }
 
     @Override

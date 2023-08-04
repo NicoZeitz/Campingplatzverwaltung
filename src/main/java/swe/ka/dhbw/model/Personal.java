@@ -100,9 +100,7 @@ public final class Personal extends Person implements IDepictable, ICSVPersistab
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Personal that)) return false;
-        return this.getNummer() == that.getNummer() &&
-                Objects.equals(this.getGeburtstag(), that.getGeburtstag()) &&
-                this.getBenutzerrolle() == that.getBenutzerrolle();
+        return this.getPersonId() == that.getPersonId();
     }
 
     @Override
@@ -176,7 +174,7 @@ public final class Personal extends Person implements IDepictable, ICSVPersistab
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getNummer(), this.getGeburtstag(), this.getBenutzerrolle());
+        return Objects.hash(super.hashCode(), this.getPersonId());
     }
 
     @Override

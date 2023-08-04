@@ -143,14 +143,7 @@ public final class Wartung implements ICSVPersistable, IPersistable, IDepictable
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Wartung that)) return false;
-        return this.getWartungsnummer() == that.getWartungsnummer() &&
-                Objects.equals(this.getDuerchfuehrungsdatum(), that.getDuerchfuehrungsdatum()) &&
-                Objects.equals(this.getRechnungsdatum(), that.getRechnungsdatum()) &&
-                Objects.equals(this.getAuftragsnummer(), that.getAuftragsnummer()) &&
-                Objects.equals(this.getRechnungsnummer(), that.getRechnungsnummer()) &&
-                Objects.equals(this.getKosten(), that.getKosten()) &&
-                Objects.equals(this.getZustaendigeFirma(), that.getZustaendigeFirma()) &&
-                Objects.equals(this.getAnlage(), that.getAnlage());
+        return this.getWartungsnummer() == that.getWartungsnummer();
     }
 
     @Override
@@ -238,14 +231,7 @@ public final class Wartung implements ICSVPersistable, IPersistable, IDepictable
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getWartungsnummer(),
-                this.getDuerchfuehrungsdatum(),
-                this.getRechnungsdatum(),
-                this.getAuftragsnummer(),
-                this.getRechnungsnummer(),
-                this.getKosten(),
-                this.getZustaendigeFirma(),
-                this.getAnlage());
+        return Objects.hash(this.getWartungsnummer());
     }
 
     @Override

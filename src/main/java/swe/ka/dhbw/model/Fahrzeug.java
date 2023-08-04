@@ -66,8 +66,7 @@ public final class Fahrzeug extends Ausruestung {
         if (this == o) return true;
         if (!(o instanceof Fahrzeug that)) return false;
         if (!super.equals(o)) return false;
-        return Objects.equals(this.getKennzeichen(), that.getKennzeichen()) &&
-                this.getTyp() == that.getTyp();
+        return this.getAusruestungsId() == that.getAusruestungsId();
     }
 
     @Override
@@ -106,7 +105,7 @@ public final class Fahrzeug extends Ausruestung {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.getKennzeichen(), this.getTyp());
+        return Objects.hash(super.hashCode(), this.getAusruestungsId());
     }
 
     @Override
