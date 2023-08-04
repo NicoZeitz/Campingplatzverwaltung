@@ -88,9 +88,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof Gast that)) return false;
-        return this.getKundennummer() == that.getKundennummer() &&
-                Objects.equals(this.getAusweisnummer(), that.getAusweisnummer()) &&
-                Objects.equals(this.getAnschrift(), that.getAnschrift());
+        return this.getKundennummer() == that.getKundennummer();
     }
 
     @Override
@@ -170,7 +168,7 @@ public final class Gast extends Person implements IPersistable, IDepictable, ICS
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getKundennummer(), this.getAusweisnummer(), this.getAnschrift());
+        return Objects.hash(super.hashCode(), this.getKundennummer());
     }
 
     @Override

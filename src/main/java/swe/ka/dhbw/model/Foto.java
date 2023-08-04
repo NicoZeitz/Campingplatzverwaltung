@@ -92,9 +92,7 @@ public final class Foto implements IDepictable, ICSVPersistable, IPersistable {
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Foto that)) return false;
-        return Objects.equals(this.getDateipfad(), that.getDateipfad()) &&
-                Objects.equals(this.getTitel(), that.getTitel()) &&
-                Objects.equals(this.getBeschreibung(), that.getBeschreibung());
+        return this.getFotoId() == that.getFotoId();
     }
 
     @Override
@@ -154,7 +152,7 @@ public final class Foto implements IDepictable, ICSVPersistable, IPersistable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getDateipfad(), this.getTitel(), this.getBeschreibung());
+        return Objects.hash(this.getFotoId());
     }
 
     @Override

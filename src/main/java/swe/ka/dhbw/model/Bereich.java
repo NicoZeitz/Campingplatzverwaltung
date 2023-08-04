@@ -66,8 +66,7 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
         if (this == o) return true;
         if (!(o instanceof final Bereich that)) return false;
         if (!super.equals(o)) return false;
-        return this.getKennzeichen() == that.getKennzeichen() &&
-                Objects.equals(this.getBeschreibung(), that.getBeschreibung());
+        return this.getAnlageId() == that.getAnlageId();
     }
 
     @Override
@@ -139,7 +138,7 @@ public final class Bereich extends Anlage implements ICSVPersistable, IDepictabl
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.getKennzeichen(), this.getBeschreibung());
+        return Objects.hash(super.hashCode(), this.getAnlageId());
     }
 
     @Override

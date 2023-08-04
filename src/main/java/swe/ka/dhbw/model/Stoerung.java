@@ -143,12 +143,7 @@ public final class Stoerung implements IDepictable, ICSVPersistable, IPersistabl
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Stoerung that)) return false;
-        return this.getStoerungsnummer() == that.getStoerungsnummer() &&
-                Objects.equals(this.getTitel(), that.getTitel()) &&
-                Objects.equals(this.getBeschreibung(), that.getBeschreibung()) &&
-                Objects.equals(this.getErstellungsdatum(), that.getErstellungsdatum()) &&
-                Objects.equals(this.getBehebungsdatum(), that.getBehebungsdatum()) &&
-                this.getStatus() == that.getStatus();
+        return this.getStoerungsnummer() == that.getStoerungsnummer();
     }
 
     @Override
@@ -236,12 +231,7 @@ public final class Stoerung implements IDepictable, ICSVPersistable, IPersistabl
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getStoerungsnummer(),
-                this.getTitel(),
-                this.getBeschreibung(),
-                this.getErstellungsdatum(),
-                this.getBehebungsdatum(),
-                this.getStatus());
+        return Objects.hash(this.getStoerungsnummer());
     }
 
     @Override

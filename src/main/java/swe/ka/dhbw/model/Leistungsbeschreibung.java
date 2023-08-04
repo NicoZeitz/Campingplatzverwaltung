@@ -68,9 +68,7 @@ public sealed abstract class Leistungsbeschreibung implements IPersistable, IDep
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Leistungsbeschreibung that)) return false;
-        return this.getMaximalAnzahl() == that.getMaximalAnzahl() &&
-                Objects.equals(this.getGebuehr(), that.getGebuehr()) &&
-                Objects.equals(this.getBeschreibung(), that.getBeschreibung());
+        return this.getLeistungsbeschreibungId() == that.getLeistungsbeschreibungId();
     }
 
     @Override
@@ -113,7 +111,7 @@ public sealed abstract class Leistungsbeschreibung implements IPersistable, IDep
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getGebuehr(), this.getMaximalAnzahl(), this.getBeschreibung());
+        return Objects.hash(this.getLeistungsbeschreibungId());
     }
 
     @Override

@@ -334,42 +334,57 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (decision == JOptionPane.YES_OPTION) {
-            final var component = this.editTabs.get(booking.getBuchungsnummer());
-            this.editTabs.remove(booking.getBuchungsnummer());
-            this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
-            this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
-
-            try {
-                this.database.transaction(() -> {
-                    for (final var bookedService : booking.getGebuchteLeistungen()) {
-                        this.database.delete(GebuchteLeistung.class, bookedService);
-                    }
-                    for (final var equipment : booking.getMitgebrachteAusruestung()) {
-                        this.database.delete(Ausruestung.class, equipment);
-                    }
-                    this.database.delete(Buchung.class, booking);
-                });
-            } catch (IOException e) {
-                AppLogger.getInstance().error("Failed to delete booking from the database.");
-                AppLogger.getInstance().error(e);
-                JOptionPane.showMessageDialog(null, "Die Buchung konnte nicht gelöscht werden.", "Fehler", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            booking.getVerantwortlicherGast().removeBuchung(booking);
-            for (final var associatedGuest : booking.getZugehoerigeGaeste()) {
-                booking.removeZugehoerigerGast(associatedGuest);
-            }
-            
-            for (final var bookedService : booking.getGebuchteLeistungen()) {
-                this.entityManager.remove(bookedService);
-            }
-            for (final var equipment : booking.getMitgebrachteAusruestung()) {
-                this.entityManager.remove(equipment);
-            }
-            this.entityManager.remove(booking);
+        if (decision != JOptionPane.YES_OPTION) {
+            return;
         }
+
+        final var component = this.editTabs.get(booking.getBuchungsnummer());
+        this.editTabs.remove(booking.getBuchungsnummer());
+        this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.CLOSE_TAB, component));
+        this.fireUpdateEvent(new UpdateEvent(this, GUIBuchung.Commands.SWITCH_TAB, GUIBuchung.Tabs.BOOKING_LIST));
+
+        final var responsibleGuest = booking.getVerantwortlicherGast();
+        final var associatedGuests = new ArrayList<>(booking.getZugehoerigeGaeste());
+
+        responsibleGuest.removeBuchung(booking);
+        for (final var associatedGuest : associatedGuests) {
+            booking.removeZugehoerigerGast(associatedGuest);
+        }
+
+        try {
+            this.database.transaction(() -> {
+                for (final var bookedService : booking.getGebuchteLeistungen()) {
+                    this.database.delete(GebuchteLeistung.class, bookedService);
+                }
+                for (final var equipment : booking.getMitgebrachteAusruestung()) {
+                    this.database.delete(Ausruestung.class, equipment);
+                }
+                for (final var guest : booking.getZugehoerigeGaeste()) {
+                    this.database.upsert(Gast.class, guest);
+                }
+                this.database.upsert(Gast.class, booking.getVerantwortlicherGast());
+                this.database.delete(Buchung.class, booking);
+            });
+        } catch (IOException e) {
+            responsibleGuest.addBuchung(booking);
+            for (final var associatedGuest : associatedGuests) {
+                booking.addZugehoerigerGast(associatedGuest);
+            }
+
+            AppLogger.getInstance().error("Failed to delete booking from the database.");
+            AppLogger.getInstance().error(e);
+            JOptionPane.showMessageDialog(null, "Die Buchung konnte nicht gelöscht werden.", "Fehler", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        for (final var bookedService : booking.getGebuchteLeistungen()) {
+            this.entityManager.remove(bookedService);
+        }
+        for (final var equipment : booking.getMitgebrachteAusruestung()) {
+            this.entityManager.remove(equipment);
+        }
+        this.entityManager.remove(booking);
+        this.doEntityUpdate();
     }
 
     public void handleWindowBookingChangeDeleteChipCard(final GUIComponent source,
@@ -469,7 +484,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         ));
     }
 
-    @SuppressWarnings("unchecked")
     public void handleWindowBookingChangeGuestDeleted(final GUIComponent source,
                                                       final List<Gast> selectedGuests,
                                                       final Gast deletedGuest,
@@ -522,6 +536,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     }
 
     public void handleWindowBookingChangeSave(final GUIComponent source, final BookingChangeComponent.SavePayload payload) {
+        // validation
         var hasError = false;
         this.fireUpdateEvent(new UpdateEvent(
                 this,
@@ -579,7 +594,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             hasError = true;
         }
 
-
         if (payload.responsibleGuest().isEmpty()) {
             this.fireUpdateEvent(new UpdateEvent(
                     this,
@@ -611,7 +625,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                                 new UpdateEvent(
                                         this,
                                         BookingChangeComponent.Commands.ERRORS_SHOW_END_DATE,
-                                        "Bitte geben Sie ein Abreisedatum an."
+                                        "Anreisedatum muss vor dem Abreisedatum liegen."
                                 )
                         )
                 ));
@@ -652,43 +666,49 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 ));
                 hasError = true;
             }
+        }
 
-            final var serviceErrors = Stream.concat(
-                    payload.bookedServices()
-                            .stream()
-                            .map(s -> (GebuchteLeistung) s)
-                            .filter(s -> s.getBuchungStart().isBefore(arrivalDate.toLocalDate()) || s.getBuchungsEnde()
-                                    .isAfter(departureDate.toLocalDate()))
-                            .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum"),
-                    payload.bookedServices()
-                            .stream()
-                            .map(s -> (GebuchteLeistung) s)
-                            .filter(s -> {
-                                if (s.getLeistungsbeschreibung() instanceof Stellplatzfunktion function) {
-                                    return function.getStellplaetze().contains(pitch);
-                                }
-                                return false;
-                            })
-                            .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist eine Stellplatzfunktion, welche nicht vom ausgewählten " + pitch.getVisibleText() + " unterstützt wird")
-            ).collect(Collectors.joining("\n"));
+        var serviceErrorStream = payload.arrivalDate().isEmpty() || payload.departureDate().isEmpty()
+                ? Stream.<String>empty()
+                : payload.bookedServices()
+                .stream()
+                .map(s -> (GebuchteLeistung) s)
+                .filter(s -> s.getBuchungStart().isBefore(payload.arrivalDate().get().toLocalDate()) ||
+                        s.getBuchungsEnde().isAfter(payload.departureDate().get().toLocalDate()))
+                .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist nicht im Buchungszeitraum");
 
-            if (!serviceErrors.isEmpty()) {
-                this.fireUpdateEvent(new UpdateEvent(
-                        this,
-                        GUIBuchung.Commands.SEND_EVENT_TO_TAB,
-                        new GUIBuchung.SendEventToTabPayload(
-                                source,
-                                new UpdateEvent(this, BookingChangeComponent.Commands.ERRORS_SHOW_SERVICES, serviceErrors)
-                        )
-                ));
-                hasError = true;
-            }
+        serviceErrorStream = Stream.concat(
+                serviceErrorStream,
+                payload.bookedServices()
+                        .stream()
+                        .map(s -> (GebuchteLeistung) s)
+                        .filter(s -> {
+                            if (s.getLeistungsbeschreibung() instanceof Stellplatzfunktion function) {
+                                return function.getStellplaetze().contains(pitch);
+                            }
+                            return false;
+                        })
+                        .map(s -> "Gebuchte Leistung " + s.getVisibleText() + " ist eine Stellplatzfunktion, welche nicht vom ausgewählten " + pitch.getVisibleText() + " unterstützt wird")
+        );
+        final var serviceErrors = serviceErrorStream.collect(Collectors.joining("\n"));
+
+        if (!serviceErrors.isEmpty()) {
+            this.fireUpdateEvent(new UpdateEvent(
+                    this,
+                    GUIBuchung.Commands.SEND_EVENT_TO_TAB,
+                    new GUIBuchung.SendEventToTabPayload(
+                            source,
+                            new UpdateEvent(this, BookingChangeComponent.Commands.ERRORS_SHOW_SERVICES, serviceErrors)
+                    )
+            ));
+            hasError = true;
         }
 
         if (hasError) {
             return;
         }
 
+        // transform data into model object
         final var arrivalDate = payload.arrivalDate().get();
         final var departureDate = payload.departureDate().get();
         final var responsibleGuest = (Gast) payload.responsibleGuest().get();
@@ -697,7 +717,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 ? (Buchung) edit.data()
                 : new Buchung(this.entityManager.generateNextPrimaryKey(Buchung.class), arrivalDate, departureDate);
 
-        if (payload.mode() instanceof BookingChangeComponent.Mode.EDIT edit) {
+        if (payload.mode() instanceof BookingChangeComponent.Mode.EDIT) {
             booking.setAnreise(arrivalDate);
             booking.setAbreise(departureDate);
             booking.removeAllZugehoerigerGaeste();
@@ -721,6 +741,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             booking.addAusgehaendigteChipkarte((Chipkarte) chipCard);
         }
 
+        // save in db
         try {
             this.database.transaction(() -> {
                 this.database.upsert(Gast.class, booking.getVerantwortlicherGast());
@@ -741,6 +762,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             JOptionPane.showMessageDialog(null, "Die Buchung konnte nicht erstellt werden.", "Fehler", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        // save in entity manager
         this.entityManager.persist(booking.getVerantwortlicherGast());
         for (final var associatedGuest : booking.getZugehoerigeGaeste()) {
             this.entityManager.persist(associatedGuest);
@@ -754,6 +776,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         this.entityManager.persist(booking);
         this.doEntityUpdate();
 
+        // change tabs
         if (payload.mode() instanceof BookingChangeComponent.Mode.EDIT edit) {
             final var beforeBooking = (Buchung) edit.data();
             final var component = this.editTabs.get(beforeBooking.getBuchungsnummer());
@@ -1145,7 +1168,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     return;
                 }
 
-                final var equipment = payload.licensePlate().isPresent() && payload.vehicleTyp().isPresent()
+                @SuppressWarnings("ConstantValue") final var equipment = payload.licensePlate().isPresent() && payload.vehicleTyp().isPresent()
                         ? new Fahrzeug(
                         this.entityManager.generateNextPrimaryKey(Ausruestung.class),
                         payload.description().get(),

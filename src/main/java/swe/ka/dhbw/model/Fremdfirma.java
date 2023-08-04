@@ -84,10 +84,7 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof final Fremdfirma that)) return false;
-        return Objects.equals(this.getName(), that.getName()) &&
-                Objects.equals(this.getAnschrift(), that.getAnschrift()) &&
-                Objects.equals(this.getAnsprechperson(), that.getAnsprechperson()) &&
-                Objects.equals(this.getWartungen(), that.getWartungen());
+        return this.getFremdfirmaID() == that.getFremdfirmaID();
     }
 
     @Override
@@ -150,7 +147,7 @@ public final class Fremdfirma implements ICSVPersistable, IPersistable, IDepicta
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getName(), this.getAnschrift(), this.getAnsprechperson(), this.getWartungen());
+        return Objects.hash(this.getFremdfirmaID());
     }
 
     @Override

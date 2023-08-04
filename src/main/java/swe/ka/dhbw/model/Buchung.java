@@ -145,16 +145,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Buchung that)) return false;
-        return this.getBuchungsnummer() == that.getBuchungsnummer() &&
-                Objects.equals(this.getAnreise(), that.getAnreise()) &&
-                Objects.equals(this.getAbreise(), that.getAbreise()) &&
-                Objects.equals(this.getGebuchterStellplatz(), that.getGebuchterStellplatz()) &&
-                Objects.equals(this.getAusgehaendigteChipkarten(), that.getAusgehaendigteChipkarten()) &&
-                Objects.equals(this.getMitgebrachteAusruestung(), that.getMitgebrachteAusruestung()) &&
-                Objects.equals(this.getRechnung(), that.getRechnung()) &&
-                Objects.equals(this.getVerantwortlicherGast(), that.getVerantwortlicherGast()) &&
-                Objects.equals(this.getZugehoerigeGaeste(), that.getZugehoerigeGaeste()) &&
-                Objects.equals(this.getGebuchteLeistungen(), that.getGebuchteLeistungen());
+        return this.getBuchungsnummer() == that.getBuchungsnummer();
     }
 
     @Override
@@ -239,18 +230,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                this.getBuchungsnummer(),
-                this.getAnreise(),
-                this.getAbreise(),
-                this.getGebuchterStellplatz(),
-                this.getAusgehaendigteChipkarten(),
-                this.getMitgebrachteAusruestung(),
-                this.getRechnung(),
-                this.getVerantwortlicherGast(),
-                this.getZugehoerigeGaeste(),
-                this.getGebuchteLeistungen()
-        );
+        return Objects.hash(this.getBuchungsnummer());
     }
 
     @Override

@@ -106,10 +106,7 @@ public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepic
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof Ausruestung that)) return false;
-        return this.getAnzahl() == that.getAnzahl() &&
-                Double.compare(this.getBreite(), that.getBreite()) == 0 &&
-                Double.compare(this.getHoehe(), that.getHoehe()) == 0 &&
-                Objects.equals(this.getBezeichnung(), that.getBezeichnung());
+        return this.getAusruestungsId() == that.getAusruestungsId();
     }
 
     @Override
@@ -181,7 +178,7 @@ public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepic
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getBezeichnung(), this.getAnzahl(), this.getBreite(), this.getHoehe());
+        return Objects.hash(this.getAusruestungsId());
     }
 
     @Override

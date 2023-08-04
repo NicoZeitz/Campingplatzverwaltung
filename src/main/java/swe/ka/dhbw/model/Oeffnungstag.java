@@ -61,9 +61,8 @@ public final class Oeffnungstag implements ICSVPersistable, IPersistable, IDepic
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Oeffnungstag that)) return false;
-        return getWochentag() == that.getWochentag() && Objects.equals(
-                getOeffnungszeiten(),
-                that.getOeffnungszeiten());
+        return getWochentag() == that.getWochentag() &&
+                Objects.equals(getOeffnungszeiten(), that.getOeffnungszeiten());
     }
 
     @Override
