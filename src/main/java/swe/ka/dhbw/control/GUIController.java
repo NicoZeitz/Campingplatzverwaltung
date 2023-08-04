@@ -683,7 +683,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         .map(s -> (GebuchteLeistung) s)
                         .filter(s -> {
                             if (s.getLeistungsbeschreibung() instanceof Stellplatzfunktion function) {
-                                return function.getStellplaetze().contains(pitch);
+                                return !function.getStellplaetze().contains(pitch);
                             }
                             return false;
                         })
