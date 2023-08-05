@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Campingplatzverwaltung - No config" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="swe.ka.dhbw.control.Campingplatzverwaltung" />
+    <module name="Campingplatzverwaltung" />
+    <option name="PROGRAM_PARAMETERS" value="-d ./data/db -p ./data/configuration.properties -i ./data/images --skip-configuration" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

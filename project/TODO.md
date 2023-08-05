@@ -1,4 +1,0 @@
--   [ ] Den Campingplatzverwaltungsorder als Subfolder hier reinkopieren (ohne .idea, .git, target, README.md)
--   [ ] Readme füllen
--   [ ] Ganzes SWE Dokument einfügen
--   [ ] Bedienungsanleitungsdokument einfügen
