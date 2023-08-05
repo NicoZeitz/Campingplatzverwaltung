@@ -1011,14 +1011,14 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         parentComponent,
                         ServiceSelectorComponent.Commands.SET_START_DATE,
                         (Optional<LocalDate>) guiEvent.getData(),
-                        true
+                        false
                 );
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_SELECT_END_DATE) {
                 this.openDialogDatePicker(
                         parentComponent,
                         ServiceSelectorComponent.Commands.SET_END_DATE,
                         (Optional<LocalDate>) guiEvent.getData(),
-                        true
+                        false
                 );
             } else if (guiEvent.getCmd() == ServiceSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
                 final var dialog = SwingUtilities.getWindowAncestor(serviceSelectorComponent);
