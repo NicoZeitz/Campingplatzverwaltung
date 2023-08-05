@@ -1,0 +1,16 @@
+#ADRESSE_ID;STRASSE;HAUSNUMMER;ZUSATZ;ORT;PLZ;LAND;DUMMY_DATA
+1;Erzbergerstraße;121;;Karlsruhe;76133;DE;NULL
+2;Dietmar-Hopp-Allee;1;2. Stock;Walldorf;69190;DE;NULL
+3;Frankfurter Straße;1;;Mannheim;68161;DE;NULL
+4;Kriegsstraße;1;;Karlsruhe;76133;DE;NULL
+5;Potsdamer Platz;1;;Berlin;10785;DE;NULL
+6;Königstraße;1;;Stuttgart;70173;DE;NULL
+7;Westhafenstraße;1;;Frankfurt am Main;60327;DE;NULL
+8;Westminsterstraße;1;;London;SW1A 0AA;GB;NULL
+9;Broadway;1;;New York;10036;US;NULL
+10;Rue de Rivoli;1;;Paris;75001;FR;NULL
+11;Graslitzer Straße;3;;Gelnhausen;63571;DE;NULL
+12;Veilchenstraße;12;;Berlin-Spandau;12345;DE;NULL
+13;Wienstraße;36;;Wien;54321;AT;NULL
+14;Rue de la Paix;1;;Paris;75002;FR;NULL
+15;Kaiserallee;1;;Berlin;12345;DE;NULL

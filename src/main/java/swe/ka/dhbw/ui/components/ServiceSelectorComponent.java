@@ -47,7 +47,6 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
         public final Class<?> payloadType;
         public final String cmdText;
 
-        @SuppressWarnings("SameParameterValue")
         Commands(final String cmdText) {
             this(cmdText, Void.class);
         }
@@ -77,7 +76,6 @@ public class ServiceSelectorComponent extends GUIComponent implements IGUIEventL
     // Data
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
     private List<? extends IDepictable> serviceTypes = new ArrayList<>();
-    @SuppressWarnings("FieldCanBeLocal")
     private Mode mode = Mode.CREATE;
 
     // Components

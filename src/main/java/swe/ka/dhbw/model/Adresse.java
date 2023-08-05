@@ -61,7 +61,6 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
     private final int adresseID;
     private String strasse;
     private int hausnummer;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<String> zusatz;
     private String ort;
     private String plz;
@@ -71,7 +70,7 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
             final int adresseID,
             final String strasse,
             final int hausnummer,
-            @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<String> zusatz,
+            final Optional<String> zusatz,
             final String ort,
             final String plz,
             final Land land
@@ -111,7 +110,7 @@ public final class Adresse implements IPersistable, IDepictable, ICSVPersistable
         return this.zusatz;
     }
 
-    public void setZusatz(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<String> zusatz) {
+    public void setZusatz(final Optional<String> zusatz) {
         Validator.getInstance().validateNotNull(zusatz);
         this.zusatz = zusatz;
     }

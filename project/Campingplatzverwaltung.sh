@@ -1,0 +1,1 @@
+java -jar ./Campingplatzverwaltung.jar -d ./data/db -p ./data/configuration.properties -i ./data/images

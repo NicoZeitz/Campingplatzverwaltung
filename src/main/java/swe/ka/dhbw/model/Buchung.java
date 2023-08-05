@@ -39,7 +39,6 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
     private LocalDateTime anreise;
     private LocalDateTime abreise;
     private Stellplatz gebuchterStellplatz;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<Rechnung> rechnung = Optional.empty();
     private Gast verantwortlicherGast;
 
@@ -98,7 +97,7 @@ public final class Buchung implements IPersistable, ICSVPersistable, IDepictable
         this.setRechnung(Optional.of(rechnung));
     }
 
-    public void setRechnung(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Rechnung> rechnung) {
+    public void setRechnung(final Optional<Rechnung> rechnung) {
         Validator.getInstance().validateNotNull(rechnung);
         this.rechnung = rechnung;
     }

@@ -209,7 +209,6 @@ public class CSVDatenbasis implements Datenbasis<ICSVPersistable> {
         return Files.size(filePath) > 0;
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private void write(
             final Class<?> c,
             final List<ICSVPersistable> entities,
