@@ -1172,16 +1172,16 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         this.entityManager.generateNextPrimaryKey(Ausruestung.class),
                         payload.description().get(),
                         payload.amount(),
-                        payload.height().get(),
                         payload.width().get(),
+                        payload.height().get(),
                         payload.licensePlate().get(),
                         (Fahrzeug.Typ) payload.vehicleTyp().get()
                 ) : new Ausruestung(
                         this.entityManager.generateNextPrimaryKey(Ausruestung.class),
                         payload.description().get(),
                         payload.amount(),
-                        payload.height().get(),
-                        payload.width().get()
+                        payload.width().get(),
+                        payload.height().get()
                 );
                 entityManager.persist(equipment);
 
