@@ -39,7 +39,6 @@ public class EntityFactory {
         this.database = database;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     public IPersistable createElement(final Class<?> c, final String[] csvData) {
         Validator.getInstance().validateNotNull(c);
         Validator.getInstance().validateNotNull(csvData);

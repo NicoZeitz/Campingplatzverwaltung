@@ -57,7 +57,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         public final Class<?> payloadType;
         public final String cmdText;
 
-        @SuppressWarnings("SameParameterValue")
         Commands(final String cmdText, final Class<?> payloadType) {
             this.cmdText = cmdText;
             this.payloadType = payloadType;
@@ -180,8 +179,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
     // observer pattern
 
-    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     public void processUpdateEvent(final UpdateEvent updateEvent) {
         // react to own events and fire additional companion events
         if (updateEvent.getCmd() instanceof Commands command) {
@@ -487,7 +486,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     public void handleWindowBookingChangeGuestDeleted(final GUIComponent source,
                                                       final List<Gast> selectedGuests,
                                                       final Gast deletedGuest,
-                                                      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Gast> responsibleGuest) {
+                                                      final Optional<Gast> responsibleGuest) {
         final var newSelectedGuests = new ArrayList<>(selectedGuests);
         newSelectedGuests.remove(deletedGuest);
 
@@ -812,8 +811,8 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     }
 
     public void handleWindowBookingListSearchInputChanged(final List<IDepictable> allBookings,
-                                                          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDate> startDate,
-                                                          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDate> endDate) {
+                                                          final Optional<LocalDate> startDate,
+                                                          final Optional<LocalDate> endDate) {
         var filteredBookings = (List<Buchung>) new ArrayList<>(allBookings
                 .stream()
                 .map(depictable -> this.entityManager.findOne(Buchung.class, depictable.getAttributeArray()[0].getValue()).orElse(null))
@@ -923,7 +922,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
     // Initialization
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public void openDialogDatePicker(
             final GUIComponent parentComponent,
             final EventCommand eventToEmit,
@@ -1167,7 +1165,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     return;
                 }
 
-                @SuppressWarnings("ConstantValue") final var equipment = payload.licensePlate().isPresent() && payload.vehicleTyp().isPresent()
+                final var equipment = payload.licensePlate().isPresent() && payload.vehicleTyp().isPresent()
                         ? new Fahrzeug(
                         this.entityManager.generateNextPrimaryKey(Ausruestung.class),
                         payload.description().get(),
@@ -1225,7 +1223,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
 
     public void openDialogGuestCreate(
             final GUIComponent parentComponent,
-            @SuppressWarnings("unused") final EventCommand eventToEmit
+            final EventCommand eventToEmit
     ) {
         final var parentWindow = this.getNearestWindow(parentComponent);
         final var windowLocation = this.getConfig().getWindowLocation("Dialog::GuestCreate").withWidth(350).withHeight(350);
@@ -1753,7 +1751,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return (JFrame) SwingUtilities.getWindowAncestor(maybeFrame);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     private JDialog openInDialog(final Container content,
                                  final Frame parentWindow,
                                  final String title,
@@ -1821,7 +1818,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         return frame;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     private JFrame openInWindow(final Container content,
                                 final String title,
                                 final String windowLocationKey,

@@ -28,13 +28,11 @@ public class Configuration implements ReadonlyConfiguration {
         private Builder() throws Exception {
         }
 
-        @SuppressWarnings("UnusedReturnValue")
         public Builder accentColor(final Color color) {
             this.accentColor = color;
             return this;
         }
 
-        @SuppressWarnings("UnusedReturnValue")
         public Builder addProperties(Properties properties) {
             if (properties.containsKey("windows")) {
                 final var serializedLocations = properties.getProperty("windows");
@@ -71,7 +69,6 @@ public class Configuration implements ReadonlyConfiguration {
             );
         }
 
-        @SuppressWarnings("UnusedReturnValue")
         public Builder darkMode() {
             return this
                     .textColor(DARK_DEFAULT_TEXT_COLOR)
@@ -79,26 +76,22 @@ public class Configuration implements ReadonlyConfiguration {
                     .backgroundColor(DARK_DEFAULT_BACKGROUND_COLOR);
         }
 
-        @SuppressWarnings("unused")
         public Builder failureColor(final Color color) {
             this.failureColor = color;
             return this;
         }
 
-        @SuppressWarnings("UnusedReturnValue")
         public Builder font(final Font font) {
             this.fontFamily = font.getFamily();
             this.fontSize = font.getSize();
             return this;
         }
 
-        @SuppressWarnings("unused")
         public Builder fontFamily(final String family) {
             this.fontFamily = family;
             return this;
         }
 
-        @SuppressWarnings("unused")
         public Builder fontSize(final int size) {
             if (size <= 0) {
                 throw new IllegalArgumentException("Configuration with a font size of '" + size + "' is not allowed as it is not greater than 0");
@@ -107,7 +100,6 @@ public class Configuration implements ReadonlyConfiguration {
             return this;
         }
 
-        @SuppressWarnings("UnusedReturnValue")
         public Builder lightMode() {
             return this
                     .textColor(DEFAULT_TEXT_COLOR)
@@ -126,7 +118,6 @@ public class Configuration implements ReadonlyConfiguration {
             return this;
         }
 
-        @SuppressWarnings("unused")
         public Builder successColor(final Color color) {
             this.successColor = color;
             return this;
@@ -137,7 +128,6 @@ public class Configuration implements ReadonlyConfiguration {
             return this;
         }
 
-        @SuppressWarnings("unused")
         public Builder windowLocation(final String windowName, final WindowLocation windowLocation) {
             if (windowLocation.x() <= 0) {
                 throw new IllegalArgumentException("Configuration with a window x of '" + windowLocation.x() + "' is not allowed as it is not greater than 0");
@@ -237,7 +227,6 @@ public class Configuration implements ReadonlyConfiguration {
         return this.accentColor;
     }
 
-    @SuppressWarnings("unused")
     public void setAccentColor(final Color accentColor) {
         this.accentColor = accentColor;
     }
@@ -247,7 +236,6 @@ public class Configuration implements ReadonlyConfiguration {
         return this.backgroundColor;
     }
 
-    @SuppressWarnings("unused")
     public void setBackgroundColor(final Color backgroundColor) {
         this.backgroundColor = backgroundColor;
     }
@@ -257,7 +245,6 @@ public class Configuration implements ReadonlyConfiguration {
         return this.failureColor;
     }
 
-    @SuppressWarnings("unused")
     public void setFailureColor(final Color failureColor) {
         this.failureColor = failureColor;
     }
@@ -272,7 +259,6 @@ public class Configuration implements ReadonlyConfiguration {
         return this.fontFamily;
     }
 
-    @SuppressWarnings("unused")
     public void setFontFamily(final String fontFamily) {
         this.fontFamily = fontFamily;
     }
@@ -282,7 +268,6 @@ public class Configuration implements ReadonlyConfiguration {
         return this.fontSize;
     }
 
-    @SuppressWarnings("unused")
     public void setFontSize(final int fontSize) {
         this.fontSize = fontSize;
     }
@@ -311,7 +296,6 @@ public class Configuration implements ReadonlyConfiguration {
         return this.secondaryBackgroundColor;
     }
 
-    @SuppressWarnings("unused")
     public void setSecondaryBackgroundColor(final Color secondaryBackgroundColor) {
         this.secondaryBackgroundColor = secondaryBackgroundColor;
     }
@@ -327,7 +311,6 @@ public class Configuration implements ReadonlyConfiguration {
 
     }
 
-    @SuppressWarnings("unused")
     public void setSuccessColor(final Color successColor) {
         this.successColor = successColor;
     }
@@ -337,7 +320,6 @@ public class Configuration implements ReadonlyConfiguration {
         return this.textColor;
     }
 
-    @SuppressWarnings("unused")
     public void setTextColor(final Color textColor) {
         this.textColor = textColor;
     }

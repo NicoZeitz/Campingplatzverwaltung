@@ -18,7 +18,6 @@ public sealed abstract class Anlage implements IDepictable, IPersistable permits
     protected final int anlageId;
     protected final Set<Foto> fotos = new LinkedHashSet<>();
     protected GPSPosition lage;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     protected Optional<Bereich> bereich = Optional.empty();
 
     public Anlage(final int anlageId, final GPSPosition lage) {
@@ -48,7 +47,7 @@ public sealed abstract class Anlage implements IDepictable, IPersistable permits
         this.setBereich(Optional.ofNullable(bereich));
     }
 
-    public void setBereich(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Bereich> bereich) {
+    public void setBereich(final Optional<Bereich> bereich) {
         Validator.getInstance().validateNotNull(bereich);
 
         if (this.bereich.equals(bereich)) {

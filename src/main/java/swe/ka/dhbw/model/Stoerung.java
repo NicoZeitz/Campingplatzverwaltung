@@ -46,7 +46,6 @@ public final class Stoerung implements IDepictable, ICSVPersistable, IPersistabl
     private LocalDateTime behebungsdatum;
     private Status status;
     private Personal verantwortlicher;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<Stellplatzfunktion> stellplatzfunktion = Optional.empty();
 
     public Stoerung(final int stoerungsnummer,
@@ -134,7 +133,7 @@ public final class Stoerung implements IDepictable, ICSVPersistable, IPersistabl
         this.setStellplatzfunktion(Optional.ofNullable(stellplatzfunktion));
     }
 
-    public void setStellplatzfunktion(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Stellplatzfunktion> stellplatzfunktion) {
+    public void setStellplatzfunktion(final Optional<Stellplatzfunktion> stellplatzfunktion) {
         Validator.getInstance().validateNotNull(stellplatzfunktion);
         this.stellplatzfunktion = stellplatzfunktion;
     }

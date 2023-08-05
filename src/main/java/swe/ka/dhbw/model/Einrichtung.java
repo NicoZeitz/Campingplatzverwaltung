@@ -38,7 +38,6 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
     private String beschreibung;
     private LocalDateTime letzteWartung;
     private List<Oeffnungstag> oeffnungstage = new ArrayList<>();
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<Fremdfirma> zustaendigeFirma = Optional.empty();
 
     public Einrichtung(final int anlageId,
@@ -101,7 +100,7 @@ public final class Einrichtung extends Anlage implements ICSVPersistable, IPersi
         this.setZustaendigeFirma(Optional.ofNullable(zustaendigeFirma));
     }
 
-    public void setZustaendigeFirma(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<Fremdfirma> zustaendigeFirma) {
+    public void setZustaendigeFirma(final Optional<Fremdfirma> zustaendigeFirma) {
         Validator.getInstance().validateNotNull(zustaendigeFirma);
 
         if (this.zustaendigeFirma.equals(zustaendigeFirma)) {

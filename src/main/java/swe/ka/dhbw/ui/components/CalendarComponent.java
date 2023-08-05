@@ -24,7 +24,6 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         public final Class<?> payloadType;
         public final String cmdText;
 
-        @SuppressWarnings("SameParameterValue")
         Commands(final String cmdText, final Class<?> payloadType) {
             this.cmdText = cmdText;
             this.payloadType = payloadType;
@@ -41,7 +40,6 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         }
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public CalendarComponent(final ReadonlyConfiguration config, final Optional<LocalDate> date) {
         super("CalendarComponent", config);
         this.initUI(date);
@@ -110,7 +108,6 @@ public class CalendarComponent extends GUIComponent implements IGUIEventListener
         }
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private void initUI(final Optional<LocalDate> date) {
         this.setLayout(new BorderLayout());
         this.setBackground(this.config.getBackgroundColor());

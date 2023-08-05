@@ -191,7 +191,6 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
     private List<? extends IDepictable> availablePitches = new ArrayList<>();
     private List<? extends IDepictable> allChipCards = new ArrayList<>();
     private List<? extends IDepictable> availableChipCards = new ArrayList<>();
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<? extends IDepictable> responsibleGuest = Optional.empty();
     private List<? extends IDepictable> associatedGuests = new ArrayList<>();
     private List<? extends IDepictable> bookedServices = new ArrayList<>();

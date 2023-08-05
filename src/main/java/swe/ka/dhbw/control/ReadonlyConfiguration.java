@@ -23,7 +23,6 @@ public interface ReadonlyConfiguration {
 
     Font getLargeFont();
 
-    @SuppressWarnings("unused")
     Font getSmallFont();
 
     Font getHeaderFont();
