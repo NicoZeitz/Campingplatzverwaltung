@@ -1,0 +1,1 @@
+java -jar ./SWE-PE-2022_Campingplatzverwaltung_Fabian-Wolf_Nico-Zeitz.jar -d ./data/db -p ./data/configuration.properties -i ./data/images
