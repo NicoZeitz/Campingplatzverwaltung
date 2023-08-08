@@ -111,10 +111,15 @@ public class GUIBuchungObserver implements IGUIEventListener {
                     );
                 }
                 // equipment
-                case BUTTON_PRESSED_ADD_EQUIPMENT -> controller.openDialogEquipmentSelector(
-                        (GUIComponent) guiEvent.getSource(),
-                        BookingChangeComponent.Commands.ADD_RENTED_EQUIPMENT
-                );
+                case BUTTON_PRESSED_ADD_EQUIPMENT -> {
+                    final var excludedEquipment = new HashSet<>((List<Ausruestung>) guiEvent.getData());
+
+                    controller.openDialogEquipmentSelector(
+                            (GUIComponent) guiEvent.getSource(),
+                            BookingChangeComponent.Commands.ADD_RENTED_EQUIPMENT,
+                            excludedEquipment
+                    );
+                }
                 case BUTTON_PRESSED_INCREMENT_EQUIPMENT_COUNT -> {
                     final var payload = (BookingChangeComponent.EquipmentEditPayload) guiEvent.getData();
                     controller.handleWindowBookingChangeEditEquipment(

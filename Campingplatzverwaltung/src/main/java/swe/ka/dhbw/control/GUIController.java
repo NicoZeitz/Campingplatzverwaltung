@@ -210,7 +210,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     // general methods
 
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
-        for (final var eventListener : this.updateEventObservers) {
+        for (final var eventListener : new ArrayList<>(this.updateEventObservers)) {
             if (eventListener instanceof IUpdateEventListener updateListener) {
                 updateListener.processUpdateEvent(updateEvent);
             }
@@ -466,7 +466,24 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         if (newCount <= 0) {
             newRentEquipment.remove(equipmentToEdit);
         } else {
-            rentedEquipment.get(index).setAnzahl(newCount);
+            // always create new equipment to avoid changing the equipment of another booking
+            final var newEquipment = equipmentToEdit instanceof Fahrzeug f1
+                    ? new Fahrzeug(
+                    this.entityManager.generateNextPrimaryKey(Ausruestung.class),
+                    equipmentToEdit.getBezeichnung(),
+                    newCount,
+                    equipmentToEdit.getBreite(),
+                    equipmentToEdit.getHoehe(),
+                    f1.getKennzeichen(),
+                    f1.getTyp()
+            ) : new Ausruestung(
+                    this.entityManager.generateNextPrimaryKey(Ausruestung.class),
+                    equipmentToEdit.getBezeichnung(),
+                    newCount,
+                    equipmentToEdit.getBreite(),
+                    equipmentToEdit.getHoehe()
+            );
+            rentedEquipment.set(index, newEquipment);
         }
         this.fireUpdateEvent(new UpdateEvent(
                 this,
@@ -476,7 +493,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                         new UpdateEvent(
                                 GUIController.this,
                                 BookingChangeComponent.Commands.SET_RENTED_EQUIPMENT,
-                                rentedEquipment
+                                rentedEquipment.stream().distinct().collect(Collectors.toList())
                         )
 
                 )
@@ -942,7 +959,6 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
             }
             final var dialog = SwingUtilities.getWindowAncestor(calendarComponent);
             dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-            // TODO: can we do this in a better way?
             if (wrapEventInTabDelegation) {
                 this.fireUpdateEvent(new UpdateEvent(
                         this,
@@ -1113,29 +1129,29 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
     }
 
-    public void openDialogEquipmentSelector(
+    public void openDialogEquipmentCreate(
             final GUIComponent parentComponent,
             final EventCommand eventToEmit
     ) {
         // create dialog
-        final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig());
-        this.addObserver(equipmentSelectorComponent);
+        final var equipmentCreateComponent = new EquipmentCreateComponent(this.getConfig());
+        this.addObserver(equipmentCreateComponent);
 
         // create data for dialog
         final var vehicleTypes = Arrays.stream(Fahrzeug.Typ.values()).toList();
-        this.fireUpdateEvent(new UpdateEvent(this, EquipmentSelectorComponent.Commands.SET_VEHICLE_TYPES, vehicleTypes));
+        this.fireUpdateEvent(new UpdateEvent(this, EquipmentCreateComponent.Commands.SET_VEHICLE_TYPES, vehicleTypes));
 
         // set window properties
-        final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(440);
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentCreate").withWidth(440).withHeight(440);
         final var parentWindow = this.getNearestWindow(parentComponent);
 
         // react to changes in dialog
-        equipmentSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
-            if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_CANCEL) {
-                final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
+        equipmentCreateComponent.addObserver((IGUIEventListener) guiEvent -> {
+            if (guiEvent.getCmd() == EquipmentCreateComponent.Commands.BUTTON_PRESSED_CANCEL) {
+                final var dialog = SwingUtilities.getWindowAncestor(equipmentCreateComponent);
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
-            } else if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_SAVE) {
-                final var payload = (EquipmentSelectorComponent.SavePayload) guiEvent.getData();
+            } else if (guiEvent.getCmd() == EquipmentCreateComponent.Commands.BUTTON_PRESSED_SAVE) {
+                final var payload = (EquipmentCreateComponent.SavePayload) guiEvent.getData();
                 if (payload.description().isEmpty()) {
                     JOptionPane.showMessageDialog(
                             parentComponent,
@@ -1183,11 +1199,78 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                 );
                 entityManager.persist(equipment);
 
+                final var dialog = SwingUtilities.getWindowAncestor(equipmentCreateComponent);
+                this.removeObserver(equipmentCreateComponent);
+                dialog.dispose();
+                SwingUtilities.invokeLater(() -> {
+                    this.fireUpdateEvent(new UpdateEvent(
+                            this,
+                            eventToEmit,
+                            equipment
+                    ));
+                });
+            }
+        });
+
+        // open Dialog
+        this.openInDialog(equipmentCreateComponent, parentWindow, "Ausrüstung erstellen", windowLocation, (e) -> {
+            final var decision = JOptionPane.showConfirmDialog(
+                    null,
+                    "Wollen Sie das Erstellen einer Ausrüstung wirklich abbrechen?",
+                    "Ausrüstungsauswahl abbrechen",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            final var close = decision == JOptionPane.YES_OPTION;
+            if (close) {
+                this.removeObserver(equipmentCreateComponent);
+                final var window = e.getWindow();
+                this.app.getConfig().setWindowLocation("Dialog::EquipmentCreate", WindowLocation.from(window));
+            }
+            return close;
+        });
+    }
+
+    public void openDialogEquipmentSelector(
+            final GUIComponent parentComponent,
+            final EventCommand eventToEmit,
+            final Set<Ausruestung> excludedEquipment
+    ) {
+        // create dialog
+        final var equipmentSelectorComponent = new EquipmentSelectorComponent(this.getConfig());
+        this.addObserver(equipmentSelectorComponent);
+
+        // set window properties
+        final var windowLocation = this.getConfig().getWindowLocation("Dialog::EquipmentSelector").withWidth(440).withHeight(320);
+        final var parentWindow = this.getNearestWindow(parentComponent);
+
+        // react to changes in dialog
+        equipmentSelectorComponent.addObserver((IGUIEventListener) guiEvent -> {
+            if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.SEARCH_INPUT_CHANGED) {
+                final var payload = ((EquipmentSelectorComponent.SearchInputChangedPayload) guiEvent.getData());
+                final var searchInput = payload.text().toLowerCase();
+                final var filteredEquipment = payload.guests()
+                        .stream()
+                        .filter(e -> searchInput.isBlank() || ((Ausruestung) e).getBezeichnung().toLowerCase().contains(searchInput))
+                        .toList();
+
+                this.fireUpdateEvent(new UpdateEvent(
+                        this,
+                        EquipmentSelectorComponent.Commands.UPDATE_FILTERED_EQUIPMENT,
+                        filteredEquipment
+                ));
+            } else if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_ADD_EQUIPMENT) {
+                this.openDialogEquipmentCreate((GUIComponent) guiEvent.getSource(), EquipmentSelectorComponent.Commands.SELECT_EQUIPMENT);
+            } else if (guiEvent.getCmd() == EquipmentSelectorComponent.Commands.BUTTON_PRESSED_EQUIPMENT_SELECTED) {
+                final var equipment = (Ausruestung) guiEvent.getData();
+
                 final var dialog = SwingUtilities.getWindowAncestor(equipmentSelectorComponent);
                 this.removeObserver(equipmentSelectorComponent);
                 dialog.dispose();
+                entityManager.persist(equipment);
+
                 this.fireUpdateEvent(new UpdateEvent(
-                        this,
+                        GUIController.this,
                         GUIBuchung.Commands.SEND_EVENT_TO_TAB,
                         new GUIBuchung.SendEventToTabPayload(
                                 parentComponent,
@@ -1196,11 +1279,18 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                                         eventToEmit,
                                         equipment
                                 )
-
                         )
                 ));
             }
         });
+
+        // create data for dialog
+        final var equipment = this.entityManager
+                .find(Ausruestung.class)
+                .stream()
+                .filter(g -> !excludedEquipment.contains(g))
+                .toList();
+        this.fireUpdateEvent(new UpdateEvent(this, EquipmentSelectorComponent.Commands.UPDATE_EQUIPMENT, equipment));
 
         // open Dialog
         this.openInDialog(equipmentSelectorComponent, parentWindow, "Ausrüstung auswählen", windowLocation, (e) -> {

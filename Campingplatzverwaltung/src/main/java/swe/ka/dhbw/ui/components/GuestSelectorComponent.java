@@ -129,7 +129,7 @@ public class GuestSelectorComponent extends GUIComponent implements IGUIEventLis
     }
 
     private void initUI() {
-        final var border = BorderFactory.createTitledBorder("Gast hinzufügen");
+        final var border = BorderFactory.createTitledBorder("Gast auswählen");
         border.setTitleFont(this.config.getLargeFont());
         border.setTitleColor(this.config.getTextColor());
         this.setBorder(border);

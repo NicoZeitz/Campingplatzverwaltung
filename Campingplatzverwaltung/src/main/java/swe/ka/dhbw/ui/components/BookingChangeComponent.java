@@ -254,7 +254,11 @@ public class BookingChangeComponent extends GUIComponent implements IGUIEventLis
                         )
                 ));
                 case ADD_SERVICE_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_ADD_SERVICE));
-                case ADD_EQUIPMENT_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(this, Commands.BUTTON_PRESSED_ADD_EQUIPMENT));
+                case ADD_EQUIPMENT_BUTTON_ELEMENT_ID -> this.fireGUIEvent(new GUIEvent(
+                        this,
+                        Commands.BUTTON_PRESSED_ADD_EQUIPMENT,
+                        this.rentedEquipment
+                ));
                 case BOOKING_PERIOD_FROM_ATTRIBUTE_ELEMENT_ID -> {
                     if (guiEvent.getCmd() != AttributeElement.Commands.BUTTON_PRESSED) {
                         return;
