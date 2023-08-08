@@ -29,6 +29,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1286,10 +1287,21 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
         });
 
         // create data for dialog
+        final var alreadySeenEquipment = new HashSet<Ausruestung>();
         final var equipment = this.entityManager
                 .find(Ausruestung.class)
                 .stream()
-                .filter(g -> !excludedEquipment.contains(g))
+                .distinct()
+                .filter(e -> !excludedEquipment.contains(e))
+                .filter(e -> {
+                    for(final var alreadySeen : alreadySeenEquipment) {
+                        if (alreadySeen.equalsOtherThanAmount(e)) {
+                            return false;
+                        }
+                    }
+                    alreadySeenEquipment.add(e);
+                    return true;
+                })
                 .toList();
         this.fireUpdateEvent(new UpdateEvent(this, EquipmentSelectorComponent.Commands.UPDATE_EQUIPMENT, equipment));
 
