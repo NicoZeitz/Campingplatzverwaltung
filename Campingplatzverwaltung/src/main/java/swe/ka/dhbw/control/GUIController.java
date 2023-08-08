@@ -210,7 +210,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
     // general methods
 
     public void fireUpdateEvent(final UpdateEvent updateEvent) {
-        for (final var eventListener : this.updateEventObservers) {
+        for (final var eventListener : new ArrayList<>(this.updateEventObservers)) {
             if (eventListener instanceof IUpdateEventListener updateListener) {
                 updateListener.processUpdateEvent(updateEvent);
             }
