@@ -160,32 +160,29 @@ public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepic
         return this.getAnzahl() + "x " + this.getBezeichnung() + " (" + this.getBreite() + "x" + this.getHoehe() + ")";
     }
 
-    public boolean equalsAttributes(final Ausruestung that) {
-        if (this == that) return true;
-
-        final var equalsEquipment = this.getAnzahl() == that.getAnzahl() &&
-                Double.compare(this.getBreite(), that.getBreite()) == 0 &&
-                Double.compare(this.getHoehe(), that.getHoehe()) == 0 &&
-                Objects.equals(this.getBezeichnung(), that.getBezeichnung());
-
-        if(!(this instanceof Fahrzeug) && !(that instanceof Fahrzeug)) {
-            return equalsEquipment;
-        }
-
-        if(this instanceof Fahrzeug f1 && that instanceof Fahrzeug f2) {
-            return equalsEquipment && f1.getKennzeichen().equals(f2.getKennzeichen()) && f1.getTyp().equals(f2.getTyp());
-        }
-
-        return false;
-    }
-
-
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (!(o instanceof Ausruestung that)) return false;
         return this.getAusruestungsId() == that.getAusruestungsId();
+    }
+
+    public boolean equalsOtherThanAmount(final Ausruestung that) {
+        final var thisComparison = this.getBezeichnung().equals(that.getBezeichnung()) &&
+                this.getBreite() == that.getBreite() &&
+                this.getHoehe() == that.getHoehe();
+
+        if (this instanceof Fahrzeug f1 && that instanceof Fahrzeug f2) {
+            return thisComparison &&
+                    f1.getKennzeichen().equals(f2.getKennzeichen()) &&
+                    f1.getTyp() == f2.getTyp();
+        }
+
+        if (this instanceof Fahrzeug || that instanceof Fahrzeug) {
+            return false;
+        }
+
+        return thisComparison;
     }
 
     @Override
