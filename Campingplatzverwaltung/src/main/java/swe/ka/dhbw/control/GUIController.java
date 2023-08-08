@@ -483,6 +483,7 @@ public class GUIController implements IUpdateEventSender, IUpdateEventListener {
                     equipmentToEdit.getBreite(),
                     equipmentToEdit.getHoehe()
             );
+            this.entityManager.persist(newEquipment);
             rentedEquipment.set(index, newEquipment);
         }
         this.fireUpdateEvent(new UpdateEvent(

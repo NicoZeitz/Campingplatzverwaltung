@@ -90,20 +90,8 @@ public sealed class Ausruestung implements ICSVPersistable, IPersistable, IDepic
 
     @Override
     public int compareTo(final Ausruestung that) {
-        // sort Vehicle after all other Equipment
-        if (this instanceof Fahrzeug && !(that instanceof Fahrzeug)) {
-            return 1;
-        }
-
-        if (!(this instanceof Fahrzeug) && that instanceof Fahrzeug) {
-            return 1;
-        }
-
         return String.CASE_INSENSITIVE_ORDER.compare(this.getBezeichnung(), that.getBezeichnung());
     }
-
-
-
 
     @Override
     public Attribute[] getAttributeArray() {
