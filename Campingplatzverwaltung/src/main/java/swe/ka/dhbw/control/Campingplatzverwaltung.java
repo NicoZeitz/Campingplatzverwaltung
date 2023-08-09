@@ -10,6 +10,7 @@ import swe.ka.dhbw.util.ArgumentParseException;
 import swe.ka.dhbw.util.ArgumentParser;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class Campingplatzverwaltung {
@@ -57,6 +58,10 @@ public final class Campingplatzverwaltung {
     }
 
     public void startApplication(final ArgumentParser.ArgumentsParseResult arguments) throws Exception {
+        Files.createDirectories(Path.of(arguments.dataPath()).toAbsolutePath().normalize());
+        Files.createDirectories(Path.of(arguments.propertiesPath()).getParent().toAbsolutePath().normalize());
+        Files.createDirectories(Path.of(arguments.imagesPath()).toAbsolutePath().normalize());
+
         final var propManager = new PropertyManager(arguments.propertiesPath(), Configuration.class, "/configuration.properties");
         final var controller = GUIController.getInstance();
         final var entityManager = EntityManager.getInstance();
